@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import toast from "react-hot-toast";
@@ -15,18 +15,16 @@ import {
   Loader2,
   Calendar,
   Tag,
-  BarChart3,
-  Archive,
+  Briefcase,
+  Key,
+  Search,
+  ChevronRight,
 } from "lucide-react";
 
 const EmployerDashboard = () => {
   const { user } = useAuth();
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchInterviews();
-  }, []);
 
   const fetchInterviews = async () => {
     try {
@@ -40,6 +38,10 @@ const EmployerDashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInterviews();
+  }, []);
 
   const stats = [
     {
@@ -64,35 +66,32 @@ const EmployerDashboard = () => {
       bgGlow: "shadow-warning-500/10",
     },
     {
-      label: "Draft",
-      value: interviews.filter((i) => i.status === "draft").length,
-      icon: FileText,
-      color: "from-dark-400 to-dark-300",
-      bgGlow: "shadow-dark-400/10",
+      label: "Total Candidates",
+      value: interviews.reduce((acc, curr) => acc + (curr.assignedCandidates?.length || 0), 0),
+      icon: Users,
+      color: "from-info-500 to-info-400",
+      bgGlow: "shadow-info-500/10",
     },
   ];
 
   const getStatusBadge = (status) => {
     const styles = {
-      active:
-        "bg-accent-500/15 text-accent-400 border border-accent-500/20",
-      completed:
-        "bg-warning-500/15 text-warning-400 border border-warning-500/20",
-      draft:
-        "bg-dark-500/15 text-dark-300 border border-dark-500/20",
-      archived:
-        "bg-danger-500/15 text-danger-400 border border-danger-500/20",
+      active: "bg-accent-500/15 text-accent-400 border border-accent-500/20",
+      completed: "bg-warning-500/15 text-warning-400 border border-warning-500/20",
+      draft: "bg-dark-500/15 text-dark-300 border border-dark-500/20",
+      archived: "bg-danger-500/15 text-danger-400 border border-danger-500/20",
     };
     return styles[status] || styles.draft;
   };
 
-  const getDifficultyBadge = (difficulty) => {
+  const getDifficultyBadge = (experienceLevel) => {
     const styles = {
-      easy: "text-accent-400",
-      medium: "text-warning-400",
-      hard: "text-danger-400",
+      "Fresher": "text-accent-400",
+      "1-2 Years": "text-warning-400",
+      "3-5 Years": "text-primary-400",
+      "5+ Years": "text-danger-400",
     };
-    return styles[difficulty] || styles.medium;
+    return styles[experienceLevel] || styles["Fresher"];
   };
 
   return (
@@ -102,8 +101,7 @@ const EmployerDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in-up">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-dark-50">
-              Welcome back,{" "}
-              <span className="gradient-text">{user?.name}</span>
+              Welcome back, <span className="gradient-text">{user?.name}</span>
             </h1>
             <p className="text-dark-400 mt-1">
               Manage your interviews and track candidate progress.
@@ -185,25 +183,37 @@ const EmployerDashboard = () => {
                           {interview.title}
                         </h3>
                         <span
-                          className={`text-xs px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(interview.status)}`}
+                          className={`text-xs px-2.5 py-0.5 rounded-full capitalize ${getStatusBadge(
+                            interview.status
+                          )}`}
                         >
                           {interview.status}
+                        </span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-dark-700 text-dark-300 font-mono flex items-center gap-1 border border-dark-600">
+                          <Key className="w-3 h-3" />
+                          Code: {interview.interviewCode}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-dark-400">
                         <span className="flex items-center gap-1">
+                          <Briefcase className="w-3.5 h-3.5" />
+                          {interview.jobRole}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          {interview.assignedCandidates?.length || 0} Candidates
+                        </span>
+                        <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
                           {interview.duration} min
                         </span>
-                        <span className="flex items-center gap-1">
-                          <FileText className="w-3.5 h-3.5" />
-                          {interview.numberOfQuestions} questions
-                        </span>
                         <span
-                          className={`flex items-center gap-1 capitalize ${getDifficultyBadge(interview.difficulty)}`}
+                          className={`flex items-center gap-1 capitalize ${getDifficultyBadge(
+                            interview.experienceLevel
+                          )}`}
                         >
                           <Tag className="w-3.5 h-3.5" />
-                          {interview.difficulty}
+                          {interview.experienceLevel}
                         </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5" />
@@ -211,16 +221,14 @@ const EmployerDashboard = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all">
+                    <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                      <Link 
+                        to={`/employer/interviews/${interview._id}`}
+                        className="px-4 py-2 rounded-lg bg-primary-600/10 text-primary-400 hover:bg-primary-600 hover:text-white transition-all flex items-center gap-2 text-sm font-medium border border-primary-500/20 hover:border-transparent"
+                      >
                         <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 rounded-lg text-dark-400 hover:text-warning-400 hover:bg-dark-700 transition-all">
-                        <BarChart3 className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 rounded-lg text-dark-400 hover:text-danger-400 hover:bg-dark-700 transition-all">
-                        <Archive className="w-4 h-4" />
-                      </button>
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 </div>

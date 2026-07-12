@@ -15,23 +15,23 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is logged in on mount
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const checkAuth = async () => {
     try {
       const { data } = await api.get("/auth/me");
       if (data.success) {
         setUser(data.user);
       }
-    } catch {
+    } catch (error) {
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
+
+  // Check if user is logged in on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   const login = async (email, password) => {
     const { data } = await api.post("/auth/login", { email, password });

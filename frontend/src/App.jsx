@@ -8,6 +8,11 @@ import SignupPage from "./pages/SignupPage";
 import EmployerDashboard from "./pages/EmployerDashboard";
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CreateInterviewPage from "./pages/CreateInterviewPage";
+import EditInterviewPage from "./pages/EditInterviewPage";
+import InterviewDetailsPage from "./pages/InterviewDetailsPage";
+import JoinInterviewPage from "./pages/JoinInterviewPage";
+import InterviewInstructionsPage from "./pages/InterviewInstructionsPage";
+import StartInterviewPlaceholder from "./pages/StartInterviewPlaceholder";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -82,6 +87,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/employer/interviews/:id/edit"
+          element={
+            <ProtectedRoute role="employer">
+              <EditInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/interviews/:id"
+          element={
+            <ProtectedRoute role="employer">
+              <InterviewDetailsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Candidate Routes */}
         <Route
@@ -89,6 +110,30 @@ function App() {
           element={
             <ProtectedRoute role="candidate">
               <CandidateDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidate/join"
+          element={
+            <ProtectedRoute role="candidate">
+              <JoinInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidate/interviews/:id"
+          element={
+            <ProtectedRoute role="candidate">
+              <InterviewInstructionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidate/interviews/:id/start"
+          element={
+            <ProtectedRoute role="candidate">
+              <StartInterviewPlaceholder />
             </ProtectedRoute>
           }
         />
