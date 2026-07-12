@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const { signupSchema, loginSchema } = require("../validators/auth.validator");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { signupSchema, loginSchema } from "../validators/auth.validator.js";
 
 // Helper: generate JWT and set cookie
 const sendTokenResponse = (user, statusCode, res) => {
@@ -130,4 +130,4 @@ const getMe = async (req, res) => {
   });
 };
 
-module.exports = { signup, login, logout, getMe };
+export { signup, login, logout, getMe };

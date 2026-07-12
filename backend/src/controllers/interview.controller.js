@@ -1,4 +1,4 @@
-const Interview = require("../models/Interview");
+import Interview from "../models/Interview.js";
 
 // @desc    Create a new interview
 // @route   POST /api/interviews
@@ -90,4 +90,4 @@ const getInterviewById = async (req, res, next) => {
   }
 };
 
-module.exports = { createInterview, getInterviews, getInterviewById };
+export { createInterview, getInterviews, getInterviewById };

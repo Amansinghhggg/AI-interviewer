@@ -1,11 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const errorHandler = require("./middleware/errorHandler");
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+
+import errorHandler from "./middleware/errorHandler.js";
 
 // Route imports
-const authRoutes = require("./routes/auth.routes");
-const interviewRoutes = require("./routes/interview.routes");
+import authRoutes from "./routes/auth.routes.js";
+import interviewRoutes from "./routes/interview.routes.js";
 
 const app = express();
 
@@ -26,14 +27,17 @@ app.use(
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, message: "Server is running 🚀" });
+  res.status(200).json({
+    success: true,
+    message: "Server is running 🚀",
+  });
 });
 
-// Mount routes
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/interviews", interviewRoutes);
 
-// Global error handler
+// Global Error Handler
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

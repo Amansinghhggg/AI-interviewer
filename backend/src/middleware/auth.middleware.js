@@ -1,8 +1,8 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 // Protect routes — verify JWT from cookie
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     const token = req.cookies.token;
 
@@ -34,7 +34,7 @@ const protect = async (req, res, next) => {
 };
 
 // Authorize by role
-const authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
@@ -45,5 +45,3 @@ const authorize = (...roles) => {
     next();
   };
 };
-
-module.exports = { protect, authorize };

@@ -1,6 +1,6 @@
-const { z } = require("zod");
+import { z } from "zod";
 
-const signupSchema = z.object({
+export const signupSchema = z.object({
   name: z
     .string({ required_error: "Name is required" })
     .min(2, "Name must be at least 2 characters")
@@ -25,7 +25,7 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const loginSchema = z.object({
+export const loginSchema = z.object({
   email: z
     .string({ required_error: "Email is required" })
     .email("Please provide a valid email")
@@ -35,5 +35,3 @@ const loginSchema = z.object({
     .string({ required_error: "Password is required" })
     .min(1, "Password is required"),
 });
-
-module.exports = { signupSchema, loginSchema };
