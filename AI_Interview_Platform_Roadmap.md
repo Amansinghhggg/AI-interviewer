@@ -72,17 +72,17 @@ Express + Socket.IO
 
 ## Authentication
 
--   Employer signup/login
--   Candidate signup/login
--   JWT authentication
--   Protected routes
--   Role-based access
+-   ✅ Employer signup/login
+-   ✅ Candidate signup/login
+-   ✅ JWT authentication
+-   ✅ Protected routes
+-   ✅ Role-based access
 
 ## Dashboard
 
-Employer - Create interview - View interviews - View reports
+✅ Employer - Create interview - View interviews - View reports
 
-Candidate - Available interviews - Previous interviews
+✅ Candidate - Available interviews - Previous interviews
 
 ------------------------------------------------------------------------
 
