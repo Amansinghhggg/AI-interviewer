@@ -37,7 +37,7 @@ Both modes share the same interview engine.
 - Candidate Assignment
 - Interview Code
 
-### 🚧 Phase 3 (Current)
+### Phase 3 (Current)
 Implement:
 - Interview Landing Page
 - Pre Interview Checks
