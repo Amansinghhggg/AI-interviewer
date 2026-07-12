@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import { signupSchema, loginSchema } from "../validators/auth.validator.js";
+import User from "../users/user.model.js";
+import { signupSchema, loginSchema } from "./auth.validator.js";
 
 // Helper: generate JWT and set cookie
 const sendTokenResponse = (user, statusCode, res) => {

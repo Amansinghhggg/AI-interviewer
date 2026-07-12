@@ -5,8 +5,8 @@ import cookieParser from "cookie-parser";
 import errorHandler from "./middleware/errorHandler.js";
 
 // Route imports
-import authRoutes from "./routes/auth.routes.js";
-import interviewRoutes from "./routes/interview.routes.js";
+import authRoutes from "./modules/auth/auth.routes.js";
+import interviewRoutes from "./modules/interview/interview.routes.js";
 
 const app = express();
 
