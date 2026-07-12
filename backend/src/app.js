@@ -6,7 +6,7 @@ import errorHandler from "./middleware/errorHandler.js";
 
 // Route imports
 import authRoutes from "./modules/auth/auth.routes.js";
-import interviewRoutes from "./modules/interview/interview.routes.js";
+import interviewRoutes from "./modules/interview/routes/interview.routes.js";
 
 const app = express();
 

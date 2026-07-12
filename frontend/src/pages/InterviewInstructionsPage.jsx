@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import toast from "react-hot-toast";
 import {
@@ -17,6 +18,7 @@ import {
 const InterviewInstructionsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [interview, setInterview] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -128,10 +130,17 @@ const InterviewInstructionsPage = () => {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-dark-700 flex justify-center">
+            <div className="pt-6 border-t border-dark-700 flex flex-col items-center justify-center">
+              {interview.status !== "active" ? (
+                <div className="text-danger-400 font-medium mb-2">This interview is no longer active.</div>
+              ) : interview.assignedCandidates?.find(c => c.email === user?.email)?.status !== "Pending" ? (
+                <div className="text-warning-400 font-medium mb-2">You have already started or completed this interview.</div>
+              ) : null}
+              
               <button
                 onClick={() => navigate(`/candidate/interviews/${id}/start`)}
-                className="px-8 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold text-lg hover:from-primary-500 hover:to-primary-400 transition-all duration-300 shadow-lg shadow-primary-500/20 hover:-translate-y-1 flex items-center gap-3 group"
+                disabled={interview.status !== "active" || interview.assignedCandidates?.find(c => c.email === user?.email)?.status !== "Pending"}
+                className="px-8 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold text-lg hover:from-primary-500 hover:to-primary-400 transition-all duration-300 shadow-lg shadow-primary-500/20 hover:-translate-y-1 flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
               >
                 <Play className="w-6 h-6 fill-white" />
                 Start Interview Now

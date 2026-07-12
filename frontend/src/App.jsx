@@ -12,7 +12,8 @@ import EditInterviewPage from "./pages/EditInterviewPage";
 import InterviewDetailsPage from "./pages/InterviewDetailsPage";
 import JoinInterviewPage from "./pages/JoinInterviewPage";
 import InterviewInstructionsPage from "./pages/InterviewInstructionsPage";
-import StartInterviewPlaceholder from "./pages/StartInterviewPlaceholder";
+import PreInterviewPage from "./pages/PreInterviewPage";
+import LiveInterviewPage from "./pages/LiveInterviewPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -133,7 +134,15 @@ function App() {
           path="/candidate/interviews/:id/start"
           element={
             <ProtectedRoute role="candidate">
-              <StartInterviewPlaceholder />
+              <PreInterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/candidate/interviews/:id/live"
+          element={
+            <ProtectedRoute role="candidate">
+              <LiveInterviewPage />
             </ProtectedRoute>
           }
         />

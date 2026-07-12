@@ -7,8 +7,11 @@ import {
   deleteInterview,
   getAssignedInterviews,
   joinInterview,
-} from "./interview.controller.js";
-import { protect, authorize } from "../auth/auth.middleware.js";
+  startInterview,
+  submitInterview,
+  getInterviewQuestions,
+} from "../controllers/interview.controller.js";
+import { protect, authorize } from "../../auth/auth.middleware.js";
 
 const router = express.Router();
 
@@ -23,6 +26,9 @@ router
 // Candidate Routes
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);
 router.post("/join", authorize("candidate"), joinInterview);
+router.post("/:id/start", authorize("candidate"), startInterview);
+router.post("/:id/submit", authorize("candidate"), submitInterview);
+router.get("/:id/questions", authorize("candidate"), getInterviewQuestions);
 
 router
   .route("/:id")
