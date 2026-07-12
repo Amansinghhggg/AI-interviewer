@@ -115,11 +115,10 @@ const SignupPage = () => {
               <div className="grid grid-cols-2 gap-3">
                 <label
                   htmlFor="role-employer"
-                  className={`relative flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
-                    selectedRole === "employer"
+                  className={`relative flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-300 ${selectedRole === "employer"
                       ? "border-primary-500 bg-primary-500/10 text-primary-400"
                       : "border-dark-600 text-dark-400 hover:border-dark-500 hover:text-dark-300"
-                  }`}
+                    }`}
                 >
                   <input
                     id="role-employer"
@@ -133,11 +132,10 @@ const SignupPage = () => {
                 </label>
                 <label
                   htmlFor="role-candidate"
-                  className={`relative flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
-                    selectedRole === "candidate"
+                  className={`relative flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all duration-300 ${selectedRole === "candidate"
                       ? "border-accent-500 bg-accent-500/10 text-accent-400"
                       : "border-dark-600 text-dark-400 hover:border-dark-500 hover:text-dark-300"
-                  }`}
+                    }`}
                 >
                   <input
                     id="role-candidate"
