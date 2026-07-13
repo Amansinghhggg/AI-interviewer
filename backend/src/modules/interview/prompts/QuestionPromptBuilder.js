@@ -56,9 +56,9 @@ export class QuestionPromptBuilder {
       "=== OUTPUT FORMAT ===",
       "Return a JSON array of question objects. Each object must have:",
       "",
-      "```json",
       "[",
       "  {",
+      '    "id": 1,',
       '    "question": "The full question text",',
       '    "topic": "The topic this question covers",',
       '    "difficulty": "Easy | Medium | Hard",',
@@ -66,9 +66,8 @@ export class QuestionPromptBuilder {
       '    "expectedDuration": 120',
       "  }",
       "]",
-      "```",
       "",
-      "IMPORTANT: Return ONLY the JSON array. No additional text, explanations, or markdown outside the JSON.",
+      "IMPORTANT: Return ONLY valid, raw JSON. Do NOT wrap the JSON in markdown code blocks (e.g. no ```json). Do NOT provide any conversational text or explanations. Your entire response must be parseable by JSON.parse().",
     ].join("\n");
   }
 
@@ -124,8 +123,8 @@ export class QuestionPromptBuilder {
       "=== OUTPUT FORMAT ===",
       "Return a single JSON object representing the next question:",
       "",
-      "```json",
       "{",
+      '  "id": 2,',
       '  "question": "The next question text",',
       '  "topic": "The topic this question covers",',
       '  "difficulty": "Easy | Medium | Hard",',
@@ -133,9 +132,8 @@ export class QuestionPromptBuilder {
       '  "expectedDuration": 120,',
       '  "reasoning": "Brief explanation of why this question was chosen"',
       "}",
-      "```",
       "",
-      "IMPORTANT: Return ONLY the JSON object. No additional text or explanations.",
+      "IMPORTANT: Return ONLY valid, raw JSON. Do NOT wrap the JSON in markdown code blocks (e.g. no ```json). Do NOT provide any conversational text or explanations. Your entire response must be parseable by JSON.parse().",
     ].join("\n");
   }
 }

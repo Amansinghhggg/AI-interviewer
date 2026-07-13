@@ -1,30 +1,20 @@
+import { AIProviderResponse } from "./AIProviderResponse.js";
+
 /**
- * BaseAIProvider
+ * BaseAIProvider.js
  *
- * Abstract base class that defines the contract for all raw AI providers.
- * Future providers (GeminiProvider, OpenAIProvider, ClaudeProvider)
- * must extend this class and implement the generate method.
- *
- * This is the lowest-level AI abstraction. QuestionProviders and
- * EvaluationProviders may use an AIProvider internally to communicate
- * with an AI service, but the rest of the application should never
- * interact with an AIProvider directly.
- *
- * Providers should NOT know about Express, MongoDB, or any framework details.
+ * The abstract contract that all AI Providers must implement.
+ * Ensures the InterviewEngine doesn't know which SDK is used.
  */
 export class BaseAIProvider {
   /**
-   * Send a prompt to the AI service and return the response.
+   * Generates a raw response from the underlying AI model.
    *
-   * @param {string} prompt - The prompt to send to the AI service.
-   * @param {Object} [options={}] - Provider-specific options.
-   * @param {string} [options.model] - The model to use (provider-specific).
-   * @param {number} [options.temperature] - Sampling temperature.
-   * @param {number} [options.maxTokens] - Maximum tokens in the response.
-   * @returns {Promise<string>} The AI-generated response text.
-   * @throws {Error} If the method is not implemented by a subclass.
+   * @param {string} prompt - The validated, fully constructed prompt string.
+   * @returns {Promise<AIProviderResponse>} The structured response wrapper.
+   * @throws {Error} Application-level error on failure.
    */
-  async generate(prompt, options = {}) {
-    throw new Error("Not Implemented: generate must be implemented by the provider subclass.");
+  async generate(prompt) {
+    throw new Error("generate(prompt) must be implemented by subclasses");
   }
 }

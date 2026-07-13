@@ -1,0 +1,47 @@
+import { z } from "zod";
+import { ValidationError } from "../errors/ValidationError.js";
+
+/**
+ * Question Schema Definition
+ * Enforces the exact shape required by the application.
+ */
+const QuestionSchema = z.object({
+  id: z.number().or(z.string()), // Accept either number or string for ID
+  question: z.string().min(5),
+  topic: z.string().min(1),
+  difficulty: z.enum(["Easy", "Medium", "Hard"]),
+  type: z.string().min(1)
+}).passthrough(); // Ignore unknown properties gracefully
+
+// Support validating both a single object and an array of objects
+const QuestionArraySchema = z.array(QuestionSchema);
+
+/**
+ * QuestionResponseValidator
+ * 
+ * Strictly validates that parsed JSON matches the required Question schema.
+ * Throws a ValidationError if the structure is incorrect.
+ */
+export class QuestionResponseValidator {
+  /**
+   * Validates a parsed object or array of objects against the Question schema.
+   * 
+   * @param {any} parsedData 
+   * @returns {Array<Object>} An array of validated Question objects.
+   * @throws {ValidationError}
+   */
+  static validate(parsedData) {
+    try {
+      // Coerce single objects into an array for consistent processing
+      const dataToValidate = Array.isArray(parsedData) ? parsedData : [parsedData];
+      
+      const validatedData = QuestionArraySchema.parse(dataToValidate);
+      return validatedData;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationError("AI Response failed schema validation.", error.errors);
+      }
+      throw new ValidationError(`Unexpected validation error: ${error.message}`);
+    }
+  }
+}

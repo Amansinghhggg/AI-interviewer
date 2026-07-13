@@ -1,17 +1,34 @@
+import { AIConfig } from "./config/ai.config.js";
+import { GeminiProvider } from "./GeminiProvider.js";
+
 /**
- * AIProvider Factory
- *
- * Creates the appropriate AI provider based on the given type.
- * Currently no AI providers are implemented — this is a placeholder
- * for the architecture that will be used in future phases.
- *
- * @param {string} type - The AI provider type (e.g., 'gemini', 'openai', 'claude').
- * @returns {import('./BaseAIProvider.js').BaseAIProvider}
- * @throws {Error} Always throws for now — no providers are available yet.
+ * Provider Registry
+ * Maps configuration string to the Provider class.
+ * Easily extensible for future providers (GLMProvider, ClaudeProvider, etc.)
  */
-export const createAIProvider = (type) => {
-  throw new Error(
-    `Not Implemented: AI provider "${type}" is not available. ` +
-    "AI providers will be implemented in a future phase."
-  );
+const providerRegistry = {
+  gemini: GeminiProvider,
+  // glm: GLMProvider,
+  // openai: OpenAIProvider,
+  // claude: ClaudeProvider
+};
+
+/**
+ * createAIProvider
+ *
+ * Factory method to instantiate the requested AI provider based on configuration.
+ * The rest of the application should only interact with the returned instance
+ * via the `generate(prompt)` interface.
+ *
+ * @returns {import('./BaseAIProvider.js').BaseAIProvider}
+ * @throws {Error} If the configured provider is not supported.
+ */
+export const createAIProvider = () => {
+  const ProviderClass = providerRegistry[AIConfig.provider.toLowerCase()];
+  
+  if (!ProviderClass) {
+    throw new Error(`AI Provider Factory Error: Unsupported provider '${AIConfig.provider}'`);
+  }
+
+  return new ProviderClass();
 };
