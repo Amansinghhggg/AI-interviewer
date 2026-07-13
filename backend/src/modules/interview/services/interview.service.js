@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import Interview from "../models/interview.model.js";
-import { getQuestionsForInterview } from "../providers/QuestionProvider/index.js";
+import { createInterviewEngine } from "./interviewEngine.js";
+import { InterviewConfig } from "./InterviewConfig.js";
 
 const generateInterviewCode = () => {
   return crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -28,7 +29,6 @@ class InterviewService {
       topics: validatedData.topics || [],
       difficulty: validatedData.difficulty,
       duration: validatedData.duration,
-      numberOfQuestions: validatedData.numberOfQuestions,
       instructions: validatedData.instructions,
       interviewCode,
       employer: employerId,
@@ -215,8 +215,10 @@ class InterviewService {
       throw new Error("not_started");
     }
 
-    // Call the provider abstraction layer
-    const questions = await getQuestionsForInterview(interview);
+    // Route through the Interview Engine orchestration layer
+    const config = InterviewConfig.fromInterview(interview);
+    const engine = createInterviewEngine(config.interviewType);
+    const questions = await engine.getQuestions(config);
     return questions;
   }
 }
