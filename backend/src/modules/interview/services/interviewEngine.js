@@ -40,28 +40,43 @@ export class InterviewEngine {
   }
 
   /**
-   * Retrieve questions for the interview.
-   * Delegates entirely to the question provider.
+   * Retrieve legacy/static questions for the interview.
+   * Provided for backwards compatibility with the static flow.
    *
    * @param {import('./InterviewConfig.js').InterviewConfig} config
    * @returns {Promise<Array<Object>>} An array of question objects.
    */
   async getQuestions(config) {
-    return this.questionProvider.getQuestions(config);
+    return this.questionProvider.generateFirstQuestion(config);
   }
 
   /**
-   * Submit a candidate's answer for a specific question.
-   * Today this is a no-op. In the future it will send the answer to the
-   * evaluation provider and potentially generate a follow-up question.
+   * Generates the first question for an adaptive AI interview.
+   */
+  async generateFirstQuestion(config) {
+    return this.questionProvider.generateFirstQuestion(config);
+  }
+
+  /**
+   * Generates the next question for an adaptive AI interview.
    *
    * @param {import('./InterviewConfig.js').InterviewConfig} config
-   * @param {number|string} questionId - The ID of the question being answered.
-   * @param {string} answer - The candidate's answer text.
-   * @returns {Promise<{ received: boolean }>}
+   * @param {import('./InterviewState.js').InterviewState} state
+   * @param {import('./ConversationHistory.js').ConversationHistory} history
+   */
+  async generateNextQuestion(config, state, history) {
+    // 1. We must dynamically import PromptContext to avoid circular deps or just pass it in
+    // However, engine is the orchestrator, so it should build it.
+    const { PromptContext } = await import("../prompts/PromptContext.js");
+    const promptContext = new PromptContext({ config, state, history });
+    
+    return this.questionProvider.generateNextQuestion(promptContext);
+  }
+
+  /**
+   * Legacy submit answer endpoint, currently no-op.
    */
   async submitAnswer(config, questionId, answer) {
-    // Future: Send to evaluation provider, generate follow-up question
     return { received: true };
   }
 

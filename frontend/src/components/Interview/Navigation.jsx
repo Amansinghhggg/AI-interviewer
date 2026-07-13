@@ -6,7 +6,8 @@ const Navigation = ({
   handlePrev, 
   handleNext, 
   handleSubmit, 
-  submitting 
+  submitting,
+  generating
 }) => {
   return (
     <div className="flex items-center justify-between mt-8 pt-6 border-t border-dark-800">
@@ -31,10 +32,20 @@ const Navigation = ({
       ) : (
         <button
           onClick={handleNext}
-          className="px-6 py-3 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors shadow-lg shadow-primary-500/20 flex items-center gap-2"
+          disabled={generating}
+          className="px-6 py-3 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors shadow-lg shadow-primary-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Next
-          <ChevronRight className="w-5 h-5" />
+          {generating ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              Next
+              <ChevronRight className="w-5 h-5" />
+            </>
+          )}
         </button>
       )}
     </div>

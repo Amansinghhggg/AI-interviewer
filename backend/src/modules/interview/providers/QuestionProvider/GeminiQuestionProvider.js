@@ -18,29 +18,22 @@ import { QuestionResponseValidator } from "../../validators/QuestionResponseVali
 export class GeminiQuestionProvider extends BaseQuestionProvider {
   
   /**
-   * Generates a batch of interview questions using AI.
+   * Generates the first question for an AI interview.
    * 
    * @param {import('../../services/InterviewConfig.js').InterviewConfig} config 
-   * @returns {Promise<Array<Object>>} Validated Question objects.
+   * @returns {Promise<Array<Object>>} Validated Question array (length 1).
    */
-  async getQuestions(config) {
+  async generateFirstQuestion(config) {
     const startTime = Date.now();
-    
-    // 1. Build context
     const promptContext = new PromptContext({ config });
-    
-    // 2. Generate prompt
     const prompt = QuestionPromptBuilder.buildInitialQuestionsPrompt(promptContext);
     
-    // 3. Validate prompt config (handled implicitly in builder now, but we can be explicit or rely on it)
     PromptValidator.validateInitialContext(promptContext);
     
-    // 4. Get the AI Provider dynamically based on ai.config.js
     const aiProvider = createAIProvider();
     
     let rawResponse;
     try {
-      // 5. Generate raw AI response
       rawResponse = await aiProvider.generate(prompt);
     } catch (error) {
       this._logMetrics(Date.now() - startTime, 0, "Failure (AI Provider Error)");
@@ -48,16 +41,43 @@ export class GeminiQuestionProvider extends BaseQuestionProvider {
     }
     
     try {
-      // 6. Parse response
       const parsedJSON = QuestionResponseParser.parse(rawResponse);
-      
-      // 7. Validate response schema
       const validatedQuestions = QuestionResponseValidator.validate(parsedJSON);
-      
-      // 8. Log success and return
       this._logMetrics(Date.now() - startTime, validatedQuestions.length, "Success");
       return validatedQuestions;
-      
+    } catch (error) {
+      this._logMetrics(Date.now() - startTime, 0, `Failure (${error.name})`);
+      throw error;
+    }
+  }
+
+  /**
+   * Generates the next adaptive question based on the history.
+   * 
+   * @param {import('../../prompts/PromptContext.js').PromptContext} promptContext 
+   * @returns {Promise<Array<Object>>} Validated Question array (length 1).
+   */
+  async generateNextQuestion(promptContext) {
+    const startTime = Date.now();
+    const prompt = QuestionPromptBuilder.buildNextQuestionPrompt(promptContext);
+    
+    PromptValidator.validateAdaptiveContext(promptContext);
+    
+    const aiProvider = createAIProvider();
+    
+    let rawResponse;
+    try {
+      rawResponse = await aiProvider.generate(prompt);
+    } catch (error) {
+      this._logMetrics(Date.now() - startTime, 0, "Failure (AI Provider Error)");
+      throw error;
+    }
+    
+    try {
+      const parsedJSON = QuestionResponseParser.parse(rawResponse);
+      const validatedQuestions = QuestionResponseValidator.validate(parsedJSON);
+      this._logMetrics(Date.now() - startTime, validatedQuestions.length, "Success");
+      return validatedQuestions;
     } catch (error) {
       this._logMetrics(Date.now() - startTime, 0, `Failure (${error.name})`);
       throw error;

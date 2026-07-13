@@ -177,11 +177,84 @@ const joinInterview = async (req, res, next) => {
   }
 };
 
+// @desc    Candidate gets the current active interview session (AI Interview)
+// @route   GET /api/interviews/:id/session
+// @access  Candidate only
+const getInterviewSession = async (req, res, next) => {
+  try {
+    const sessionStore = await import("../services/InterviewSessionService.js");
+    const InterviewSessionService = sessionStore.default;
+    
+    const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
+    if (!session) {
+      return res.status(404).json({ success: false, message: "No active session found." });
+    }
+
+    res.status(200).json({
+      success: true,
+      session,
+      currentQuestion: session.questions[session.currentQuestionIndex]
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Candidate starts an interview
 // @route   POST /api/interviews/:id/start
 // @access  Candidate only
 const startInterview = async (req, res, next) => {
   try {
+    // 1. Get interview details from the existing legacy service
+    const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
+    if (!interviewData) throw new Error("not_found");
+
+    // Check if it's an AI interview
+    const isAiInterview = process.env.QUESTION_PROVIDER === "gemini" || interviewData.interviewType === "gemini";
+    
+    if (isAiInterview) {
+      const sessionStore = await import("../services/InterviewSessionService.js");
+      const InterviewSessionService = sessionStore.default;
+      
+      let session = await InterviewSessionService.getOrCreateSession(req.params.id, req.user._id);
+      
+      if (session.status === "ACTIVE") {
+        return res.status(200).json({ success: true, session, message: "Session resumed." });
+      }
+
+      if (session.status === "COMPLETED") {
+        return res.status(409).json({ success: false, message: "Interview already completed." });
+      }
+
+      // Initialize AI Engine
+      const { createInterviewEngine } = await import("../services/interviewEngine.js");
+      const { InterviewConfig } = await import("../services/InterviewConfig.js");
+      
+      const config = new InterviewConfig({
+        jobRole: interviewData.title,
+        topics: ["General"], // Normally mapped from actual interview topics
+        difficulty: "Medium",
+        experienceLevel: "Mid",
+        duration: interviewData.duration || 30,
+        language: "English",
+        interviewType: "gemini"
+      });
+
+      const engine = createInterviewEngine("gemini");
+      const questions = await engine.generateFirstQuestion(config);
+      const firstQuestion = questions[0];
+
+      session = await InterviewSessionService.startSession(session._id, firstQuestion, config.duration);
+      
+      return res.status(200).json({
+        success: true,
+        message: "AI Interview started.",
+        session,
+        currentQuestion: firstQuestion
+      });
+    }
+
+    // Static legacy flow fallback
     await interviewService.startInterview(req.params.id, req.user.email);
     res.status(200).json({
       success: true,
@@ -204,11 +277,83 @@ const startInterview = async (req, res, next) => {
   }
 };
 
+// @desc    Candidate submits an answer for the current question
+// @route   POST /api/interviews/:id/answer
+// @access  Candidate only
+const submitAnswer = async (req, res, next) => {
+  try {
+    const { answer } = req.body;
+    if (!answer) {
+      return res.status(400).json({ success: false, message: "Answer text is required." });
+    }
+
+    const sessionStore = await import("../services/InterviewSessionService.js");
+    const InterviewSessionService = sessionStore.default;
+    
+    const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
+    if (!session || session.status !== "ACTIVE") {
+      return res.status(403).json({ success: false, message: "No active session found." });
+    }
+
+    // 1. Rebuild History & State for Engine
+    const history = InterviewSessionService.buildConversationHistory(session);
+    const state = InterviewSessionService.buildInterviewState(session);
+    
+    // We add the incoming answer manually for this turn because it hasn't been saved yet
+    history.addCandidateAnswer(answer);
+
+    // 2. Setup AI Engine
+    const { createInterviewEngine } = await import("../services/interviewEngine.js");
+    const { InterviewConfig } = await import("../services/InterviewConfig.js");
+    const engine = createInterviewEngine("gemini");
+    
+    // Dummy config mapping for now
+    const config = new InterviewConfig({
+      jobRole: "Role",
+      topics: ["General"],
+      difficulty: "Medium",
+      experienceLevel: "Mid",
+      duration: 30,
+      language: "English",
+      interviewType: "gemini"
+    });
+
+    let nextQuestion = null;
+    
+    // Check if we hit total questions max (e.g. 10)
+    if (session.currentQuestionIndex < state.maxQuestions - 1) {
+      const generated = await engine.generateNextQuestion(config, state, history);
+      nextQuestion = generated[0];
+    }
+
+    // 3. Save to DB
+    const updatedSession = await InterviewSessionService.saveAnswerAndNextQuestion(session._id, answer, nextQuestion);
+
+    res.status(200).json({
+      success: true,
+      nextQuestion,
+      isFinished: !nextQuestion,
+      session: updatedSession
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Candidate submits an interview
 // @route   POST /api/interviews/:id/submit
 // @access  Candidate only
 const submitInterview = async (req, res, next) => {
   try {
+    const sessionStore = await import("../services/InterviewSessionService.js");
+    const InterviewSessionService = sessionStore.default;
+    const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
+    
+    if (session) {
+      await InterviewSessionService.completeSession(session._id);
+    }
+    
     await interviewService.submitInterview(req.params.id, req.user.email);
     res.status(200).json({
       success: true,
@@ -237,7 +382,7 @@ const submitInterview = async (req, res, next) => {
   }
 };
 
-// @desc    Candidate gets interview questions
+// @desc    Candidate gets interview questions (Legacy Static only)
 // @route   GET /api/interviews/:id/questions
 // @access  Candidate only
 const getInterviewQuestions = async (req, res, next) => {
@@ -275,4 +420,6 @@ export {
   startInterview,
   submitInterview,
   getInterviewQuestions,
+  getInterviewSession,
+  submitAnswer
 };

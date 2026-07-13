@@ -6,19 +6,22 @@ import { saveInterview, restoreInterview, clearInterview } from "../utils/localS
 export const useInterview = (id, navigate, user) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false); // Used when waiting for Gemini
+  
   const [questions, setQuestions] = useState([]);
   const [interview, setInterview] = useState(null);
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(0);
+  const [isAi, setIsAi] = useState(false);
+  const [session, setSession] = useState(null); // Backend session for AI interviews
 
   const fetchInterviewData = useCallback(async () => {
     try {
-      // 1. Fetch Interview Details (for duration and status check)
+      // 1. Fetch Interview Details
       const { data: detailData } = await api.get(`/interviews/${id}`);
       
-      // 2. Validate Restoration
       const candidateStatus = detailData.interview.assignedCandidates?.find(
         (c) => c.email === user?.email
       )?.status;
@@ -30,14 +33,72 @@ export const useInterview = (id, navigate, user) => {
         return;
       }
 
-      // 3. Fetch Questions
-      const { data: qData } = await api.get(`/interviews/${id}/questions`);
+      setInterview(detailData.interview);
       
-      if (detailData.success && qData.success) {
-        setInterview(detailData.interview);
+      // Determine if it's AI driven
+      // Check the global backend process env or the specific interview type
+      const aiType = detailData.interview.interviewType === "gemini" || detailData.interview.interviewType === "ai";
+      // To be safe we assume AI if type is gemini/ai, or we can just try to fetch the session.
+      // We will try fetching the session first.
+      
+      let aiSessionData = null;
+      try {
+        const { data } = await api.get(`/interviews/${id}/session`);
+        if (data.success) {
+          aiSessionData = data;
+        }
+      } catch (err) {
+        // If 404, it might mean the session doesn't exist yet, or it's a static interview.
+      }
+
+      if (aiSessionData || aiType) {
+        setIsAi(true);
+        // It's an AI interview
+        let activeSession = aiSessionData?.session;
+        
+        // If no active session, start one
+        if (!activeSession) {
+          const { data: startData } = await api.post(`/interviews/${id}/start`);
+          if (startData.success) {
+            activeSession = startData.session;
+          }
+        }
+        
+        if (activeSession) {
+          setSession(activeSession);
+          setQuestions(activeSession.questions);
+          setCurrentIndex(activeSession.currentQuestionIndex);
+          
+          // Reconstruct answers map for the UI
+          const currentAnswers = {};
+          activeSession.questions.forEach(q => {
+            if (q.answer) {
+              currentAnswers[q.id] = q.answer;
+            }
+          });
+          
+          // Merge with any local draft they might have been typing
+          const restored = restoreInterview(id);
+          if (restored && restored.answers) {
+            setAnswers({ ...currentAnswers, ...restored.answers });
+          } else {
+            setAnswers(currentAnswers);
+          }
+
+          // Compute remaining time accurately from backend expiresAt
+          if (activeSession.expiresAt) {
+            const remainingMs = new Date(activeSession.expiresAt).getTime() - Date.now();
+            setTimeLeft(Math.max(0, Math.floor(remainingMs / 1000)));
+          } else {
+            setTimeLeft(detailData.interview.duration * 60);
+          }
+        }
+
+      } else {
+        // Legacy Static Flow
+        const { data: qData } = await api.get(`/interviews/${id}/questions`);
         setQuestions(qData.questions);
         
-        // Restore state
         const restored = restoreInterview(id);
         if (restored) {
           setCurrentIndex(restored.currentIndex || 0);
@@ -67,6 +128,10 @@ export const useInterview = (id, navigate, user) => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          // If time expires, auto submit
+          if (prev === 1) {
+            handleSubmit(true); // force submit
+          }
           return 0;
         }
         return prev - 1;
@@ -76,20 +141,50 @@ export const useInterview = (id, navigate, user) => {
     return () => clearInterval(timer);
   }, [loading]);
 
-  // LocalStorage Sync
+  // LocalStorage Sync (only for draft UI states now, backend is truth for AI)
   useEffect(() => {
     if (loading) return;
     saveInterview(id, {
       currentIndex,
-      answers,
+      answers, // stores draft text if they refresh before hitting next
       timeLeft
     });
   }, [id, currentIndex, answers, timeLeft, loading]);
 
-  // Navigation handlers
-  const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+  const handleNext = async () => {
+    const currentQ = questions[currentIndex];
+    
+    if (isAi && currentIndex === questions.length - 1) {
+      // It's an AI interview and we are on the latest question.
+      // We must submit the answer to get the next question.
+      const answerText = answers[currentQ.id] || "";
+      if (!answerText.trim()) {
+        toast.error("Please provide an answer before moving forward.");
+        return;
+      }
+
+      setIsGenerating(true);
+      try {
+        const { data } = await api.post(`/interviews/${id}/answer`, { answer: answerText });
+        if (data.success) {
+          setSession(data.session);
+          setQuestions(data.session.questions);
+          setCurrentIndex(data.session.currentQuestionIndex);
+          
+          if (data.isFinished) {
+            toast.success("All questions generated. You may now submit the interview.");
+          }
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to generate next question.");
+      } finally {
+        setIsGenerating(false);
+      }
+    } else {
+      // Normal UI navigation
+      if (currentIndex < questions.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      }
     }
   };
 
@@ -103,8 +198,8 @@ export const useInterview = (id, navigate, user) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (!window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;
+  const handleSubmit = async (force = false) => {
+    if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;
     
     setSubmitting(true);
     try {
@@ -128,11 +223,12 @@ export const useInterview = (id, navigate, user) => {
   return {
     loading,
     submitting,
+    isGenerating,
     interview,
     questions,
     currentQuestion: questions[currentIndex],
     currentIndex,
-    totalQuestions: questions.length,
+    totalQuestions: isAi && session ? session.interviewState?.maxQuestions : questions.length,
     answers,
     timeLeft,
     handleNext,

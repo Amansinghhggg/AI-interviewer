@@ -10,6 +10,8 @@ import {
   startInterview,
   submitInterview,
   getInterviewQuestions,
+  getInterviewSession,
+  submitAnswer
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
 
@@ -27,6 +29,8 @@ router
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);
 router.post("/join", authorize("candidate"), joinInterview);
 router.post("/:id/start", authorize("candidate"), startInterview);
+router.get("/:id/session", authorize("candidate"), getInterviewSession);
+router.post("/:id/answer", authorize("candidate"), submitAnswer);
 router.post("/:id/submit", authorize("candidate"), submitInterview);
 router.get("/:id/questions", authorize("candidate"), getInterviewQuestions);
 

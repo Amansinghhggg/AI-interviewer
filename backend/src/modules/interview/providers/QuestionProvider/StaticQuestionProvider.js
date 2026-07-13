@@ -11,13 +11,20 @@ import { BaseQuestionProvider } from "./BaseQuestionProvider.js";
 export class StaticQuestionProvider extends BaseQuestionProvider {
   /**
    * Returns a static list of interview questions.
-   * The config parameter is accepted to satisfy the interface contract
-   * but is not used by this provider since questions are hardcoded.
-   *
-   * @param {import('../../services/InterviewConfig.js').InterviewConfig} config
-   * @returns {Promise<Array<Object>>} An array of static question objects.
    */
-  async getQuestions(config) {
+  async generateFirstQuestion(config) {
+    return this._getStaticQuestions();
+  }
+
+  /**
+   * For static interviews, the "next" question is already loaded on the client side.
+   * This is provided for compatibility if the backend is queried for the next static question.
+   */
+  async generateNextQuestion(promptContext) {
+    return this._getStaticQuestions();
+  }
+
+  _getStaticQuestions() {
     return [
       {
         id: 1,

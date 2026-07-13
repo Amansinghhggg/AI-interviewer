@@ -19,6 +19,7 @@ const LiveInterviewPage = () => {
   const {
     loading,
     submitting,
+    isGenerating,
     interview,
     currentQuestion,
     currentIndex,
@@ -87,6 +88,7 @@ const LiveInterviewPage = () => {
           handleNext={handleNext}
           handleSubmit={handleSubmit}
           submitting={submitting}
+          generating={isGenerating}
         />
       </div>
     </div>
