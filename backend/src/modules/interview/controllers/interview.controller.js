@@ -293,8 +293,6 @@ const submitAnswer = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "No active session found." });
     }
 
-    // 1. Rebuild History & Config
-    const history = InterviewSessionService.buildConversationHistory(session);
     const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
     
     // 2. Setup AI Engine
@@ -305,30 +303,14 @@ const submitAnswer = async (req, res, next) => {
     // Map actual config from the database instead of dummy values
     const config = InterviewConfig.fromInterview(interviewData);
 
-    // Now we can accurately build the state
-    const state = InterviewSessionService.buildInterviewState(session, config);
-
-    // We add the incoming answer manually for this turn because it hasn't been saved yet
-    history.addCandidateAnswer(answer);
-
-    let nextQuestion = null;
-
-
-    // Check if we hit total questions max (e.g. 10)
-    if (session.currentQuestionIndex < state.maxQuestions - 1) {
-      const generated = await engine.generateNextQuestion(config, state, history);
-      nextQuestion = generated[0];
-    }
-
-    // 3. Save to DB
-    const updatedSession = await InterviewSessionService.saveAnswerAndNextQuestion(session._id, answer, nextQuestion);
-
-    res.status(200).json({
-      success: true,
-      nextQuestion,
-      isFinished: !nextQuestion,
-      session: updatedSession
+    const result = await InterviewSessionService.submitAnswer({
+      session,
+      answer,
+      interviewConfig: config,
+      interviewEngine: engine
     });
+
+    res.status(200).json(result);
 
   } catch (error) {
     next(error);
@@ -349,9 +331,30 @@ const submitInterview = async (req, res, next) => {
     }
 
     await interviewService.submitInterview(req.params.id, req.user.email);
+
+    // Trigger AI evaluation (non-blocking for the submission response)
+    let evaluationStatus = "PENDING";
+    if (session && session.questions && session.questions.length > 0) {
+      const interviewDoc = await interviewService.getInterviewById(
+        req.params.id,
+        "candidate",
+        req.user.email,
+        req.user._id
+      );
+
+      if (interviewDoc) {
+        const evalResult = await InterviewSessionService.evaluateAndSaveResult(
+          session,
+          interviewDoc
+        );
+        evaluationStatus = evalResult.success ? "COMPLETED" : "FAILED";
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Interview submitted successfully.",
+      evaluationStatus,
     });
   } catch (error) {
     if (error.message === "not_found") {
@@ -403,6 +406,46 @@ const getInterviewQuestions = async (req, res, next) => {
   }
 };
 
+// @desc    Employer gets interview result for a candidate
+// @route   GET /api/interviews/:id/results/:resultId
+// @access  Employer only
+const getInterviewResult = async (req, res, next) => {
+  try {
+    const InterviewResultService = (await import("../services/InterviewResultService.js")).default;
+    
+    const resultDTO = await InterviewResultService.getCandidateResult(
+      req.params.id,
+      req.params.resultId,
+      req.user._id
+    );
+
+    res.status(200).json({
+      success: true,
+      result: resultDTO,
+    });
+  } catch (error) {
+    if (error.message === "not_found") {
+      return res.status(404).json({
+        success: false,
+        message: "Interview not found or unauthorized",
+      });
+    }
+    if (error.message === "candidate_not_found") {
+      return res.status(404).json({
+        success: false,
+        message: "Candidate not found",
+      });
+    }
+    if (error.message === "result_not_found") {
+      return res.status(404).json({
+        success: false,
+        message: "Evaluation result not found",
+      });
+    }
+    next(error);
+  }
+};
+
 export {
   createInterview,
   getInterviews,
@@ -415,5 +458,6 @@ export {
   submitInterview,
   getInterviewQuestions,
   getInterviewSession,
-  submitAnswer
+  submitAnswer,
+  getInterviewResult
 };

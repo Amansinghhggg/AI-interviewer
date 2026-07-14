@@ -1,4 +1,5 @@
 import { createQuestionProvider } from "../providers/QuestionProvider/index.js";
+import { createEvaluationProvider } from "../providers/EvaluationProvider/index.js";
 
 /**
  * InterviewEngine
@@ -17,13 +18,12 @@ export class InterviewEngine {
    * @param {Object} params
    * @param {import('../providers/QuestionProvider/BaseQuestionProvider.js').BaseQuestionProvider} params.questionProvider
    *   The question provider to use for this interview session.
+   * @param {import('../providers/EvaluationProvider/BaseEvaluationProvider.js').BaseEvaluationProvider} params.evaluationProvider
+   *   The evaluation provider to use for post-interview evaluation.
    */
-  constructor({ questionProvider }) {
+  constructor({ questionProvider, evaluationProvider }) {
     this.questionProvider = questionProvider;
-
-    // Future providers will be injected here:
-    // this.evaluationProvider = evaluationProvider;
-    // this.aiProvider = aiProvider;
+    this.evaluationProvider = evaluationProvider;
   }
 
   /**
@@ -92,6 +92,19 @@ export class InterviewEngine {
     // Future: Trigger final evaluation, generate report
     return { completed: true };
   }
+
+  /**
+   * Evaluate a completed interview using the configured AI evaluation provider.
+   *
+   * The engine only orchestrates — it delegates to the provider and returns
+   * the validated evaluation object. It does NOT persist anything.
+   *
+   * @param {import('../prompts/EvaluationContext.js').EvaluationContext} evaluationContext
+   * @returns {Promise<Object>} A validated evaluation object matching InterviewResult schema.
+   */
+  async evaluateInterview(evaluationContext) {
+    return this.evaluationProvider.evaluate(evaluationContext);
+  }
 }
 
 /**
@@ -103,12 +116,13 @@ export class InterviewEngine {
  */
 export const createInterviewEngine = (interviewType = process.env.QUESTION_PROVIDER || "gemini") => {
   const questionProvider = createQuestionProvider(interviewType);
-
-  // Future: resolve evaluation and AI providers based on interviewType
-  // const evaluationProvider = createEvaluationProvider(interviewType);
-  // const aiProvider = createAIProvider(interviewType);
+  
+  // Temporary fallback: Route all unsupported evaluation types to groq
+  const evalType = (interviewType === "gemini" || interviewType === "static") ? "groq" : interviewType;
+  const evaluationProvider = createEvaluationProvider(evalType);
 
   return new InterviewEngine({
     questionProvider,
+    evaluationProvider,
   });
 };

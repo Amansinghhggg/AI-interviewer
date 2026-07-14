@@ -59,7 +59,7 @@ const interviewSchema = new mongoose.Schema(
     duration: {
       type: Number,
       required: [true, "Duration is required"],
-      min: [5, "Duration must be at least 5 minutes"],
+      min: [1, "Duration must be at least 1 minute"],
       max: [120, "Duration cannot exceed 120 minutes"],
     },
 

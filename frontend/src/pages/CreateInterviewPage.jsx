@@ -37,7 +37,7 @@ const createInterviewSchema = z.object({
   experienceLevel: z.enum(["Fresher", "1-2 Years", "3-5 Years", "5+ Years"]),
   duration: z.coerce
     .number()
-    .min(5, "Duration must be at least 5 minutes")
+    .min(1, "Duration must be at least 1 minute")
     .max(120, "Duration cannot exceed 120 minutes"),
   instructions: z
     .string()

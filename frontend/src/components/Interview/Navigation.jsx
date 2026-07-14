@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 const Navigation = ({ 
   currentIndex, 
   totalQuestions, 
+  isInterviewFinished,
   handlePrev, 
   handleNext, 
   handleSubmit, 
@@ -20,7 +21,7 @@ const Navigation = ({
         Previous
       </button>
       
-      {currentIndex === totalQuestions - 1 ? (
+      {currentIndex === totalQuestions - 1 || isInterviewFinished ? (
         <button
           onClick={handleSubmit}
           disabled={submitting}

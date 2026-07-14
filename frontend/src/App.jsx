@@ -14,6 +14,7 @@ import JoinInterviewPage from "./pages/JoinInterviewPage";
 import InterviewInstructionsPage from "./pages/InterviewInstructionsPage";
 import PreInterviewPage from "./pages/PreInterviewPage";
 import LiveInterviewPage from "./pages/LiveInterviewPage";
+import EmployerInterviewResultPage from "./pages/EmployerInterviewResultPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -101,6 +102,14 @@ function App() {
           element={
             <ProtectedRoute role="employer">
               <InterviewDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/interviews/:id/results/:resultId"
+          element={
+            <ProtectedRoute role="employer">
+              <EmployerInterviewResultPage />
             </ProtectedRoute>
           }
         />

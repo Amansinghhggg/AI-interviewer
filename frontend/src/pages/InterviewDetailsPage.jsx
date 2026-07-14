@@ -288,9 +288,12 @@ const InterviewDetailsPage = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
                                 {candidate.status === "Completed" ? (
-                                  <button className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
+                                  <Link 
+                                    to={`/employer/interviews/${id}/results/${candidate.resultId}`}
+                                    className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
+                                  >
                                     View Result
-                                  </button>
+                                  </Link>
                                 ) : (
                                   <span className="text-dark-500">-</span>
                                 )}

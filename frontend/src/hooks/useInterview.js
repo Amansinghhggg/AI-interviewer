@@ -16,6 +16,7 @@ export const useInterview = (id, navigate, user) => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isAi, setIsAi] = useState(false);
   const [session, setSession] = useState(null); // Backend session for AI interviews
+  const [isInterviewFinished, setIsInterviewFinished] = useState(false);
 
   const fetchInterviewData = useCallback(async () => {
     try {
@@ -128,10 +129,7 @@ export const useInterview = (id, navigate, user) => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // If time expires, auto submit
-          if (prev === 1) {
-            handleSubmit(true); // force submit
-          }
+          // Just freeze at 0. Do NOT auto-submit.
           return 0;
         }
         return prev - 1;
@@ -172,7 +170,8 @@ export const useInterview = (id, navigate, user) => {
           setCurrentIndex(data.session.currentQuestionIndex);
           
           if (data.isFinished) {
-            toast.success("All questions generated. You may now submit the interview.");
+            setIsInterviewFinished(true);
+            toast.success("All questions completed. You may now submit the interview.");
           }
         }
       } catch (error) {
@@ -231,6 +230,7 @@ export const useInterview = (id, navigate, user) => {
     totalQuestions: isAi && session ? session.interviewState?.maxQuestions : questions.length,
     answers,
     timeLeft,
+    isInterviewFinished,
     handleNext,
     handlePrev,
     handleAnswerChange,

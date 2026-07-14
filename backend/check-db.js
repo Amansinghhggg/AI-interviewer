@@ -10,7 +10,7 @@ async function fixDatabase() {
 
   // Fetch the latest interview
   const interview = await Interview.findOne({ _id: "6a55103046cbf592c581408a" });
-  
+
   if (interview) {
     let updated = false;
     interview.assignedCandidates.forEach(c => {

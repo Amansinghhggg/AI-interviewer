@@ -1,149 +1,243 @@
-import { PromptValidator } from "./PromptValidator.js";
-
 const EVALUATION_PROMPT_VERSION = "v1";
 
 /**
  * EvaluationPromptBuilder
  *
- * Generates structured prompt strings for evaluating candidate answers.
+ * Generates a structured prompt string for full-interview AI evaluation.
+ *
+ * Input:  EvaluationContext  (clean, provider-agnostic data)
+ * Output: Prompt string       (ready for any AI provider)
+ *
+ * No HTTP. No providers. No AI calls. Only prompt generation.
  */
 export class EvaluationPromptBuilder {
   /**
-   * Build a prompt to evaluate a single answer.
+   * Build the full-interview evaluation prompt.
    *
-   * @param {import('./PromptContext.js').PromptContext} promptContext
+   * @param {import('./EvaluationContext.js').EvaluationContext} context
    * @returns {string} A structured prompt string.
+   * @throws {Error} If required context fields are missing.
    */
-  static buildSingleAnswerPrompt(promptContext) {
-    PromptValidator.validateAdaptiveContext(promptContext);
-    const { config, history } = promptContext;
-    const lastExchange = history.getLastExchange();
+  static buildEvaluationPrompt(context) {
+    EvaluationPromptBuilder.#validateContext(context);
 
-    if (!lastExchange) throw new Error("No previous exchange found for single answer evaluation");
+    const sections = [
+      EvaluationPromptBuilder.#buildVersion(),
+      EvaluationPromptBuilder.#buildSystemRole(),
+      EvaluationPromptBuilder.#buildInterviewConfig(context.interviewConfig),
+      EvaluationPromptBuilder.#buildInterviewSummary(context.interviewSummary),
+      EvaluationPromptBuilder.#buildTranscript(context.transcript),
+      EvaluationPromptBuilder.#buildEvaluationCriteria(),
+      EvaluationPromptBuilder.#buildScoringGuide(),
+      EvaluationPromptBuilder.#buildHiringRecommendation(),
+      EvaluationPromptBuilder.#buildOutputFormat(context.transcript),
+    ];
 
+    return sections.join("\n\n");
+  }
+
+  // ── Private: Validation ──────────────────────────────────────────────
+
+  /**
+   * Fail fast if required context fields are missing.
+   * @param {import('./EvaluationContext.js').EvaluationContext} context
+   */
+  static #validateContext(context) {
+    if (!context) {
+      throw new Error("EvaluationContext is required");
+    }
+    if (!context.interviewConfig) {
+      throw new Error("EvaluationContext must contain interviewConfig");
+    }
+    if (!context.interviewConfig.jobRole) {
+      throw new Error("interviewConfig.jobRole is required");
+    }
+    if (!context.interviewConfig.experienceLevel) {
+      throw new Error("interviewConfig.experienceLevel is required");
+    }
+    if (!Array.isArray(context.interviewConfig.topics)) {
+      throw new Error("interviewConfig.topics must be an array");
+    }
+    if (!context.interviewConfig.duration) {
+      throw new Error("interviewConfig.duration is required");
+    }
+    if (!context.interviewSummary) {
+      throw new Error("EvaluationContext must contain interviewSummary");
+    }
+    if (!Array.isArray(context.transcript)) {
+      throw new Error("EvaluationContext must contain a transcript array");
+    }
+    if (context.transcript.length === 0) {
+      throw new Error("Transcript must contain at least one Q&A exchange");
+    }
+  }
+
+  // ── Private: Section Builders ────────────────────────────────────────
+
+  static #buildVersion() {
+    return `=== PROMPT VERSION: ${EVALUATION_PROMPT_VERSION} ===`;
+  }
+
+  static #buildSystemRole() {
     return [
-      `=== PROMPT VERSION: ${EVALUATION_PROMPT_VERSION} ===`,
       "=== SYSTEM ROLE ===",
-      "You are an expert technical evaluator assessing a candidate's interview answer.",
-      "You must provide an objective, structured evaluation based on clear criteria.",
-      "",
-      "=== CONTEXT ===",
-      `Role: ${config.jobRole}`,
-      `Experience Level: ${config.experienceLevel}`,
-      `Expected Difficulty: ${config.difficulty}`,
-      `Language: ${config.language}`,
-      "",
-      "=== EVALUATION DATA ===",
-      `Topic: ${lastExchange.topic}`,
-      `Question Difficulty: ${lastExchange.difficulty}`,
-      `Question: ${lastExchange.question}`,
-      `Candidate's Answer: ${lastExchange.answer}`,
-      "",
-      "=== INSTRUCTIONS ===",
-      "Evaluate the candidate's answer on the following criteria:",
-      "",
-      "1. **Technical Accuracy** (0-10): Is the answer factually correct and technically sound?",
-      "2. **Depth of Knowledge** (0-10): Does the answer demonstrate deep understanding beyond surface-level knowledge?",
-      "3. **Communication** (0-10): Is the answer clear, structured, and well-articulated?",
-      "4. **Problem Solving** (0-10): Does the answer show analytical thinking and problem-solving ability?",
-      "5. **Relevance** (0-10): Does the answer directly address the question asked?",
-      "",
-      "Also provide:",
-      "- A list of strengths observed in the answer.",
-      "- A list of weaknesses or gaps in the answer.",
-      "- A brief recommendation on whether to probe deeper on this topic.",
-      "",
-      "=== OUTPUT FORMAT ===",
-      "Return a single JSON object:",
-      "",
-      "```json",
-      "{",
-      '  "technicalAccuracy": 8,',
-      '  "depthOfKnowledge": 7,',
-      '  "communication": 9,',
-      '  "problemSolving": 6,',
-      '  "relevance": 8,',
-      '  "overallScore": 7.6,',
-      '  "strengths": ["Clear explanation of core concepts", "Good use of examples"],',
-      '  "weaknesses": ["Missed edge cases", "Did not discuss performance implications"],',
-      '  "recommendation": "probe_deeper | move_on | increase_difficulty",',
-      '  "reasoning": "Brief explanation of the evaluation"',
-      "}",
-      "```",
-      "",
-      "IMPORTANT: Return ONLY the JSON object. No additional text or explanations.",
+      "You are an experienced Senior Technical Interviewer responsible for evaluating candidates fairly and objectively.",
+      "You must evaluate the candidate's knowledge, reasoning, communication, and problem-solving ability based on the complete interview transcript below.",
+      "Be strict but fair. Base every score and observation on concrete evidence from the transcript.",
     ].join("\n");
   }
 
-  /**
-   * Build a prompt to evaluate the entire interview at the end.
-   *
-   * @param {import('./PromptContext.js').PromptContext} promptContext
-   * @returns {string} A structured prompt string.
-   */
-  static buildOverallEvaluationPrompt(promptContext) {
-    PromptValidator.validateAdaptiveContext(promptContext);
-    const { config, history } = promptContext;
-
-    const exchangeBlocks = history.exchanges.map((exchange, index) => [
-      `--- Question ${index + 1} ---`,
-      `Topic: ${exchange.topic}`,
-      `Difficulty: ${exchange.difficulty}`,
-      `Q: ${exchange.question}`,
-      `A: ${exchange.answer}`,
-    ].join("\n")).join("\n\n");
+  static #buildInterviewConfig(config) {
+    const topicsList =
+      config.topics.length > 0
+        ? config.topics.join(", ")
+        : "general topics relevant to the role";
 
     return [
-      `=== PROMPT VERSION: ${EVALUATION_PROMPT_VERSION} ===`,
-      "=== SYSTEM ROLE ===",
-      "You are a senior hiring evaluator reviewing a complete technical interview.",
-      "You must provide a comprehensive, objective assessment of the candidate's overall performance.",
-      "",
-      "=== CONTEXT ===",
-      `Role: ${config.jobRole}`,
+      "=== INTERVIEW CONFIGURATION ===",
+      `Job Role: ${config.jobRole}`,
       `Experience Level: ${config.experienceLevel}`,
-      `Expected Difficulty: ${config.difficulty}`,
-      `Interview Duration: ${config.duration} minutes`,
-      `Language: ${config.language}`,
-      `Total Questions: ${history.exchanges.length}`,
+      `Topics: ${topicsList}`,
+      `Duration: ${config.duration} minutes`,
+      `Total Questions: ${config.totalQuestions}`,
+    ].join("\n");
+  }
+
+  static #buildInterviewSummary(summary) {
+    const lines = [
+      "=== INTERVIEW SUMMARY ===",
+      `Answered Questions: ${summary.answeredQuestions}`,
+      `Covered Topics: ${summary.coveredTopics.length > 0 ? summary.coveredTopics.join(", ") : "none"}`,
+      `Remaining Topics: ${summary.remainingTopics.length > 0 ? summary.remainingTopics.join(", ") : "none"}`,
+    ];
+
+    if (summary.startedAt) {
+      lines.push(`Interview Started At: ${new Date(summary.startedAt).toISOString()}`);
+    }
+    if (summary.endedAt) {
+      lines.push(`Interview Ended At: ${new Date(summary.endedAt).toISOString()}`);
+    }
+    if (summary.totalDurationMinutes !== null && summary.totalDurationMinutes !== undefined) {
+      lines.push(`Total Interview Duration: ${summary.totalDurationMinutes} minutes`);
+    }
+
+    return lines.join("\n");
+  }
+
+  static #buildTranscript(transcript) {
+    const exchanges = transcript
+      .map(
+        (entry, i) =>
+          [
+            `--- Question ${i + 1} ---`,
+            `Question ID: ${entry.questionId}`,
+            `Topic: ${entry.topic}`,
+            `Difficulty: ${entry.difficulty}`,
+            `Q: ${entry.question}`,
+            `A: ${entry.answer || "(No answer provided)"}`,
+          ].join("\n")
+      )
+      .join("\n\n");
+
+    return [
+      "=== FULL INTERVIEW TRANSCRIPT ===",
+      "Below is the complete, chronological record of every question and answer.",
+      "Evaluate each exchange individually AND the overall performance holistically.",
       "",
-      "=== INTERVIEW TRANSCRIPT ===",
-      exchangeBlocks,
+      exchanges,
+    ].join("\n");
+  }
+
+  static #buildEvaluationCriteria() {
+    return [
+      "=== EVALUATION CRITERIA ===",
+      "Evaluate the candidate on the following five dimensions:",
       "",
-      "=== INSTRUCTIONS ===",
-      "Provide a holistic evaluation of the candidate across the entire interview.",
+      "1. Technical Knowledge — Accuracy, depth, and correctness of technical answers.",
+      "2. Communication — Clarity, structure, and articulation of responses.",
+      "3. Problem Solving — Analytical thinking, edge-case awareness, and reasoning approach.",
+      "4. Confidence — Poise, conviction, and composure when answering.",
+      "5. Topic Coverage — Breadth of knowledge across the required interview topics.",
+    ].join("\n");
+  }
+
+  static #buildScoringGuide() {
+    return [
+      "=== SCORING GUIDE ===",
+      "Use the following scale for ALL scores (overall, per-dimension, and per-question):",
       "",
-      "Evaluate on these dimensions:",
-      "1. **Technical Accuracy** (0-10): Overall correctness across all answers.",
-      "2. **Communication** (0-10): Clarity and structure of responses throughout.",
-      "3. **Confidence** (0-10): How confidently did the candidate handle questions?",
-      "4. **Problem Solving** (0-10): Analytical thinking demonstrated across answers.",
-      "5. **Topic Coverage** (0-10): How well did the candidate cover the required topics?",
+      "9-10: Exceptional — Accurate explanations with practical examples, no mistakes.",
+      "7-8:  Good — Solid understanding with only minor gaps or mistakes.",
+      "5-6:  Basic — Demonstrates fundamental knowledge but has noticeable gaps.",
+      "3-4:  Weak — Multiple misconceptions or inability to explain clearly.",
+      "0-2:  Insufficient — Unable to demonstrate the required knowledge.",
       "",
-      "Also provide:",
-      "- Top strengths observed across the interview.",
-      "- Key weaknesses or areas for improvement.",
-      "- A hiring recommendation with justification.",
+      "Scores must be numeric values between 0 and 10 (decimals allowed, e.g. 7.5).",
+    ].join("\n");
+  }
+
+  static #buildHiringRecommendation() {
+    return [
+      "=== HIRING RECOMMENDATION ===",
+      "Based on the overall evaluation, provide exactly ONE of the following recommendations:",
       "",
+      "STRONG_HIRE — Exceptional candidate, clear top performer.",
+      "HIRE — Good candidate who meets or exceeds requirements.",
+      "BORDERLINE — Mixed signals, could go either way.",
+      "NO_HIRE — Does not meet the requirements for this role.",
+      "STRONG_NO_HIRE — Significant gaps, clearly not ready.",
+      "",
+      "The recommendation field MUST be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NO_HIRE, STRONG_NO_HIRE.",
+      "Do NOT invent new recommendation values.",
+    ].join("\n");
+  }
+
+  static #buildOutputFormat(transcript) {
+    // Build the questionEvaluations example entries from the actual transcript
+    // so the AI knows the exact questionIds to use.
+    const questionExamples = transcript
+      .map(
+        (entry) =>
+          `    {\n      "questionId": ${JSON.stringify(entry.questionId)},\n      "scores": {\n        "technical": 0,\n        "communication": 0\n      },\n      "feedback": "..."\n    }`
+      )
+      .join(",\n");
+
+    return [
       "=== OUTPUT FORMAT ===",
-      "Return a single JSON object:",
+      "Return ONLY valid JSON. No markdown. No explanations. No code blocks.",
+      "Your entire response must be parseable by JSON.parse().",
       "",
-      "```json",
+      "The JSON MUST match this exact structure:",
+      "",
       "{",
-      '  "technicalAccuracy": 8,',
-      '  "communication": 7,',
-      '  "confidence": 8,',
-      '  "problemSolving": 7,',
-      '  "topicCoverage": 9,',
-      '  "overallScore": 7.8,',
-      '  "strengths": ["Strong fundamentals", "Clear communication"],',
-      '  "weaknesses": ["Limited system design knowledge", "Struggled with edge cases"],',
-      '  "recommendation": "strong_hire | hire | lean_hire | lean_no_hire | no_hire",',
-      '  "reasoning": "Detailed justification for the recommendation"',
+      '  "scores": {',
+      '    "overall": 0,',
+      '    "technical": 0,',
+      '    "communication": 0,',
+      '    "problemSolving": 0,',
+      '    "confidence": 0,',
+      '    "topicCoverage": 0',
+      "  },",
+      '  "recommendation": "HIRE",',
+      '  "reasoning": "...",',
+      '  "strengths": ["...", "..."],',
+      '  "weaknesses": ["...", "..."],',
+      '  "questionEvaluations": [',
+      questionExamples,
+      "  ]",
       "}",
-      "```",
       "",
-      "IMPORTANT: Return ONLY the JSON object. No additional text or explanations.",
+      "RULES:",
+      '- "scores" — All six scores are required. Use the 0-10 scale.',
+      '- "recommendation" — Must be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NO_HIRE, STRONG_NO_HIRE.',
+      '- "reasoning" — A concise paragraph explaining WHY this recommendation was given.',
+      '- "strengths" — Array of 2-5 specific strengths observed in the interview.',
+      '- "weaknesses" — Array of 2-5 specific weaknesses observed in the interview.',
+      '- "questionEvaluations" — One entry per question, in the same order as the transcript.',
+      '  - "questionId" — Must match the Question ID from the transcript exactly.',
+      '  - "scores.technical" — Technical accuracy score for this specific answer.',
+      '  - "scores.communication" — Communication clarity score for this specific answer.',
+      '  - "feedback" — 1-2 sentence feedback for this specific answer.',
     ].join("\n");
   }
 }

@@ -11,7 +11,8 @@ import {
   submitInterview,
   getInterviewQuestions,
   getInterviewSession,
-  submitAnswer
+  submitAnswer,
+  getInterviewResult
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
 
@@ -24,6 +25,8 @@ router
   .route("/")
   .post(authorize("employer"), createInterview)
   .get(authorize("employer"), getInterviews);
+
+router.get("/:id/results/:resultId", authorize("employer"), getInterviewResult);
 
 // Candidate Routes
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);

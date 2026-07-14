@@ -26,6 +26,7 @@ const LiveInterviewPage = () => {
     totalQuestions,
     answers,
     timeLeft,
+    isInterviewFinished,
     handleNext,
     handlePrev,
     handleAnswerChange,
@@ -65,6 +66,15 @@ const LiveInterviewPage = () => {
 
       {/* Main Content */}
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col mt-4">
+        {timeLeft === 0 && (
+          <div className="mb-6 p-4 rounded-xl bg-warning-500/10 border border-warning-500/20 text-warning-400 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium">
+              Interview time has ended. You may finish answering the current question. No additional questions will be generated.
+            </p>
+          </div>
+        )}
+
         <ProgressBar current={currentIndex} total={totalQuestions} />
 
         <div className="flex-1 flex flex-col gap-2">
@@ -84,6 +94,7 @@ const LiveInterviewPage = () => {
         <Navigation 
           currentIndex={currentIndex}
           totalQuestions={totalQuestions}
+          isInterviewFinished={isInterviewFinished}
           handlePrev={handlePrev}
           handleNext={handleNext}
           handleSubmit={handleSubmit}
