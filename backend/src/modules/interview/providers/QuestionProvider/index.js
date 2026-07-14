@@ -8,7 +8,8 @@ import { GeminiQuestionProvider } from "./GeminiQuestionProvider.js";
  */
 const providerRegistry = {
   static: StaticQuestionProvider,
-  gemini: GeminiQuestionProvider
+  gemini: GeminiQuestionProvider,
+  groq: GeminiQuestionProvider // Groq uses the same QuestionProvider logic since it dynamically loads the AIProvider
 };
 
 /**
@@ -21,7 +22,7 @@ const providerRegistry = {
  * @returns {import('./BaseQuestionProvider.js').BaseQuestionProvider}
  * @throws {Error} If the requested provider type is not supported.
  */
-export const createQuestionProvider = (type = "static") => {
+export const createQuestionProvider = (type = process.env.QUESTION_PROVIDER || "gemini") => {
   // We lowercase the type just to be safe with future dynamic strings
   const ProviderClass = providerRegistry[type.toLowerCase()];
   
@@ -42,7 +43,7 @@ export const createQuestionProvider = (type = "static") => {
  */
 export const getQuestionsForInterview = async (interview) => {
   // Determine if it should use 'gemini' or default to 'static'
-  const type = process.env.QUESTION_PROVIDER || interview.interviewType || "static";
+  const type = process.env.QUESTION_PROVIDER || interview.interviewType || "gemini";
   const provider = createQuestionProvider(type);
-  return provider.getQuestions(interview);
+  return provider.generateFirstQuestion(interview);
 };

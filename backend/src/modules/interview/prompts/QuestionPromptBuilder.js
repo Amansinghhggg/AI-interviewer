@@ -1,6 +1,6 @@
 import { PromptValidator } from "./PromptValidator.js";
 
-const QUESTION_PROMPT_VERSION = "v1";
+const QUESTION_PROMPT_VERSION = "v2";
 
 /**
  * QuestionPromptBuilder
@@ -29,38 +29,42 @@ export class QuestionPromptBuilder {
       "You are an expert technical interviewer conducting a structured interview.",
       "You must generate interview questions that are clear, professional, and appropriately challenging.",
       "",
-      "=== CONTEXT ===",
-      `You are interviewing a candidate for the role of ${config.jobRole}.`,
-      `The candidate has ${config.experienceLevel} of experience.`,
-      `The interview duration is ${config.duration} minutes.`,
-      `The interview language is ${config.language}.`,
+      "=== EMPLOYER INFORMATION ===",
+      `Company Name: ${config.companyName || "Unknown"} (INFORMATIONAL ONLY - DO NOT USE FOR QUESTIONS)`,
       "",
-      "=== INTERVIEW CONFIGURATION ===",
+      "=== INTERVIEW INFORMATION ===",
       `Job Role: ${config.jobRole}`,
       `Topics: ${topicsList}`,
       `Difficulty: ${config.difficulty}`,
       `Experience Level: ${config.experienceLevel}`,
+      `Job Description: ${config.description || "None provided"}`,
       `Duration: ${config.duration} minutes`,
       `Language: ${config.language}`,
       `Interview Type: ${config.interviewType}`,
       "",
-      "=== INSTRUCTIONS ===",
-      "1. Generate questions that cover the specified topics.",
-      "2. Ensure the difficulty matches the specified level.",
-      "3. Tailor the complexity to the candidate's experience level.",
-      "4. Distribute questions across the available topics evenly.",
-      "5. Each question should be answerable within the interview duration.",
-      "6. Start with easier questions and gradually increase difficulty.",
-      "7. Include a mix of conceptual and practical questions.",
+      "=== PRIORITY & STRICT RULES ===",
+      "Generate questions using this exact priority:",
+      "Priority 1 (Highest): Topics",
+      "Priority 2: Job Role",
+      "Priority 3: Technical skills from Job Description",
+      "Priority 4: Experience Level",
+      "Priority 5 (Lowest): Company Name (NEVER override the role or topics)",
+      "",
+      "1. You MUST ignore the company name. Never infer technologies from the employer's business name.",
+      "2. Generate questions ONLY from the configured job role and technologies.",
+      "3. NEVER generate HR, management, consulting, sales, marketing, business, or company-related questions unless explicitly requested in the Topics.",
+      "4. The job description should ONLY be used to extract required technical skills.",
+      "5. Distribute questions evenly across ALL available topics.",
+      "6. Avoid unnecessary conversational text or explanations. Ask the question directly.",
       "",
       "=== OUTPUT FORMAT ===",
-      "Return a JSON array of question objects. Each object must have:",
+      "Return a JSON array of question objects. Each object must have exactly the following structure (do NOT generate an id field):",
       "",
       "[",
       "  {",
-      '    "id": 1,',
-      '    "question": "The full question text",',
-      '    "topic": "The topic this question covers",',
+      '    "question": "The full concise question text",',
+      '    "topic": "The exact topic this question covers",',
+      '    "concept": "The core specific concept tested (e.g. Virtual DOM, Closures)",',
       '    "difficulty": "Easy | Medium | Hard",',
       '    "type": "text",',
       '    "expectedDuration": 120',
@@ -88,49 +92,86 @@ export class QuestionPromptBuilder {
     const coveredList = state.coveredTopics.length > 0
       ? state.coveredTopics.join(", ")
       : "none yet";
+      
+    const remainingList = state.remainingTopics.length > 0
+      ? state.remainingTopics.join(", ")
+      : "none";
+      
+    const conceptsList = state.coveredConcepts.length > 0
+      ? state.coveredConcepts.join(", ")
+      : "none yet";
+      
+    const difficultyHistoryStr = state.difficultyHistory.length > 0
+      ? state.difficultyHistory.join(" -> ")
+      : "None";
+      
+    const topicDistStr = Object.entries(state.topicDistribution || {})
+      .map(([t, count]) => `${t}: ${count}`)
+      .join(", ");
 
-    const lastExchange = history.getLastExchange();
-    const exchangeContext = lastExchange 
-      ? `\n=== PREVIOUS EXCHANGE ===\nQuestion: ${lastExchange.question}\nCandidate's Answer: ${lastExchange.answer}\n`
-      : "";
+    let exchangeContext = "No previous exchanges.";
+    if (history.exchanges && history.exchanges.length > 0) {
+      exchangeContext = history.exchanges.map((ex, i) => 
+        `Q${i + 1} (${ex.difficulty || "Unknown"} | ${ex.topic || "Unknown"} | Concept: ${ex.concept || "Unknown"}): ${ex.question}\nAnswer: ${ex.answer || "(No answer provided)"}`
+      ).join("\n\n");
+    }
 
     return [
       `=== PROMPT VERSION: ${QUESTION_PROMPT_VERSION} ===`,
       "=== SYSTEM ROLE ===",
       "You are an expert technical interviewer conducting an adaptive interview.",
-      "You must generate ONE next question based on the candidate's previous response and interview progress.",
+      "You must generate EXACTLY ONE next question based on the candidate's previous responses and interview progress.",
       "",
-      "=== CONTEXT ===",
+      "=== EMPLOYER INFORMATION ===",
+      `Company Name: ${config.companyName || "Unknown"} (INFORMATIONAL ONLY - DO NOT USE FOR QUESTIONS)`,
+      "",
+      "=== INTERVIEW CONTEXT ===",
       `Role: ${config.jobRole}`,
+      `Topics: ${topicsList}`,
       `Experience Level: ${config.experienceLevel}`,
-      `Expected Difficulty: ${config.difficulty}`,
+      `Job Description: ${config.description || "None provided"}`,
+      `Expected Baseline Difficulty: ${config.difficulty}`,
       `Language: ${config.language}`,
       `Remaining Time: ${state.remainingTime} minutes`,
-      exchangeContext,
+      `Current Question Number: ${state.currentQuestion} out of ${state.maxQuestions}`,
+      "",
       "=== PROGRESS & COVERAGE ===",
       `Required Topics: ${topicsList}`,
-      `Already Covered: ${coveredList}`,
-      `Current Question Number: ${state.currentQuestion}`,
+      `Topic Distribution (Asked count): ${topicDistStr}`,
+      `Topics Already Covered: ${coveredList}`,
+      `Remaining Topics to Cover: ${remainingList}`,
+      `Specific Concepts Already Covered: ${conceptsList}`,
+      `Difficulty Progression So Far: ${difficultyHistoryStr}`,
       "",
-      "=== INSTRUCTIONS ===",
-      "1. Analyze the candidate's previous answer (if any) for depth and accuracy.",
-      "2. If the answer was shallow or incorrect, ask a probing question on the same topic.",
-      "3. If the answer was strong, move to an uncovered topic or appropriately adjust difficulty.",
-      "4. Prioritize topics that have not been covered yet.",
-      "5. Consider the remaining time — avoid overly broad questions if time is short.",
-      "6. Maintain the specified difficulty level overall.",
+      "=== FULL CONVERSATION HISTORY ===",
+      "Review the past exchanges to understand the candidate's proficiency and adapt accordingly.",
+      exchangeContext,
+      "",
+      "=== STRICT DOMAIN RULES ===",
+      "Generate questions using this exact priority:",
+      "Priority 1: Topics | Priority 2: Job Role | Priority 3: Technical skills from Job Description",
+      "",
+      "1. You MUST ignore the company name. Never infer technologies from the employer's business name.",
+      "2. NEVER generate HR, management, consulting, sales, marketing, business, or company-related questions.",
+      "3. NEVER repeat the exact same question.",
+      "4. NEVER ask about the exact same concept twice, UNLESS you are intentionally asking a significantly deeper follow-up question based on their previous answer.",
+      "5. If a concept has already been mastered, move to another topic.",
+      "6. Balance the topics: Prioritize topics with the lowest coverage before revisiting heavily covered topics.",
+      "7. Progress naturally: Increase difficulty when the candidate performs well, but reduce it temporarily if they struggle. Avoid random jumps.",
+      "8. Keep the question concise, highly relevant to the job role, and professional. Avoid unnecessary explanations.",
+      "9. Ask exactly ONE question.",
       "",
       "=== OUTPUT FORMAT ===",
-      "Return a single JSON object representing the next question:",
+      "Return a single JSON object representing the next question (do NOT generate an id field):",
       "",
       "{",
-      '  "id": 2,',
-      '  "question": "The next question text",',
+      '  "question": "The concise next question text",',
       '  "topic": "The topic this question covers",',
+      '  "concept": "The core specific concept tested (e.g. Virtual DOM, Closures)",',
       '  "difficulty": "Easy | Medium | Hard",',
       '  "type": "text",',
       '  "expectedDuration": 120,',
-      '  "reasoning": "Brief explanation of why this question was chosen"',
+      '  "reasoning": "Brief explanation of why this question and difficulty were chosen"',
       "}",
       "",
       "IMPORTANT: Return ONLY valid, raw JSON. Do NOT wrap the JSON in markdown code blocks (e.g. no ```json). Do NOT provide any conversational text or explanations. Your entire response must be parseable by JSON.parse().",

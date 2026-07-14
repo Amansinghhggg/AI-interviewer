@@ -84,6 +84,11 @@ const interviewSchema = new mongoose.Schema(
       enum: ["draft", "active", "completed", "archived"],
       default: "active",
     },
+    interviewType: {
+      type: String,
+      enum: ["static", "gemini", "groq"],
+      default: "gemini",
+    },
   },
   {
     timestamps: true,
@@ -92,7 +97,6 @@ const interviewSchema = new mongoose.Schema(
 
 // Index for faster queries
 interviewSchema.index({ employer: 1, status: 1 });
-interviewSchema.index({ interviewCode: 1 });
 interviewSchema.index({ "assignedCandidates.email": 1 });
 
 const Interview = mongoose.model("Interview", interviewSchema);

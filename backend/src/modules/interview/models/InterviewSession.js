@@ -7,6 +7,7 @@ const questionSchema = new mongoose.Schema(
     topic: { type: String, required: true },
     difficulty: { type: String, required: true },
     type: { type: String, required: true },
+    concept: { type: String, default: null },
     
     // Each question owns its corresponding answer
     answer: { type: String, default: null },
@@ -16,16 +17,7 @@ const questionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const interviewStateSchema = new mongoose.Schema(
-  {
-    coveredTopics: { type: [String], default: [] },
-    remainingTopics: { type: [String], default: [] },
-    questionNumber: { type: Number, default: 1 },
-    maxQuestions: { type: Number, default: 10 },
-    remainingTime: { type: Number, default: 1200 }
-  },
-  { _id: false }
-);
+
 
 const interviewSessionSchema = new mongoose.Schema(
   {
@@ -52,10 +44,7 @@ const interviewSessionSchema = new mongoose.Schema(
       type: [questionSchema],
       default: [],
     },
-    interviewState: {
-      type: interviewStateSchema,
-      default: () => ({})
-    },
+
     startedAt: {
       type: Date,
       default: null,

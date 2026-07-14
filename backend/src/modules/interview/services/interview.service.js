@@ -51,7 +51,11 @@ class InterviewService {
       query["assignedCandidates.email"] = userEmail;
     }
 
-    return await Interview.findOne(query);
+    const interview = await Interview.findOne(query);
+    if (interview && !interview.interviewType) {
+      interview.interviewType = process.env.QUESTION_PROVIDER || "gemini";
+    }
+    return interview;
   }
 
   async updateInterview(interviewId, employerId, validatedData) {
@@ -137,6 +141,10 @@ class InterviewService {
 
     const interviewData = interview.toObject();
     delete interviewData.assignedCandidates;
+
+    if (!interviewData.interviewType) {
+      interviewData.interviewType = process.env.QUESTION_PROVIDER || "gemini";
+    }
 
     return interviewData;
   }

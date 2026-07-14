@@ -101,7 +101,7 @@ export class InterviewEngine {
  * @param {string} [interviewType='static'] - The type of interview / provider to use.
  * @returns {InterviewEngine}
  */
-export const createInterviewEngine = (interviewType = "static") => {
+export const createInterviewEngine = (interviewType = process.env.QUESTION_PROVIDER || "gemini") => {
   const questionProvider = createQuestionProvider(interviewType);
 
   // Future: resolve evaluation and AI providers based on interviewType

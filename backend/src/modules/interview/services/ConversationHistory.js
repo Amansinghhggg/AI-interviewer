@@ -21,4 +21,25 @@ export class ConversationHistory {
     if (this.exchanges.length === 0) return null;
     return this.exchanges[this.exchanges.length - 1];
   }
+
+  /**
+   * Adds a new question asked by the AI to the history.
+   * @param {string} questionText
+   */
+  addAIQuestion(questionText) {
+    this.exchanges.push({
+      question: questionText,
+      answer: null
+    });
+  }
+
+  /**
+   * Updates the most recent exchange with the candidate's answer.
+   * @param {string} answerText
+   */
+  addCandidateAnswer(answerText) {
+    if (this.exchanges.length > 0) {
+      this.exchanges[this.exchanges.length - 1].answer = answerText;
+    }
+  }
 }

@@ -1,6 +1,8 @@
 import { AIConfig } from "./config/ai.config.js";
 import { GeminiProvider } from "./GeminiProvider.js";
 
+import { GroqProvider } from "./GroqProvider.js";
+
 /**
  * Provider Registry
  * Maps configuration string to the Provider class.
@@ -8,6 +10,7 @@ import { GeminiProvider } from "./GeminiProvider.js";
  */
 const providerRegistry = {
   gemini: GeminiProvider,
+  groq: GroqProvider,
   // glm: GLMProvider,
   // openai: OpenAIProvider,
   // claude: ClaudeProvider

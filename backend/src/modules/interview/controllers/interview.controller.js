@@ -162,7 +162,7 @@ const joinInterview = async (req, res, next) => {
         message: error.errors[0].message,
       });
     }
-    
+
     if (error.message === "unauthorized") {
       return res.status(403).json({
         success: false,
@@ -184,7 +184,7 @@ const getInterviewSession = async (req, res, next) => {
   try {
     const sessionStore = await import("../services/InterviewSessionService.js");
     const InterviewSessionService = sessionStore.default;
-    
+
     const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
     if (!session) {
       return res.status(404).json({ success: false, message: "No active session found." });
@@ -210,15 +210,18 @@ const startInterview = async (req, res, next) => {
     if (!interviewData) throw new Error("not_found");
 
     // Check if it's an AI interview
-    const isAiInterview = process.env.QUESTION_PROVIDER === "gemini" || interviewData.interviewType === "gemini";
-    
+    const provider = process.env.QUESTION_PROVIDER || "gemini";
+    const isAiInterview = provider === "gemini" || provider === "groq" || interviewData.interviewType === "gemini" || interviewData.interviewType === "groq";
+
     if (isAiInterview) {
       const sessionStore = await import("../services/InterviewSessionService.js");
       const InterviewSessionService = sessionStore.default;
-      
+
       let session = await InterviewSessionService.getOrCreateSession(req.params.id, req.user._id);
-      
+
       if (session.status === "ACTIVE") {
+        // Ensure legacy status is marked correctly even if resumed
+        await interviewService.startInterview(req.params.id, req.user.email);
         return res.status(200).json({ success: true, session, message: "Session resumed." });
       }
 
@@ -229,22 +232,17 @@ const startInterview = async (req, res, next) => {
       // Initialize AI Engine
       const { createInterviewEngine } = await import("../services/interviewEngine.js");
       const { InterviewConfig } = await import("../services/InterviewConfig.js");
-      
-      const config = new InterviewConfig({
-        jobRole: interviewData.title,
-        topics: ["General"], // Normally mapped from actual interview topics
-        difficulty: "Medium",
-        experienceLevel: "Mid",
-        duration: interviewData.duration || 30,
-        language: "English",
-        interviewType: "gemini"
-      });
 
-      const engine = createInterviewEngine("gemini");
+      const config = InterviewConfig.fromInterview(interviewData.interview || interviewData);
+
+      const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini");
       const questions = await engine.generateFirstQuestion(config);
       const firstQuestion = questions[0];
 
       session = await InterviewSessionService.startSession(session._id, firstQuestion, config.duration);
+      
+      // Update candidate status to "In Progress" in the main interview document
+      await interviewService.startInterview(req.params.id, req.user.email);
       
       return res.status(200).json({
         success: true,
@@ -289,37 +287,33 @@ const submitAnswer = async (req, res, next) => {
 
     const sessionStore = await import("../services/InterviewSessionService.js");
     const InterviewSessionService = sessionStore.default;
-    
+
     const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
     if (!session || session.status !== "ACTIVE") {
       return res.status(403).json({ success: false, message: "No active session found." });
     }
 
-    // 1. Rebuild History & State for Engine
+    // 1. Rebuild History & Config
     const history = InterviewSessionService.buildConversationHistory(session);
-    const state = InterviewSessionService.buildInterviewState(session);
+    const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
     
-    // We add the incoming answer manually for this turn because it hasn't been saved yet
-    history.addCandidateAnswer(answer);
-
     // 2. Setup AI Engine
     const { createInterviewEngine } = await import("../services/interviewEngine.js");
     const { InterviewConfig } = await import("../services/InterviewConfig.js");
-    const engine = createInterviewEngine("gemini");
+    const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini");
     
-    // Dummy config mapping for now
-    const config = new InterviewConfig({
-      jobRole: "Role",
-      topics: ["General"],
-      difficulty: "Medium",
-      experienceLevel: "Mid",
-      duration: 30,
-      language: "English",
-      interviewType: "gemini"
-    });
+    // Map actual config from the database instead of dummy values
+    const config = InterviewConfig.fromInterview(interviewData);
+
+    // Now we can accurately build the state
+    const state = InterviewSessionService.buildInterviewState(session, config);
+
+    // We add the incoming answer manually for this turn because it hasn't been saved yet
+    history.addCandidateAnswer(answer);
 
     let nextQuestion = null;
-    
+
+
     // Check if we hit total questions max (e.g. 10)
     if (session.currentQuestionIndex < state.maxQuestions - 1) {
       const generated = await engine.generateNextQuestion(config, state, history);
@@ -349,11 +343,11 @@ const submitInterview = async (req, res, next) => {
     const sessionStore = await import("../services/InterviewSessionService.js");
     const InterviewSessionService = sessionStore.default;
     const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
-    
+
     if (session) {
       await InterviewSessionService.completeSession(session._id);
     }
-    
+
     await interviewService.submitInterview(req.params.id, req.user.email);
     res.status(200).json({
       success: true,

@@ -18,15 +18,19 @@ export class InterviewConfig {
    * @param {string} [params.interviewType='static'] - Type of interview / provider to use.
    */
   constructor({
+    companyName,
     jobRole,
+    description,
     topics = [],
     difficulty = "Medium",
     experienceLevel = "Fresher",
     duration = 30,
     language = "English",
-    interviewType = "static",
+    interviewType = "gemini",
   }) {
+    this.companyName = companyName;
     this.jobRole = jobRole;
+    this.description = description;
     this.topics = topics;
     this.difficulty = difficulty;
     this.experienceLevel = experienceLevel;
@@ -44,13 +48,15 @@ export class InterviewConfig {
    */
   static fromInterview(interviewDoc) {
     return new InterviewConfig({
+      companyName: interviewDoc.title,
       jobRole: interviewDoc.jobRole,
+      description: interviewDoc.description,
       topics: interviewDoc.topics || [],
       difficulty: interviewDoc.difficulty || "Medium",
       experienceLevel: interviewDoc.experienceLevel || "Fresher",
       duration: interviewDoc.duration,
       language: interviewDoc.language || "English",
-      interviewType: interviewDoc.interviewType || "static",
+      interviewType: interviewDoc.interviewType || "gemini",
     });
   }
 }

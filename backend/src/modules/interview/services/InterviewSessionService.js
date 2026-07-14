@@ -46,6 +46,7 @@ class InterviewSessionService {
     // Format the question to match the schema
     const newQuestion = {
       ...firstQuestion,
+      id: 1,
       askedAt: new Date(),
       answer: null,
       answeredAt: null
@@ -60,7 +61,7 @@ class InterviewSessionService {
         currentQuestionIndex: 0,
         $push: { questions: newQuestion }
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
   }
 
@@ -103,10 +104,47 @@ class InterviewSessionService {
    * Reconstructs the InterviewState dynamically.
    * 
    * @param {Object} session 
+   * @param {import('./InterviewConfig.js').InterviewConfig} config
    * @returns {InterviewState}
    */
-  buildInterviewState(session) {
-    return new InterviewState(session.interviewState);
+  buildInterviewState(session, config) {
+    const coveredTopics = [...new Set(session.questions.map(q => q.topic))];
+    const remainingTopics = config.topics.filter(t => !coveredTopics.includes(t));
+    const currentQuestion = session.questions.length + 1;
+    
+    // Advanced Context for AI Intelligence
+    const topicDistribution = {};
+    config.topics.forEach(t => topicDistribution[t] = 0);
+    session.questions.forEach(q => {
+      if (topicDistribution[q.topic] !== undefined) {
+        topicDistribution[q.topic]++;
+      } else {
+        topicDistribution[q.topic] = 1;
+      }
+    });
+
+    const coveredConcepts = [...new Set(session.questions.map(q => q.concept).filter(Boolean))];
+    const difficultyHistory = session.questions.map(q => q.difficulty);
+    
+    let remainingTime = 0;
+    if (session.expiresAt) {
+      remainingTime = Math.max(0, Math.floor((session.expiresAt - new Date()) / 60000));
+    }
+    
+    // We assume 10 questions max unless configured differently
+    const maxQuestions = config.maxQuestions || 10;
+    
+    return new InterviewState({
+      currentQuestion,
+      coveredTopics,
+      remainingTopics,
+      remainingTime,
+      interviewStartedAt: session.startedAt || new Date(),
+      maxQuestions,
+      topicDistribution,
+      coveredConcepts,
+      difficultyHistory
+    });
   }
 
   /**
@@ -133,6 +171,7 @@ class InterviewSessionService {
     if (nextQuestion) {
       const newQuestion = {
         ...nextQuestion,
+        id: session.questions.length + 1,
         askedAt: new Date(),
         answer: null,
         answeredAt: null
@@ -141,13 +180,9 @@ class InterviewSessionService {
       session.currentQuestionIndex = currentIndex + 1;
     }
     
-    // Update state tracking
-    session.interviewState.questionNumber = session.currentQuestionIndex + 1;
-    if (nextQuestion && !session.interviewState.coveredTopics.includes(nextQuestion.topic)) {
-      session.interviewState.coveredTopics.push(nextQuestion.topic);
-    }
-    
-    return await session.save();
+    await session.save();
+    console.log("InterviewSession\n→ Question Saved\n");
+    return session;
   }
 
   /**
@@ -159,7 +194,7 @@ class InterviewSessionService {
     return await InterviewSession.findByIdAndUpdate(
       sessionId,
       { status: "COMPLETED" },
-      { new: true }
+      { returnDocument: 'after' }
     );
   }
 }
