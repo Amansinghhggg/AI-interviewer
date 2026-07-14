@@ -24,7 +24,7 @@ class InterviewSessionService {
    */
   async getOrCreateSession(interviewId, candidateId) {
     let session = await InterviewSession.findOne({ interviewId, candidateId });
-    
+
     if (!session) {
       session = new InterviewSession({
         interviewId,
@@ -34,7 +34,7 @@ class InterviewSessionService {
       });
       await session.save();
     }
-    
+
     return session;
   }
 
@@ -48,7 +48,7 @@ class InterviewSessionService {
   async startSession(sessionId, firstQuestion, durationMinutes) {
     const startedAt = new Date();
     const expiresAt = new Date(startedAt.getTime() + durationMinutes * 60000);
-    
+
     // Format the question to match the schema
     const newQuestion = {
       ...firstQuestion,
@@ -120,7 +120,7 @@ class InterviewSessionService {
     const coveredTopics = [...new Set(session.questions.map(q => q.topic))];
     const remainingTopics = config.topics.filter(t => !coveredTopics.includes(t));
     const currentQuestion = session.questions.length + 1;
-    
+
     // Advanced Context for AI Intelligence
     const topicDistribution = {};
     config.topics.forEach(t => topicDistribution[t] = 0);
@@ -134,15 +134,15 @@ class InterviewSessionService {
 
     const coveredConcepts = [...new Set(session.questions.map(q => q.concept).filter(Boolean))];
     const difficultyHistory = session.questions.map(q => q.difficulty);
-    
+
     let remainingTime = 0;
     if (session.expiresAt) {
       remainingTime = Math.max(0, Math.floor((session.expiresAt - new Date()) / 60000));
     }
-    
+
     // We assume 10 questions max unless configured differently
     const maxQuestions = config.maxQuestions || 10;
-    
+
     return new InterviewState({
       currentQuestion,
       coveredTopics,
@@ -169,13 +169,13 @@ class InterviewSessionService {
     if (session.status !== "ACTIVE") throw new Error("Session is not active");
 
     const currentIndex = session.currentQuestionIndex;
-    
+
     // 1. Save the answer on the current question
     if (session.questions[currentIndex]) {
       session.questions[currentIndex].answer = answerText;
       session.questions[currentIndex].answeredAt = new Date();
     }
-    
+
     // 2. Append the next question
     if (nextQuestion) {
       const newQuestion = {
@@ -188,7 +188,7 @@ class InterviewSessionService {
       session.questions.push(newQuestion);
       session.currentQuestionIndex = currentIndex + 1;
     }
-    
+
     await session.save();
     console.log("InterviewSession\n→ Question Saved\n");
     return session;
@@ -220,7 +220,7 @@ class InterviewSessionService {
   async submitAnswer({ session, answer, interviewConfig, interviewEngine }) {
     const history = this.buildConversationHistory(session);
     const state = this.buildInterviewState(session, interviewConfig);
-    
+
     // We add the incoming answer manually for this turn because it hasn't been saved yet
     history.addCandidateAnswer(answer);
 
@@ -275,7 +275,7 @@ class InterviewSessionService {
     console.log("\n[Evaluation] Starting post-interview evaluation");
     console.log(`  Interview: ${session.interviewId}`);
     console.log(`  Session: ${session._id}`);
-    
+
     let interviewResult = null;
 
     try {
@@ -311,7 +311,7 @@ class InterviewSessionService {
           { arrayFilters: [{ "candidate.email": candidateUser.email }] }
         );
       }
-      
+
       // 2. Set PROCESSING state
       interviewResult.status = "PROCESSING";
       await interviewResult.save();

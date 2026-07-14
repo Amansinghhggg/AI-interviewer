@@ -7,10 +7,10 @@ export const useInterview = (id, navigate, user) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false); // Used when waiting for Gemini
-  
+
   const [questions, setQuestions] = useState([]);
   const [interview, setInterview] = useState(null);
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(0);
@@ -22,7 +22,7 @@ export const useInterview = (id, navigate, user) => {
     try {
       // 1. Fetch Interview Details
       const { data: detailData } = await api.get(`/interviews/${id}`);
-      
+
       const candidateStatus = detailData.interview.assignedCandidates?.find(
         (c) => c.email === user?.email
       )?.status;
@@ -35,13 +35,13 @@ export const useInterview = (id, navigate, user) => {
       }
 
       setInterview(detailData.interview);
-      
+
       // Determine if it's AI driven
       // Check the global backend process env or the specific interview type
       const aiType = detailData.interview.interviewType === "gemini" || detailData.interview.interviewType === "ai";
       // To be safe we assume AI if type is gemini/ai, or we can just try to fetch the session.
       // We will try fetching the session first.
-      
+
       let aiSessionData = null;
       try {
         const { data } = await api.get(`/interviews/${id}/session`);
@@ -56,7 +56,7 @@ export const useInterview = (id, navigate, user) => {
         setIsAi(true);
         // It's an AI interview
         let activeSession = aiSessionData?.session;
-        
+
         // If no active session, start one
         if (!activeSession) {
           const { data: startData } = await api.post(`/interviews/${id}/start`);
@@ -64,12 +64,12 @@ export const useInterview = (id, navigate, user) => {
             activeSession = startData.session;
           }
         }
-        
+
         if (activeSession) {
           setSession(activeSession);
           setQuestions(activeSession.questions);
           setCurrentIndex(activeSession.currentQuestionIndex);
-          
+
           // Reconstruct answers map for the UI
           const currentAnswers = {};
           activeSession.questions.forEach(q => {
@@ -77,7 +77,7 @@ export const useInterview = (id, navigate, user) => {
               currentAnswers[q.id] = q.answer;
             }
           });
-          
+
           // Merge with any local draft they might have been typing
           const restored = restoreInterview(id);
           if (restored && restored.answers) {
@@ -99,7 +99,7 @@ export const useInterview = (id, navigate, user) => {
         // Legacy Static Flow
         const { data: qData } = await api.get(`/interviews/${id}/questions`);
         setQuestions(qData.questions);
-        
+
         const restored = restoreInterview(id);
         if (restored) {
           setCurrentIndex(restored.currentIndex || 0);
@@ -124,7 +124,7 @@ export const useInterview = (id, navigate, user) => {
   // Timer
   useEffect(() => {
     if (loading) return;
-    
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -151,12 +151,12 @@ export const useInterview = (id, navigate, user) => {
 
   const handleNext = async () => {
     const currentQ = questions[currentIndex];
-    
+
     if (isAi && currentIndex === questions.length - 1) {
       // It's an AI interview and we are on the latest question.
       // We must submit the answer to get the next question.
       const answerText = answers[currentQ.id] || "";
-      if (!answerText.trim()) {
+      if (!answerText.trim() && timeLeft > 0) {
         toast.error("Please provide an answer before moving forward.");
         return;
       }
@@ -168,10 +168,11 @@ export const useInterview = (id, navigate, user) => {
           setSession(data.session);
           setQuestions(data.session.questions);
           setCurrentIndex(data.session.currentQuestionIndex);
-          
+
           if (data.isFinished) {
             setIsInterviewFinished(true);
-            toast.success("All questions completed. You may now submit the interview.");
+            toast.success("All questions completed. Submitting interview...");
+            handleSubmit(true);
           }
         }
       } catch (error) {
@@ -199,14 +200,14 @@ export const useInterview = (id, navigate, user) => {
 
   const handleSubmit = async (force = false) => {
     if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;
-    
+
     setSubmitting(true);
     try {
       const { data } = await api.post(`/interviews/${id}/submit`);
       if (data.success) {
         toast.success("Interview submitted successfully!");
         clearInterview(id);
-        
+
         if (document.fullscreenElement) {
           document.exitFullscreen().catch(err => console.warn(err));
         }
@@ -227,10 +228,11 @@ export const useInterview = (id, navigate, user) => {
     questions,
     currentQuestion: questions[currentIndex],
     currentIndex,
-    totalQuestions: isAi && session ? session.interviewState?.maxQuestions : questions.length,
+    totalQuestions: isAi ? 10 : questions.length,
     answers,
     timeLeft,
     isInterviewFinished,
+    isAi,
     handleNext,
     handlePrev,
     handleAnswerChange,

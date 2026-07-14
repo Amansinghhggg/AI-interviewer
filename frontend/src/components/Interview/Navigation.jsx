@@ -4,6 +4,8 @@ const Navigation = ({
   currentIndex, 
   totalQuestions, 
   isInterviewFinished,
+  isTimeUp,
+  isAi,
   handlePrev, 
   handleNext, 
   handleSubmit, 
@@ -21,14 +23,14 @@ const Navigation = ({
         Previous
       </button>
       
-      {currentIndex === totalQuestions - 1 || isInterviewFinished ? (
+      {currentIndex === totalQuestions - 1 || isInterviewFinished || isTimeUp ? (
         <button
-          onClick={handleSubmit}
-          disabled={submitting}
+          onClick={isAi ? handleNext : handleSubmit}
+          disabled={submitting || generating}
           className="px-8 py-3 rounded-xl bg-success-600 text-white font-bold hover:bg-success-500 transition-colors shadow-lg shadow-success-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-          {submitting ? "Submitting..." : "Submit Interview"}
+          {submitting || generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+          {submitting || generating ? "Submitting..." : "Submit Interview"}
         </button>
       ) : (
         <button

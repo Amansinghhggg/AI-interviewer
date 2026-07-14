@@ -27,6 +27,7 @@ const LiveInterviewPage = () => {
     answers,
     timeLeft,
     isInterviewFinished,
+    isAi,
     handleNext,
     handlePrev,
     handleAnswerChange,
@@ -95,6 +96,8 @@ const LiveInterviewPage = () => {
           currentIndex={currentIndex}
           totalQuestions={totalQuestions}
           isInterviewFinished={isInterviewFinished}
+          isTimeUp={timeLeft === 0}
+          isAi={isAi}
           handlePrev={handlePrev}
           handleNext={handleNext}
           handleSubmit={handleSubmit}
