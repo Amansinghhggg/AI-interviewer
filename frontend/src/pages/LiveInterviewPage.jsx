@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useInterview } from "../hooks/useInterview";
+import { useQuestionVoice } from "../hooks/useQuestionVoice";
+import { questionVoiceService } from "../services/questionVoice.service";
 
 // Components
 import QuestionCard from "../components/Interview/QuestionCard";
@@ -34,14 +36,37 @@ const LiveInterviewPage = () => {
     handleSubmit
   } = useInterview(id, navigate, user);
 
+  const handlePlaybackComplete = useCallback(() => {
+    const textarea = document.getElementById('interview-answer-box');
+    if (textarea) {
+      textarea.focus();
+    }
+  }, []);
+
+  const sessionId = interview?.id || interview?._id;
+  
+  // Stop audio and prevent generation if the interview is finished or currently generating the next question
+  const isVoiceDisabled = isInterviewFinished || isGenerating;
+  const voiceProps = useQuestionVoice(currentQuestion, sessionId, handlePlaybackComplete, isVoiceDisabled);
+
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = "Are you sure you want to leave? Your progress will be saved locally, but it is recommended to complete the interview in one sitting.";
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      questionVoiceService.clearCache(); // Cleanup audio blobs when leaving
+    };
   }, []);
+
+  // Also clear cache if interview completes
+  useEffect(() => {
+    if (isInterviewFinished) {
+      questionVoiceService.clearCache();
+    }
+  }, [isInterviewFinished]);
 
   if (loading) {
     return (
@@ -83,6 +108,7 @@ const LiveInterviewPage = () => {
             question={currentQuestion} 
             index={currentIndex} 
             total={totalQuestions} 
+            voiceProps={voiceProps}
           />
 
           <AnswerBox 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { transcribeAudio, health } from "../controllers/voice.controller.js";
+import { transcribeAudio, speakAudio, health } from "../controllers/voice.controller.js";
 import { uploadMiddleware } from "../middleware/upload.middleware.js";
 import { validateAudio } from "../validators/audio.validator.js";
 
@@ -11,9 +11,12 @@ router.get("/health", health);
 // Transcribe audio endpoint
 router.post(
   "/transcribe",
-  uploadMiddleware.single("audio"), // Handles memory storage and basic limits/mimes
-  validateAudio,                    // Strict secondary validation
-  transcribeAudio                   // Controller logic
+  uploadMiddleware.single("audio"),
+  validateAudio,
+  transcribeAudio
 );
+
+// TTS Endpoint
+router.post("/speak", speakAudio);
 
 export default router;

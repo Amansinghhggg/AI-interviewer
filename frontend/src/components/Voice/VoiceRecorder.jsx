@@ -168,7 +168,7 @@ export const VoiceRecorder = ({ onTranscript }) => {
 
           {recordingState === RECORDING_STATES.RECORDED && (
             <div className="flex flex-col items-center gap-6 bg-dark-800 p-6 border border-dark-700 rounded-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <VoicePlayer audioUrl={audioUrl} />
+              <VoicePlayer audioBlob={audioBlob} />
               
               {!isOnline && (
                 <div className="flex items-center gap-2 text-warning-400 bg-warning-500/10 px-4 py-2 rounded-lg text-sm">

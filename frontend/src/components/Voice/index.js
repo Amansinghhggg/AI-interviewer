@@ -6,3 +6,4 @@ export { VoiceLoading } from "./VoiceLoading";
 export { VoiceModal } from "./VoiceModal";
 export { VoiceInputButton } from "./VoiceInputButton";
 export { VoiceWaveform } from "./VoiceWaveform";
+export { VoiceSpeakTest } from "./VoiceSpeakTest";

@@ -9,7 +9,21 @@ export const VoiceConfig = {
   maxAudioSize: parseInt(process.env.MAX_AUDIO_SIZE, 10) || 10 * 1024 * 1024, // 10MB default
   supportedAudioTypes: process.env.SUPPORTED_AUDIO_TYPES 
     ? process.env.SUPPORTED_AUDIO_TYPES.split(",").map(t => t.trim()) 
-    : ["audio/webm", "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a"]
+    : ["audio/webm", "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a"],
+  
+  // TTS Settings
+  tts: {
+    provider: process.env.TTS_PROVIDER || 'edge',
+    defaultVoice: process.env.DEFAULT_TTS_VOICE || 'en-US-AriaNeural',
+    defaultRate: process.env.DEFAULT_TTS_RATE || 1,
+    defaultFormat: process.env.DEFAULT_AUDIO_FORMAT || 'mp3',
+    maxLength: parseInt(process.env.MAX_TTS_TEXT_LENGTH, 10) || 500,
+    availableVoices: [
+      'en-US-AriaNeural',
+      'en-US-JennyNeural',
+      'en-US-GuyNeural'
+    ]
+  }
 };
 
 function validateConfig() {

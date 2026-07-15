@@ -1,456 +1,768 @@
-# Phase 8 — Real-Time Interview Monitoring Roadmap
+# Phase 8 — Voice Interview System Roadmap
 
-## Objective
+## Overview
 
-Transform the AI Interview platform from a traditional question-and-answer system into a professional, real-time monitored interview platform similar to products like HireVue, Mercer Mettl, Talview, and HackerRank.
+This document outlines the complete implementation roadmap for introducing **Voice Interviews** into the AI Interview Platform.
 
-This phase focuses entirely on improving interview integrity, reliability, and the overall interview experience.
+The objective is to extend the current interview architecture while **keeping the Interview Engine completely unchanged**. The Interview Engine should continue to communicate only through **text**, regardless of whether the candidate types or speaks.
 
----
+Voice will therefore act as an **adapter layer**, converting:
 
-# Guiding Principles
+- AI Text → Speech (TTS)
+- Candidate Speech → Text (STT)
 
-- Monitoring must be modular.
-- Monitoring must remain independent of the AI Interview Engine.
-- Controllers remain thin.
-- Every monitoring feature should report to a centralized `ViolationManager`.
-- Real-time events should be designed with future Socket.IO integration in mind.
-- No monitoring logic should interfere with AI question generation or evaluation.
+This architecture keeps the system modular, provider-agnostic, and future-proof.
 
 ---
 
-# Architecture
+# Core Design Principles
+
+## 1. Interview Engine Never Changes
+
+Current flow:
 
 ```
-Interview Monitoring
-│
-├── SystemCheckService
-├── CameraMonitor
-├── MicrophoneMonitor
-├── FaceDetectionService
-├── VoiceDetectionService
-├── BrowserMonitor
-├── NetworkMonitor
-├── FullscreenMonitor
-├── DeviceMonitor
-├── ViolationManager
-└── MonitoringEventDispatcher
+Question (Text)
+        ↓
+Answer (Text)
+        ↓
+Interview Engine
+```
+
+Future flow:
+
+```
+Question (Text)
+        ↓
+Text-to-Speech
+        ↓
+Candidate Hears Question
+        ↓
+Candidate Speaks
+        ↓
+Speech-to-Text
+        ↓
+Answer (Text)
+        ↓
+Interview Engine
+```
+
+The Interview Engine should never know whether the answer came from typing or speaking.
+
+---
+
+## 2. Voice is a Separate Module
+
+```
+modules
+
+├── interview
+├── voice
+└── monitoring
+```
+
+The Interview module remains untouched.
+
+Voice becomes an independent adapter layer.
+
+---
+
+## 3. Backend Owns AI
+
+The frontend should never communicate directly with STT/TTS providers.
+
+Instead:
+
+```
+Browser
+
+↓
+
+Backend Voice Module
+
+↓
+
+AI Provider
+```
+
+Benefits
+
+- Provider swapping
+- Better security
+- Easier debugging
+- Centralized configuration
+- Future analytics
+
+---
+
+# Final Architecture
+
+```
+                    Interview Engine
+                           ▲
+                           │
+                    Transcript (Text)
+                           ▲
+                           │
+                   Speech Service (STT)
+                           ▲
+                           │
+                    Audio Upload API
+                           ▲
+                           │
+                    Browser Recorder
+
+
+Interview Engine
+        │
+        ▼
+   Question Text
+        │
+        ▼
+      TTS Service
+        │
+        ▼
+    Audio Playback
 ```
 
 ---
 
-# Part 1 — Pre-Interview System Check
+# Phase 8 Part 1 — Voice Module Foundation
 
 ## Goal
 
-Before an interview begins, verify that the candidate's environment is suitable.
+Create a provider-based Voice Module that mirrors the architecture already used for Question Providers and Evaluation Providers.
 
-### Checks
+No Interview logic should be modified.
 
-- Camera available
-- Camera permission granted
-- Microphone available
-- Microphone permission granted
-- Speaker test
-- Internet speed
-- Upload speed
-- Network latency
-- Browser compatibility
-- Screen resolution
-- Fullscreen support
-- Device compatibility
+---
 
-### UI
+## Why
 
-Display a modern checklist.
+The project already follows provider abstractions for AI.
 
-Example:
+Voice should follow exactly the same philosophy.
+
+---
+
+## Proposed Folder Structure
 
 ```
-✓ Camera Ready
+backend/src/modules/voice
 
-✓ Microphone Ready
-
-✓ Internet Good
-
-✓ Browser Supported
-
-✓ Fullscreen Supported
-
-────────────────────────
-
-Overall Status
-
-🟢 Ready to Start Interview
+├── config
+│
+├── controllers
+│      └── voice.controller.js
+│
+├── routes
+│      └── voice.routes.js
+│
+├── services
+│      ├── SpeechService.js
+│      └── TTSService.js
+│
+├── providers
+│      ├── SpeechProvider
+│      │      ├── BaseSpeechProvider.js
+│      │      ├── GroqSpeechProvider.js
+│      │      └── index.js
+│      │
+│      └── TTSProvider
+│             ├── BaseTTSProvider.js
+│             ├── OpenAITTSProvider.js
+│             └── index.js
+│
+└── utils
 ```
 
 ---
 
-# Part 2 — Camera & Microphone
+## Scope
 
-## Features
+Create
 
-- Live webcam preview
-- Live microphone indicator
-- Camera switching
-- Microphone switching
-- Permission recovery
+- Voice Module
+- Provider Interfaces
+- Provider Registry
+- Configuration
+- Dependency Wiring
 
-Candidate must confirm everything before continuing.
+Do NOT
 
----
-
-# Part 3 — Face Detection
-
-Using MediaPipe or Face API.
-
-Detect:
-
-- No face detected
-- Multiple faces
-- Face leaves frame
-- Face too far away
-- Face partially visible
-- Candidate looking away (future enhancement)
-
-Violations are sent to the Violation Manager.
+- Call any AI
+- Record audio
+- Modify Interview Engine
+- Modify Frontend
 
 ---
 
-# Part 4 — Browser Monitoring
+## Deliverables
 
-Detect:
-
-- Tab switching
-- Window blur
-- Fullscreen exit
-- Copy/Paste attempts
-- Right-click attempts
-- DevTools opening (best effort)
-
-Every event is logged.
+- Voice module exists
+- Providers created
+- Configuration complete
+- Backend builds successfully
 
 ---
 
-# Part 5 — Voice Monitoring
+## Verification
 
-Monitor microphone quality.
-
-Detect:
-
-- Microphone muted
-- Long silence
-- Background voices
-- High background noise
-
-No speech transcription will be performed.
-
-Only environmental monitoring.
+- Project starts successfully
+- Routes register
+- No Interview functionality is affected
 
 ---
 
-# Part 6 — Network Monitoring
+# Phase 8 Part 2 — Speech-to-Text Backend
 
-Continuously monitor:
+## Goal
 
-- Download speed
-- Upload speed
-- Ping
-- Online / Offline
-- Connection quality
-
-Suggested thresholds:
-
-### Download
-
-- <3 Mbps → Poor
-- 3–8 Mbps → Fair
-- 8–20 Mbps → Good
-- >20 Mbps → Excellent
-
-### Upload
-
-- <1 Mbps → Poor
-- 1–3 Mbps → Fair
-- 3–5 Mbps → Good
-- >5 Mbps → Excellent
-
-### Ping
-
-- <50ms → Excellent
-- 50–100ms → Good
-- 100–200ms → Fair
-- >200ms → Poor
-
-Do NOT block the interview unless connectivity becomes critically unstable.
-
-Instead show warnings.
+Build the backend Speech-to-Text pipeline.
 
 ---
 
-# Part 7 — Violation Manager
-
-Every monitoring module reports here.
-
-Example:
+## Architecture
 
 ```
-Camera Lost
+Audio Upload
 
 ↓
 
-ViolationManager
+Speech Service
 
 ↓
 
-Create Event
+Speech Provider
 
 ↓
 
-Store
+Groq Whisper
 
 ↓
 
-Future Socket Event
-
-↓
-
-Employer Dashboard
+Transcript
 ```
 
-Example event:
+---
+
+## API
+
+```
+POST /api/voice/transcribe
+```
+
+Accept
+
+```
+multipart/form-data
+```
+
+Return
 
 ```json
 {
-    "type": "TAB_SWITCH",
-    "severity": "WARNING",
-    "timestamp": "...",
-    "details": {}
+    "success": true,
+    "transcript": "React uses Virtual DOM..."
 }
 ```
 
 ---
 
-# Part 8 — Monitoring Timeline
+## Scope
 
-Maintain a chronological log.
+Create
 
-Example:
+- SpeechService
+- GroqSpeechProvider
+- Upload endpoint
+- Error handling
+- Validation
+
+Do NOT
+
+- Integrate with Interview
+- Store recordings
+- Build frontend
+
+---
+
+## Deliverables
+
+Working transcription endpoint.
+
+---
+
+## Verification
+
+Upload
 
 ```
-10:02
-
-Interview Started
-
-10:05
-
-Camera Lost
-
-10:05
-
-Camera Restored
-
-10:08
-
-Network Poor
-
-10:09
-
-Tab Switched
-
-10:11
-
-Returned
+sample.webm
 ```
 
-This timeline will later be visible to employers.
-
----
-
-# Part 9 — Socket.IO Integration (Future)
-
-The monitoring architecture should be designed so events can later be streamed in real time.
-
-Example:
+Receive
 
 ```
-Violation
-
-↓
-
-Monitoring Dispatcher
-
-↓
-
-Socket.IO
-
-↓
-
-Employer Dashboard
-```
-
-No Socket.IO implementation in this phase.
-
-Only architecture preparation.
-
----
-
-# Part 10 — Employer Live Monitoring (Future)
-
-During interviews employers will see:
-
-- Candidate status
-- Camera status
-- Network quality
-- Violations
-- Current question
-- Remaining time
-
-This consumes monitoring events generated in this phase.
-
----
-
-# Part 11 — Recording (Future)
-
-Support:
-
-- Webcam recording
-- Microphone recording
-- Optional screen recording
-
-Recording remains completely independent of AI evaluation.
-
----
-
-# Part 12 — BullMQ + Redis (Future)
-
-Move expensive tasks into background jobs.
-
-Examples:
-
-- AI Evaluation
-- Report generation
-- Email notifications
-- Recording processing
-
-Interview completion should return immediately while BullMQ handles processing.
-
----
-
-# Constraints
-
-Do NOT modify:
-
-- InterviewEngine
-- Question Providers
-- Evaluation Providers
-- Prompt Builders
-- AI Evaluation Pipeline
-
-Monitoring must remain an independent subsystem.
-
----
-
-# Design Principles
-
-- Single Responsibility
-- Thin Controllers
-- Modular Services
-- Event-driven architecture
-- Future Socket.IO compatibility
-- Future BullMQ compatibility
-- Provider agnostic
-- Easily extensible
-
----
-
-# Long-Term Vision
-
-```
-Employer
-
-↓
-
-Create Interview
-
-↓
-
-Assign Candidate
-
-↓
-
-Candidate Joins
-
-↓
-
-Pre-Interview System Check
-
-↓
-
-Live AI Interview
-
-↓
-
-Real-Time Monitoring
-
-↓
-
-AI Evaluation
-
-↓
-
-Employer Dashboard
-
-↓
-
-Reports
-
-↓
-
-Notifications
+Transcript
 ```
 
 ---
 
-# Version Roadmap
+# Phase 8 Part 3 — Frontend Recorder
 
-## Version 1 (Current)
+## Goal
 
-- AI Interview
-- AI Question Generation
-- AI Evaluation
-- Employer Dashboard
+Allow candidates to record voice inside the browser.
 
 ---
 
-## Version 2
+## Architecture
 
-- Pre-Interview System Check
-- Camera Monitoring
-- Face Detection
-- Browser Monitoring
-- Network Monitoring
-- Violation Manager
+```
+Candidate
+
+↓
+
+MediaRecorder
+
+↓
+
+Audio Blob
+```
 
 ---
 
-## Version 3
+## Features
+
+- Microphone Permission
+- Start Recording
+- Stop Recording
+- Timer
+- Playback
+- Delete Recording
+
+---
+
+## Scope
+
+Frontend only.
+
+No backend integration.
+
+---
+
+## Deliverables
+
+Browser can successfully record audio.
+
+---
+
+## Verification
+
+Record
+
+↓
+
+Playback
+
+↓
+
+Recording works correctly.
+
+---
+
+# Phase 8 Part 4 — Upload & Transcription Integration
+
+## Goal
+
+Connect the browser recorder to the backend STT endpoint.
+
+---
+
+## Flow
+
+```
+MediaRecorder
+
+↓
+
+Audio Blob
+
+↓
+
+POST /voice/transcribe
+
+↓
+
+Speech Service
+
+↓
+
+Transcript
+
+↓
+
+Display Transcript
+```
+
+---
+
+## Scope
+
+Integrate recorder with SpeechService.
+
+Still no Interview integration.
+
+---
+
+## Deliverables
+
+Audio successfully becomes text.
+
+---
+
+## Verification
+
+Record
+
+↓
+
+Upload
+
+↓
+
+Transcript displayed on screen.
+
+---
+
+# Phase 8 Part 5 — Text-to-Speech Backend
+
+## Goal
+
+Allow AI-generated questions to be spoken aloud.
+
+---
+
+## Architecture
+
+```
+Question Text
+
+↓
+
+TTS Service
+
+↓
+
+Speech Provider
+
+↓
+
+Audio
+
+↓
+
+Frontend
+```
+
+---
+
+## API
+
+```
+POST /api/voice/speak
+```
+
+Returns
+
+```
+audio/mpeg
+```
+
+---
+
+## Scope
+
+Create
+
+- TTSService
+- TTS Provider
+- Audio endpoint
+
+---
+
+## Deliverables
+
+Question converted into playable audio.
+
+---
+
+## Verification
+
+Question text
+
+↓
+
+Audio returned
+
+↓
+
+Audio plays correctly.
+
+---
+
+# Phase 8 Part 6 — Voice Interview Integration
+
+## Goal
+
+Integrate voice into the interview flow without modifying Interview Engine.
+
+---
+
+## Flow
+
+```
+Question
+
+↓
+
+Play Audio
+
+↓
+
+Candidate Records
+
+↓
+
+Upload
+
+↓
+
+Transcript
+
+↓
+
+InterviewSessionService.submitAnswer()
+
+↓
+
+Interview Engine
+
+↓
+
+Next Question
+```
+
+---
+
+## Important Rule
+
+Interview Engine still receives
+
+```ts
+answer: string
+```
+
+Nothing changes internally.
+
+---
+
+## Deliverables
+
+A complete voice interview experience.
+
+---
+
+## Verification
+
+Complete an interview using only voice.
+
+---
+
+# Phase 8 Part 7 — Audio Persistence
+
+## Goal
+
+Persist candidate recordings for replay and future analysis.
+
+---
+
+## Store
+
+```
+Question
+
+Answer
+
+Transcript
+
+Audio URL
+```
+
+Example
+
+```json
+{
+    "question": "...",
+    "answer": "...",
+    "audioUrl": "/uploads/audio/q4.webm"
+}
+```
+
+---
+
+## Future Benefits
+
+- Employer replay
+- Better evaluation
+- Re-transcription
+- Communication analysis
+
+---
+
+## Verification
+
+Audio successfully stored and retrievable.
+
+---
+
+# Phase 8 Part 8 — Voice Quality Improvements
+
+## Goal
+
+Improve recording reliability.
+
+---
+
+## Features
+
+- Retry uploads
+- Noise suppression
+- Silence detection
+- Audio normalization
+- Maximum recording duration
+- Better microphone validation
+
+---
+
+## Verification
+
+Recordings remain stable under poor conditions.
+
+---
+
+# Phase 8 Part 9 — Streaming Voice (Future)
+
+> Not part of Version 1.
+
+---
+
+## Goal
+
+Replace upload-based transcription with streaming transcription.
+
+---
+
+## Architecture
+
+```
+Microphone
+
+↓
+
+Socket/WebRTC
+
+↓
+
+Streaming STT
+
+↓
+
+Transcript
+
+↓
+
+Interview Engine
+```
+
+---
+
+## Why Later?
+
+Requires
 
 - Socket.IO
-- Employer Live Monitoring
-- Recording
+- Streaming providers
+- Buffer management
+- Reconnection logic
+- Much higher complexity
+
+Current upload architecture should be completed first.
 
 ---
 
-## Version 4
+# Phase 8 Part 10 — Monitoring Integration
 
-- Redis
-- BullMQ
-- Email Notifications
-- Background Processing
+Voice is complete.
+
+Monitoring begins.
 
 ---
 
-# Final Goal
+## Monitoring Module
 
-Deliver a production-quality AI Interview platform that not only asks intelligent adaptive questions but also ensures interview integrity through comprehensive real-time monitoring while maintaining a clean, modular, and scalable architecture.
+```
+Monitoring
+
+├── Camera
+├── Face Detection
+├── Screen Recording
+├── Fullscreen Detection
+├── Network Monitoring
+├── Tab Detection
+└── Violation Manager
+```
+
+Monitoring remains completely independent from Voice.
+
+---
+
+# Sprint Roadmap
+
+| Sprint | Phase | Deliverable |
+|---------|-------|-------------|
+| Sprint 1 | Parts 1 + 2 | Voice Backend + STT API |
+| Sprint 2 | Parts 3 + 4 | Frontend Recorder + Upload + Transcript |
+| Sprint 3 | Part 5 | AI Speaks Questions |
+| Sprint 4 | Part 6 | Full Voice Interview |
+| Sprint 5 | Part 7 | Audio Persistence |
+| Sprint 6 | Part 8 | Voice Quality Improvements |
+| Sprint 7 | Parts 9 + 10 | Streaming (Future) + Monitoring |
+
+---
+
+# Success Criteria
+
+At the end of Phase 8:
+
+- AI can speak every question.
+- Candidate answers using voice.
+- Audio is converted into text.
+- Interview Engine remains unchanged.
+- Providers remain swappable.
+- Voice is fully modular.
+- Monitoring can be added later without refactoring.
+
+---
+
+# Guiding Principles
+
+- Keep the Interview Engine untouched.
+- Voice is an adapter, not business logic.
+- Backend owns all AI communication.
+- Frontend only records and plays audio.
+- Providers must remain replaceable.
+- Avoid Socket.IO/WebRTC in Version 1.
+- Every sprint must end with a fully working feature.
+- Build complete vertical slices, not isolated code.

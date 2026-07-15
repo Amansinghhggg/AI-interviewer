@@ -31,6 +31,34 @@ export const voiceService = {
   },
 
   /**
+   * Synthesize text to speech
+   * @param {string} text 
+   * @param {string} voice 
+   * @returns {Promise<{blob: Blob, contentType: string}>}
+   */
+  speak: async (text, voice) => {
+    try {
+      const response = await apiClient.post('/voice/speak', 
+        { text, voice },
+        { responseType: 'blob' }
+      );
+      
+      const contentType = response.headers['content-type'] || 'audio/mpeg';
+      
+      // Ensure the Blob has the correct MIME type so the browser can play it
+      const typedBlob = new Blob([response.data], { type: contentType });
+
+      return {
+        blob: typedBlob,
+        contentType
+      };
+    } catch (error) {
+      console.error('TTS Error:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Check voice module health
    * @returns {Promise<any>}
    */

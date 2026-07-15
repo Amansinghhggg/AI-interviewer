@@ -16,6 +16,7 @@ const AnswerBox = ({ question, value, onChange }) => {
       return (
         <div className="relative w-full">
           <textarea
+            id="interview-answer-box"
             value={value}
             onChange={(e) => onChange(question.id, e.target.value)}
             placeholder="Type your answer here or use the microphone..."
