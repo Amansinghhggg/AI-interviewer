@@ -15,6 +15,7 @@ import InterviewInstructionsPage from "./pages/InterviewInstructionsPage";
 import PreInterviewPage from "./pages/PreInterviewPage";
 import LiveInterviewPage from "./pages/LiveInterviewPage";
 import EmployerInterviewResultPage from "./pages/EmployerInterviewResultPage";
+import VoiceTestPage from "./pages/VoiceTestPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -35,6 +36,9 @@ function App() {
     <>
       <Navbar />
       <Routes>
+        {/* Test Route */}
+        <Route path="/test/voice" element={<VoiceTestPage />} />
+
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route
