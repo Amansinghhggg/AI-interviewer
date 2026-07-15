@@ -7,6 +7,7 @@ import errorHandler from "./middleware/errorHandler.js";
 // Route imports
 import authRoutes from "./modules/auth/auth.routes.js";
 import interviewRoutes from "./modules/interview/routes/interview.routes.js";
+import voiceRoutes from "./modules/voice/routes/voice.routes.js";
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.get("/api/health", (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/interviews", interviewRoutes);
+app.use("/api/voice", voiceRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

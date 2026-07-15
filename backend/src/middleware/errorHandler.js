@@ -15,12 +15,12 @@ const errorHandler = (err, req, res, next) => {
     message = `${field} already exists`;
   }
 
-  // Mongoose validation error
+  // Mongoose validation error or custom validation error
   if (err.name === "ValidationError") {
     statusCode = 400;
-    message = Object.values(err.errors)
-      .map((val) => val.message)
-      .join(", ");
+    message = err.errors 
+      ? Object.values(err.errors).map((val) => val.message).join(", ")
+      : err.message;
   }
 
   // JWT errors
