@@ -1,7 +1,9 @@
 import { EdgeTTSProvider } from "./EdgeTTSProvider.js";
+import { GoogleTTSProvider } from "./GoogleTTSProvider.js";
 
 const providers = {
   edge: EdgeTTSProvider,
+  google: GoogleTTSProvider,
   // future
   // openai: OpenAITTSProvider,
   // elevenlabs: ElevenLabsProvider

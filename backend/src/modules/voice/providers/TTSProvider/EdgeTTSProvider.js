@@ -25,7 +25,7 @@ export class EdgeTTSProvider extends BaseTTSProvider {
         rate: rate,
         lang: voice.split('-').slice(0, 2).join('-') // e.g., 'en-US'
       });
-      
+
       // ttsPromise writes to a file
       await tts.ttsPromise(text, tempFilePath);
 
@@ -37,7 +37,7 @@ export class EdgeTTSProvider extends BaseTTSProvider {
         metadata: {
           provider: "edge",
           voice: voice,
-          format: "mp3" 
+          format: "mp3"
         }
       };
     } catch (error) {

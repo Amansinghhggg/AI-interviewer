@@ -14,13 +14,12 @@ import {
   Loader2,
   ArrowLeft
 } from "lucide-react";
-
 const PreInterviewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  
+
   const [checks, setChecks] = useState({
     camera: { status: "pending" }, // pending, success, error
     mic: { status: "pending" },
@@ -46,24 +45,27 @@ const PreInterviewPage = () => {
     setChecks(prev => ({ ...prev, browser: { status: isBrowserCompatible ? "success" : "error" } }));
 
     if (isBrowserCompatible) {
+      // 3. Check Camera
       try {
-        // 3. Check Camera & Mic
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        
-        setChecks(prev => ({ 
-          ...prev, 
-          camera: { status: "success" },
-          mic: { status: "success" }
-        }));
-
-        // Stop the tracks immediately as we just need permission, not recording
-        stream.getTracks().forEach(track => track.stop());
+        const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setChecks(prev => ({ ...prev, camera: { status: "success", error: null } }));
+        videoStream.getTracks().forEach(track => track.stop());
       } catch (error) {
-        // Distinguish between camera and mic if possible, but usually it's combined in prompt
-        setChecks(prev => ({ 
-          ...prev, 
-          camera: { status: "error" },
-          mic: { status: "error" }
+        setChecks(prev => ({
+          ...prev,
+          camera: { status: "error", error: error.name === 'NotFoundError' ? 'No camera found' : error.message }
+        }));
+      }
+
+      // 4. Check Mic
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setChecks(prev => ({ ...prev, mic: { status: "success", error: null } }));
+        audioStream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        setChecks(prev => ({
+          ...prev,
+          mic: { status: "error", error: error.name === 'NotFoundError' ? 'No microphone found' : error.message }
         }));
       }
     }
@@ -71,13 +73,13 @@ const PreInterviewPage = () => {
 
   useEffect(() => {
     performChecks();
-    
+
     const handleOnline = () => setChecks(prev => ({ ...prev, internet: { status: "success" } }));
     const handleOffline = () => setChecks(prev => ({ ...prev, internet: { status: "error" } }));
-    
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
@@ -90,7 +92,7 @@ const PreInterviewPage = () => {
   const handleStartInterview = async () => {
     if (!canStart) return;
     setLoading(true);
-    
+
     try {
       const { data } = await api.post(`/interviews/${id}/start`);
       if (data.success) {
@@ -101,7 +103,7 @@ const PreInterviewPage = () => {
             console.warn("Fullscreen request failed:", err);
           });
         }
-        
+
         toast.success("Interview Started!");
         navigate(`/candidate/interviews/${id}/live`);
       }
@@ -141,20 +143,30 @@ const PreInterviewPage = () => {
           </p>
 
           <div className="space-y-4 mb-8">
-            <div className="flex items-center justify-between p-4 bg-dark-800/50 rounded-xl border border-dark-700">
-              <div className="flex items-center gap-3">
-                <Camera className="w-5 h-5 text-dark-300" />
-                <span className="text-dark-100 font-medium">Camera Permission</span>
+            <div className="flex flex-col p-4 bg-dark-800/50 rounded-xl border border-dark-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Camera className="w-5 h-5 text-dark-300" />
+                  <span className="text-dark-100 font-medium">Camera Permission</span>
+                </div>
+                {getStatusIcon(checks.camera.status)}
               </div>
-              {getStatusIcon(checks.camera.status)}
+              {checks.camera.status === 'error' && checks.camera.error && (
+                <p className="mt-2 text-sm text-danger-500">{checks.camera.error}</p>
+              )}
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-dark-800/50 rounded-xl border border-dark-700">
-              <div className="flex items-center gap-3">
-                <Mic className="w-5 h-5 text-dark-300" />
-                <span className="text-dark-100 font-medium">Microphone Permission</span>
+            <div className="flex flex-col p-4 bg-dark-800/50 rounded-xl border border-dark-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Mic className="w-5 h-5 text-dark-300" />
+                  <span className="text-dark-100 font-medium">Microphone Permission</span>
+                </div>
+                {getStatusIcon(checks.mic.status)}
               </div>
-              {getStatusIcon(checks.mic.status)}
+              {checks.mic.status === 'error' && checks.mic.error && (
+                <p className="mt-2 text-sm text-danger-500">{checks.mic.error}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between p-4 bg-dark-800/50 rounded-xl border border-dark-700">

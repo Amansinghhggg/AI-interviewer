@@ -117,11 +117,23 @@ export const useAudioPlayer = ({
     }
   }, [onError]);
 
+  const clear = useCallback(() => {
+    setIsLoading(false);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
+    cleanupUrl();
+  }, [cleanupUrl]);
+
   return {
     play,
     pause,
     stop,
     replay,
+    clear,
     load,
     isPlaying,
     isLoading

@@ -1,0 +1,24 @@
+{
+  "name": "ai-interviewer",
+  "version": "1.0.0",
+  "description": "> A production-oriented AI recruitment platform built phase by phase.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amansinghhggg/AI-interviewer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Amansinghhggg/AI-interviewer/issues"
+  },
+  "homepage": "https://github.com/Amansinghhggg/AI-interviewer#readme",
+  "dependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

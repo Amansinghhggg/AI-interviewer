@@ -4,7 +4,7 @@ import { ValidationError } from "../errors/ValidationError.js";
 // ── Score Schema ─────────────────────────────────────────────────────────────
 // Reusable: a number between 0 and 10 (decimals allowed).
 
-const ScoreSchema = z.number().min(0).max(10);
+const ScoreSchema = z.coerce.number().min(0).max(10);
 
 // ── Overall Scores Schema ────────────────────────────────────────────────────
 // Maps directly to InterviewResult.scores
@@ -86,7 +86,9 @@ export class EvaluationResponseValidator {
     try {
       return EvaluationResponseSchema.parse(parsedData);
     } catch (error) {
+      console.error("[EvaluationValidator] Validation failed for data:", JSON.stringify(parsedData, null, 2));
       if (error instanceof z.ZodError) {
+        console.error("[EvaluationValidator] Zod Errors:", JSON.stringify(error.errors, null, 2));
         throw new ValidationError(
           "AI evaluation response failed schema validation.",
           error.errors

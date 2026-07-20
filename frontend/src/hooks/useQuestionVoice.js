@@ -20,6 +20,7 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
     pause: audioPause,
     stop: audioStop,
     replay: audioReplay,
+    clear: audioClear,
     load,
     isPlaying
   } = useAudioPlayer({
@@ -66,10 +67,10 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
   // Force stop if voice becomes disabled (e.g., user clicks Next or Submit)
   useEffect(() => {
     if (isVoiceDisabled) {
-      audioStop();
+      audioClear();
       setVoiceState(VOICE_STATES.IDLE);
     }
-  }, [isVoiceDisabled, audioStop]);
+  }, [isVoiceDisabled, audioClear]);
 
   // Effect to load and play new question
   useEffect(() => {
@@ -78,8 +79,8 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
     const loadQuestionAudio = async () => {
       if (!currentQuestion || !sessionId || isVoiceDisabled) return;
       
-      // Always Stop Previous Playback
-      audioStop();
+      // Always Stop and Clear Previous Playback
+      audioClear();
       setVoiceState(VOICE_STATES.GENERATING);
 
       try {
@@ -99,9 +100,9 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
 
     return () => {
       isMounted = false;
-      audioStop();
+      audioClear();
     };
-  }, [currentQuestion, sessionId, load, audioStop]);
+  }, [currentQuestion, sessionId, load, audioClear]);
 
   // Derived controls
   const play = useCallback(() => {
