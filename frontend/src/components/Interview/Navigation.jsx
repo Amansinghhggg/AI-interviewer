@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
+import { ChevronRight, Check, Loader2 } from "lucide-react";
 
 const Navigation = ({ 
   currentIndex, 
@@ -6,51 +6,46 @@ const Navigation = ({
   isInterviewFinished,
   isTimeUp,
   isAi,
-  handlePrev, 
   handleNext, 
   handleSubmit, 
   submitting,
-  generating
+  generating,
+  hasAnswer
 }) => {
+  const isLastQuestion = currentIndex === totalQuestions - 1;
+  const isCompleteButton = isLastQuestion || isInterviewFinished || isTimeUp;
+  
+  // Dynamic button logic
+  const isDisabled = submitting || generating || (!hasAnswer && !isCompleteButton && !isTimeUp);
+  
+  const getButtonText = () => {
+    if (submitting || generating) return isCompleteButton ? "Submitting..." : "Generating...";
+    if (!hasAnswer && !isCompleteButton && !isTimeUp) return "Complete your answer";
+    if (isCompleteButton) return "Submit Interview";
+    return "Next Question →";
+  };
+
   return (
-    <div className="flex items-center justify-between mt-8 pt-6 border-t border-dark-800">
+    <div className="flex items-center justify-end">
       <button
-        onClick={handlePrev}
-        disabled={currentIndex === 0}
-        className="px-6 py-3 rounded-xl bg-dark-800 text-dark-100 font-medium hover:bg-dark-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-dark-700"
+        onClick={isCompleteButton ? (isAi ? handleNext : handleSubmit) : handleNext}
+        disabled={isDisabled}
+        className={`px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-lg flex items-center gap-3
+          ${isDisabled 
+            ? 'bg-dark-800 text-dark-400 cursor-not-allowed border border-dark-700 shadow-none' 
+            : isCompleteButton 
+              ? 'bg-success-600 hover:bg-success-500 text-white shadow-success-500/20'
+              : 'bg-primary-600 hover:bg-primary-500 text-white shadow-primary-500/20'
+          }`}
       >
-        <ChevronLeft className="w-5 h-5" />
-        Previous
+        {(submitting || generating) ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : isCompleteButton ? (
+          <Check className="w-5 h-5" />
+        ) : null}
+        
+        {getButtonText()}
       </button>
-      
-      {currentIndex === totalQuestions - 1 || isInterviewFinished || isTimeUp ? (
-        <button
-          onClick={isAi ? handleNext : handleSubmit}
-          disabled={submitting || generating}
-          className="px-8 py-3 rounded-xl bg-success-600 text-white font-bold hover:bg-success-500 transition-colors shadow-lg shadow-success-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {submitting || generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-          {submitting || generating ? "Submitting..." : "Submit Interview"}
-        </button>
-      ) : (
-        <button
-          onClick={handleNext}
-          disabled={generating}
-          className="px-6 py-3 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors shadow-lg shadow-primary-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {generating ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              Next
-              <ChevronRight className="w-5 h-5" />
-            </>
-          )}
-        </button>
-      )}
     </div>
   );
 };

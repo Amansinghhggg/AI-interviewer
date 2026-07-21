@@ -1,0 +1,143 @@
+/**
+ * InterviewConversation — Modular Styles
+ *
+ * Interview-specific animations and styles.
+ * Imported by ConversationController rather than living in global CSS.
+ */
+
+/* AI Avatar — Speaking State: Pulsing ring */
+@keyframes speaking-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(99, 102, 241, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+}
+
+.ai-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-avatar--speaking > div:first-child {
+  animation: speaking-pulse 1.8s ease-out infinite;
+}
+
+/* AI Avatar — Thinking / Processing State: Shimmer */
+@keyframes thinking-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.ai-avatar--thinking > div:first-child {
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-700) 0%,
+    var(--color-primary-500) 25%,
+    var(--color-primary-400) 50%,
+    var(--color-primary-500) 75%,
+    var(--color-primary-700) 100%
+  );
+  background-size: 200% 100%;
+  animation: thinking-shimmer 2s linear infinite;
+}
+
+/* AI Avatar — Error State */
+.ai-avatar--error > div:first-child {
+  background: linear-gradient(135deg, var(--color-danger-500), #991b1b);
+}
+
+/* Waveform Bars Animation */
+@keyframes waveform-bar {
+  0%, 100% { height: 4px; }
+  25% { height: 16px; }
+  50% { height: 24px; }
+  75% { height: 12px; }
+}
+
+.animate-waveform-bar {
+  animation: waveform-bar 0.8s ease-in-out infinite;
+}
+
+/* Listening Glow — Candidate mic indicator */
+@keyframes listening-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.5);
+  }
+}
+
+.animate-listening-glow {
+  animation: listening-glow 1.5s ease-in-out infinite;
+}
+
+/* Cursor Blink — Candidate transcript cursor */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* Transcript Bubbles */
+.transcript-bubble-ai {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.transcript-bubble-candidate {
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  min-height: 4rem;
+}
+
+/* Camera Container */
+.camera-container {
+  background: var(--color-dark-800);
+  min-height: 180px;
+}
+
+/* Conversation Divider */
+.conversation-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.conversation-divider::before,
+.conversation-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(148, 163, 184, 0.15),
+    transparent
+  );
+}
