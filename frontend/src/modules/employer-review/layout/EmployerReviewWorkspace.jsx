@@ -8,7 +8,7 @@ import { TranscriptWidget } from '../widgets/TranscriptWidget.jsx';
 import { ViolationWidget } from '../widgets/ViolationWidget.jsx';
 import { StatisticsWidget } from '../widgets/StatisticsWidget.jsx';
 import { HiringWidget } from '../widgets/HiringWidget.jsx';
-import { AIEvaluationWidget } from '../widgets/AIEvaluationWidget.jsx';
+import { EvaluationWidget } from '../../evaluation-engine/index.js';
 
 export const EmployerReviewWorkspace = ({ session }) => {
     const { state, actions } = useEmployerReview();
@@ -36,7 +36,7 @@ export const EmployerReviewWorkspace = ({ session }) => {
                 <div className="main-column" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <CandidateCard />
                     <ReplayWidget />
-                    <AIEvaluationWidget />
+                    <EvaluationWidget session={session} />
                 </div>
                 
                 {/* Context Sidebar Column */}
