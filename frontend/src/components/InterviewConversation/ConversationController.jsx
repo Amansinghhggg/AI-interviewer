@@ -1,9 +1,9 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   useConversationState,
   createConversationTurn,
 } from '../../modules/interview/conversation';
-import { useCamera } from '../../modules/camera';
+import { useInterviewRuntime, INTERVIEW_RUNTIME_STATES } from '../../modules/interview/runtime';
 import { mergeTranscript } from '../../utils/mergeTranscript';
 import InterviewAI from './InterviewAI';
 import InterviewCandidate from './InterviewCandidate';
@@ -20,8 +20,8 @@ import './InterviewConversation.css';
  * - AI section (InterviewAI)
  * - Candidate section (InterviewCandidate)
  *
- * Future voice, recording, and monitoring modules should
- * integrate through this controller.
+ * Consumes the InterviewRuntime context for browser APIs (camera, recording)
+ * rather than managing them directly.
  *
  * @param {object} props
  * @param {object} props.currentQuestion - Current question from useInterview
@@ -41,6 +41,11 @@ const ConversationController = ({
   voiceProps,
   handleAnswerChange,
 }) => {
+  // ─── Consume Interview Runtime ────────────────────
+  const { camera, runtime, device, face, browser, violations } = useInterviewRuntime();
+  const { stream: cameraStream, state: cameraState, error: cameraError } = camera;
+  const isRuntimeActive = runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE || runtime.state === INTERVIEW_RUNTIME_STATES.FINISHING;
+
   // ─── Derive Conversation State ────────────────────
   const { conversationState, statusMessage, transcriptState } = useConversationState({
     isGenerating,
@@ -49,21 +54,6 @@ const ConversationController = ({
     submitting,
   });
 
-  // ─── Camera — explicit lifecycle control ──────────
-  const {
-    stream: cameraStream,
-    cameraState,
-    error: cameraError,
-    startCamera,
-    stopCamera,
-  } = useCamera();
-
-  // Start camera when controller mounts
-  useEffect(() => {
-    startCamera();
-    return () => stopCamera();
-  }, [startCamera, stopCamera]);
-
   // ─── Current Conversation Turn ────────────────────
   const currentTurn = createConversationTurn({
     question: currentQuestion,
@@ -71,6 +61,10 @@ const ConversationController = ({
     conversationState,
     transcriptState,
   });
+
+  // Halt AI question until recording is fully active
+  const aiTranscript = isRuntimeActive ? currentTurn.aiTranscript : 'Initializing interview...';
+
 
   // ─── Voice Transcript Handler ─────────────────────
   const handleVoiceTranscript = useCallback((transcript) => {
@@ -96,7 +90,7 @@ const ConversationController = ({
         <InterviewAI
           conversationState={conversationState}
           statusMessage={statusMessage}
-          aiTranscript={currentTurn.aiTranscript}
+          aiTranscript={aiTranscript}
         />
       </section>
 
@@ -111,7 +105,13 @@ const ConversationController = ({
           transcriptState={transcriptState}
           cameraStream={cameraStream}
           cameraState={cameraState}
+          cameraWarnings={camera.warnings}
           cameraError={cameraError}
+          deviceSnapshot={device?.snapshot}
+          faceSnapshot={face?.snapshot}
+          browserStatus={browser?.status}
+          activeViolations={violations?.active}
+          setVideoElement={face?.setVideoElement}
           onTranscript={handleVoiceTranscript}
           onClearAnswer={handleClearAnswer}
         />

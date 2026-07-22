@@ -1,6 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { Camera, Loader2, AlertCircle } from 'lucide-react';
 import { CAMERA_STATES } from '../utils/camera.states';
+import { DeviceHealthIndicator } from '../../device-health';
+import { FaceStatusIndicator } from '../../face-detection';
+import { BrowserStatusIndicator } from '../../browser-monitoring';
+import { ViolationIndicator } from '../../violation-engine';
 
 /**
  * InterviewCamera
@@ -13,8 +17,24 @@ import { CAMERA_STATES } from '../utils/camera.states';
  * @param {string} props.state - CAMERA_STATES value
  * @param {Array<string>} [props.warnings] - Warning messages (reserved for future monitoring)
  * @param {{ code: string, message: string }|null} [props.error] - Camera error object
+ * @param {object} [props.deviceSnapshot] - Device health snapshot
+ * @param {object} [props.faceSnapshot] - Face detection snapshot
+ * @param {string} [props.browserStatus] - Browser status string
+ * @param {Array} [props.activeViolations] - Active violations
+ * @param {function} [props.setVideoElement] - Callback to pass video element to detectors
  */
-export const InterviewCamera = ({ stream = null, state = CAMERA_STATES.IDLE, warnings = [], error = null, isRecording = false }) => {
+export const InterviewCamera = ({ 
+  stream = null, 
+  state = CAMERA_STATES.IDLE, 
+  warnings = [], 
+  error = null, 
+  isRecording = false, 
+  deviceSnapshot = null,
+  faceSnapshot = null,
+  browserStatus = null,
+  activeViolations = [],
+  setVideoElement = null 
+}) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -27,12 +47,16 @@ export const InterviewCamera = ({ stream = null, state = CAMERA_STATES.IDLE, war
       videoEl.srcObject = null;
     }
 
+    if (setVideoElement) {
+      setVideoElement(videoEl);
+    }
+
     return () => {
       if (videoEl) {
         videoEl.srcObject = null;
       }
     };
-  }, [stream]);
+  }, [stream, setVideoElement]);
 
   return (
     <div className={`camera-container relative overflow-hidden rounded-2xl bg-dark-800 aspect-video w-full transition-all duration-500 ${
@@ -40,6 +64,34 @@ export const InterviewCamera = ({ stream = null, state = CAMERA_STATES.IDLE, war
         ? 'border border-primary-500/50 shadow-[0_0_30px_rgba(99,102,241,0.15)]' 
         : 'border border-dark-700'
     }`}>
+      {/* Violation Status Overlay (Top Center) */}
+      {activeViolations && activeViolations.length > 0 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+          <ViolationIndicator activeViolations={activeViolations} />
+        </div>
+      )}
+
+      {/* Browser Status Overlay (Top Center, pushed down if violations exist) */}
+      {browserStatus && (
+        <div className={`absolute left-1/2 -translate-x-1/2 z-10 transition-all duration-300 ${activeViolations?.length > 0 ? 'top-14' : 'top-4'}`}>
+          <BrowserStatusIndicator status={browserStatus} />
+        </div>
+      )}
+
+      {/* Device Health Overlay (Top Right) */}
+      {deviceSnapshot && (
+        <div className="absolute top-4 right-4 z-10">
+          <DeviceHealthIndicator snapshot={deviceSnapshot} />
+        </div>
+      )}
+
+      {/* Face Status Overlay (Top Left) */}
+      {faceSnapshot && (
+        <div className="absolute top-4 left-4 z-10">
+          <FaceStatusIndicator snapshot={faceSnapshot} />
+        </div>
+      )}
+
       {/* Active Camera Stream */}
       {state === CAMERA_STATES.ACTIVE && stream && (
         <video

@@ -65,16 +65,18 @@ export const useRecording = () => {
     setDuration(elapsedRef.current);
   }, [stopTimer]);
 
-  // ─── Internal: Release stream tracks ─────────────────────────
+  // ─── Internal: Detach stream (ownership is external) ───────────
   const releaseStream = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        track.stop();
-        track.enabled = false;
-      });
       streamRef.current = null;
       setStream(null);
     }
+  }, []);
+
+  // ─── attachStream() — external stream ownership ────────────────
+  const attachStream = useCallback((externalStream) => {
+    streamRef.current = externalStream;
+    setStream(externalStream);
   }, []);
 
   // ─── reset() — full cleanup, back to IDLE ────────────────────
@@ -85,7 +87,7 @@ export const useRecording = () => {
       serviceRef.current = null;
     }
 
-    // Release stream
+    // Release stream reference
     releaseStream();
 
     // Clear timer
@@ -100,7 +102,7 @@ export const useRecording = () => {
     setSession(null);
   }, [releaseStream, stopTimer]);
 
-  // ─── start() — acquire stream, init service, begin recording ─
+  // ─── start() — init service with attached stream, begin recording ─
   const start = useCallback(async () => {
     setError(null);
     setSession(null);
@@ -115,17 +117,17 @@ export const useRecording = () => {
       return;
     }
 
+    // 2. Check stream existence
+    if (!streamRef.current) {
+      console.error('[useRecording] No stream attached. Call attachStream() before start().');
+      setState(RECORDING_STATES.ERROR);
+      return;
+    }
+
     setState(RECORDING_STATES.INITIALIZING);
 
     try {
-      // 2. Acquire media stream (camera + microphone)
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: RECORDING_CONFIG.CAMERA_CONSTRAINTS,
-        audio: RECORDING_CONFIG.MICROPHONE_CONSTRAINTS,
-      });
-
-      streamRef.current = mediaStream;
-      setStream(mediaStream);
+      const mediaStream = streamRef.current;
 
       // 3. Create and initialize service
       const service = new MediaRecordingService();
@@ -154,7 +156,7 @@ export const useRecording = () => {
       setError(recordingError);
       setState(RECORDING_STATES.ERROR);
 
-      // Release any partial stream
+      // Release any partial stream reference
       releaseStream();
     }
   }, [startTimer, stopTimer, releaseStream]);

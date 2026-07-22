@@ -1,0 +1,7 @@
+export const RUNTIME_CONFIG = {
+  AUTO_START_CAMERA: true,
+  AUTO_START_RECORDING: true,
+  REQUIRE_CAMERA: true,
+  REQUIRE_MICROPHONE: true,
+  AUTO_STOP_ON_FINISH: true,
+};

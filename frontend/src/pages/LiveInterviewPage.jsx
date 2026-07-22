@@ -15,6 +15,111 @@ import AnswerBox from "../components/Interview/AnswerBox";
 
 // Conversational Interview (used for AI interviews)
 import { ConversationController } from "../components/InterviewConversation";
+import { InterviewRuntimeProvider, useInterviewRuntime, INTERVIEW_RUNTIME_STATES } from "../modules/interview/runtime";
+
+const LiveInterviewAIContent = ({
+  interview,
+  questions = [],
+  currentQuestion,
+  answers,
+  isGenerating,
+  submitting,
+  isInterviewFinished,
+  voiceProps,
+  handleAnswerChange,
+  timeLeft,
+  currentIndex,
+  totalQuestions,
+  handleNext,
+  handleSubmit,
+  handlePrev,
+}) => {
+  const { runtime, actions } = useInterviewRuntime();
+
+  // Start recording automatically when runtime is ready
+  useEffect(() => {
+    if (runtime.state === INTERVIEW_RUNTIME_STATES.RECORDING_READY) {
+      actions.start();
+    }
+  }, [runtime.state, actions]);
+
+  // Stop recording and finalize session when interview finishes
+  useEffect(() => {
+    if (isInterviewFinished && runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE) {
+      actions.stop().then(recordingSession => {
+        // Assemble all pieces into the canonical InterviewSession
+        const interviewSession = actions.finalizeInterviewSession(
+          { questions, answers },
+          recordingSession
+        );
+        console.log("[LiveInterviewPage] Finalized Interview Session:", interviewSession);
+        // This session can be stored or uploaded in future sprints
+      });
+    }
+  }, [isInterviewFinished, runtime.state, actions, questions, answers]);
+
+  return (
+    <div className="min-h-screen bg-dark-900 flex flex-col relative overflow-hidden font-sans pt-16">
+      {/* Top Bar */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-dark-800/80 backdrop-blur-md border-b border-dark-700 flex items-center justify-between px-6 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center">
+            <AlertTriangle className="w-4 h-4 text-primary-400" />
+          </div>
+          <span className="font-semibold text-dark-50">{interview?.title}</span>
+        </div>
+        
+        <div className="flex items-center">
+          <Timer timeLeft={timeLeft} />
+        </div>
+      </div>
+
+      {/* Time Warning */}
+      {timeLeft === 0 && (
+        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-12 mt-4">
+          <div className="p-4 rounded-xl bg-warning-500/10 border border-warning-500/20 text-warning-400 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p className="text-sm font-medium">
+              Interview time has ended. You may finish answering the current question. No additional questions will be generated.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Conversation Area — orchestrated by ConversationController */}
+      <div className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-12 pb-8 flex flex-col min-h-0 mt-6">
+        <div className="flex-1 min-h-[500px]">
+          <ConversationController
+            currentQuestion={currentQuestion}
+            answers={answers}
+            isGenerating={isGenerating}
+            submitting={submitting}
+            isInterviewFinished={isInterviewFinished}
+            voiceProps={voiceProps}
+            handleAnswerChange={handleAnswerChange}
+          />
+        </div>
+
+        {/* Navigation */}
+        <div className="mt-8 flex justify-end">
+          <Navigation
+            currentIndex={currentIndex}
+            totalQuestions={totalQuestions}
+            isInterviewFinished={isInterviewFinished}
+            isTimeUp={timeLeft === 0}
+            isAi={true}
+            handlePrev={handlePrev}
+            handleNext={handleNext}
+            handleSubmit={handleSubmit}
+            submitting={submitting}
+            generating={isGenerating}
+            hasAnswer={!!(currentQuestion && answers[currentQuestion.id])}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const LiveInterviewPage = () => {
   const { id } = useParams();
@@ -26,6 +131,7 @@ const LiveInterviewPage = () => {
     submitting,
     isGenerating,
     interview,
+    questions,
     currentQuestion,
     currentIndex,
     totalQuestions,
@@ -88,65 +194,25 @@ const LiveInterviewPage = () => {
   // ═══════════════════════════════════════════════
   if (isAi) {
     return (
-      <div className="min-h-screen bg-dark-900 flex flex-col relative overflow-hidden font-sans pt-16">
-        {/* Top Bar */}
-        <div className="fixed top-0 left-0 right-0 h-16 bg-dark-800/80 backdrop-blur-md border-b border-dark-700 flex items-center justify-between px-6 z-50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4 text-primary-400" />
-            </div>
-            <span className="font-semibold text-dark-50">{interview?.title}</span>
-          </div>
-          
-          <div className="flex items-center">
-            <Timer timeLeft={timeLeft} />
-          </div>
-        </div>
-
-        {/* Time Warning */}
-        {timeLeft === 0 && (
-          <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-12 mt-4">
-            <div className="p-4 rounded-xl bg-warning-500/10 border border-warning-500/20 text-warning-400 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p className="text-sm font-medium">
-                Interview time has ended. You may finish answering the current question. No additional questions will be generated.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Main Conversation Area — orchestrated by ConversationController */}
-        <div className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-12 pb-8 flex flex-col min-h-0 mt-6">
-          <div className="flex-1 min-h-[500px]">
-            <ConversationController
-              currentQuestion={currentQuestion}
-              answers={answers}
-              isGenerating={isGenerating}
-              submitting={submitting}
-              isInterviewFinished={isInterviewFinished}
-              voiceProps={voiceProps}
-              handleAnswerChange={handleAnswerChange}
-            />
-          </div>
-
-          {/* Navigation */}
-          <div className="mt-8 flex justify-end">
-            <Navigation
-              currentIndex={currentIndex}
-              totalQuestions={totalQuestions}
-              isInterviewFinished={isInterviewFinished}
-              isTimeUp={timeLeft === 0}
-              isAi={isAi}
-              handlePrev={handlePrev}
-              handleNext={handleNext}
-              handleSubmit={handleSubmit}
-              submitting={submitting}
-              generating={isGenerating}
-              hasAnswer={!!answers[currentQuestion?.id]}
-            />
-          </div>
-        </div>
-      </div>
+      <InterviewRuntimeProvider>
+        <LiveInterviewAIContent
+          interview={interview}
+          questions={questions}
+          currentQuestion={currentQuestion}
+          answers={answers}
+          isGenerating={isGenerating}
+          submitting={submitting}
+          isInterviewFinished={isInterviewFinished}
+          voiceProps={voiceProps}
+          handleAnswerChange={handleAnswerChange}
+          timeLeft={timeLeft}
+          currentIndex={currentIndex}
+          totalQuestions={totalQuestions}
+          handleNext={handleNext}
+          handlePrev={handlePrev}
+          handleSubmit={handleSubmit}
+        />
+      </InterviewRuntimeProvider>
     );
   }
 

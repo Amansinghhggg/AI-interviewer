@@ -21,6 +21,11 @@ const InterviewCandidate = ({
   cameraState,
   cameraWarnings = [],
   cameraError = null,
+  deviceSnapshot = null,
+  faceSnapshot = null,
+  browserStatus = null,
+  activeViolations = [],
+  setVideoElement = null,
   onTranscript,
   onClearAnswer,
 }) => {
@@ -47,6 +52,11 @@ const InterviewCandidate = ({
               warnings={cameraWarnings}
               error={cameraError}
               isRecording={isListening}
+              deviceSnapshot={deviceSnapshot}
+              faceSnapshot={faceSnapshot}
+              browserStatus={browserStatus}
+              activeViolations={activeViolations}
+              setVideoElement={setVideoElement}
             />
           </div>
 
