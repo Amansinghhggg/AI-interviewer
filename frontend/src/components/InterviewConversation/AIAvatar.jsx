@@ -20,29 +20,27 @@ import { CONVERSATION_STATES } from '../../modules/interview/conversation';
 const AIAvatar = ({ conversationState }) => {
   const isSpeaking = conversationState === CONVERSATION_STATES.SPEAKING;
   const isThinking = conversationState === CONVERSATION_STATES.THINKING;
-  const isProcessing = conversationState === CONVERSATION_STATES.PROCESSING;
   const isError = conversationState === CONVERSATION_STATES.ERROR;
 
   // Determine avatar style class
   const getAvatarClass = () => {
     if (isSpeaking) return 'ai-avatar ai-avatar--speaking';
-    if (isThinking || isProcessing) return 'ai-avatar ai-avatar--thinking';
+    if (isThinking) return 'ai-avatar ai-avatar--thinking';
     if (isError) return 'ai-avatar ai-avatar--error';
     return 'ai-avatar';
   };
 
   // Determine icon
   const renderIcon = () => {
-    const iconClass = 'w-10 h-10 sm:w-12 sm:h-12 text-white';
-    if (isThinking || isProcessing) return <Loader2 className={`${iconClass} animate-spin`} />;
+    const iconClass = 'w-10 h-10 sm:w-12 sm:h-12 text-white transition-transform duration-500';
     if (isError) return <AlertCircle className={iconClass} />;
-    return <Bot className={iconClass} />;
+    return <Bot className={`${iconClass} ${isThinking ? 'animate-pulse' : ''}`} />;
   };
 
   return (
     <div className="relative flex items-center gap-4">
-      <div className={getAvatarClass()}>
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg relative z-10">
+      <div className={`${getAvatarClass()} transition-all duration-500`}>
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg relative z-10 transition-colors duration-500 ${isThinking ? 'bg-gradient-to-br from-primary-600 to-primary-800' : 'bg-gradient-to-br from-primary-500 to-primary-700'}`}>
           {renderIcon()}
         </div>
       </div>

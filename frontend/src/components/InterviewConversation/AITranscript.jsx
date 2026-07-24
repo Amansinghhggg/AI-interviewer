@@ -19,13 +19,13 @@ const AITranscript = ({ transcript, conversationState, onReplay }) => {
   const isVisible = transcript && (
     conversationState === CONVERSATION_STATES.SPEAKING ||
     conversationState === CONVERSATION_STATES.LISTENING ||
-    conversationState === CONVERSATION_STATES.PROCESSING
+    conversationState === CONVERSATION_STATES.THINKING
   );
 
-  if (!isVisible) return null;
-
   return (
-    <div className="animate-fade-in-up mt-6">
+    <div 
+      className={`mt-6 transition-all duration-500 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+    >
       <h2 className="text-3xl sm:text-4xl leading-tight text-white font-semibold tracking-tight">
         {transcript}
       </h2>

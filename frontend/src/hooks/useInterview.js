@@ -149,13 +149,13 @@ export const useInterview = (id, navigate, user) => {
     });
   }, [id, currentIndex, answers, timeLeft, loading]);
 
-  const handleNext = async () => {
+  const handleNext = async (overrideAnswer) => {
     const currentQ = questions[currentIndex];
 
     if (isAi && currentIndex === questions.length - 1) {
       // It's an AI interview and we are on the latest question.
       // We must submit the answer to get the next question.
-      const answerText = answers[currentQ.id] || "";
+      const answerText = overrideAnswer !== undefined ? overrideAnswer : (answers[currentQ.id] || "");
       if (!answerText.trim() && timeLeft > 0) {
         toast.error("Please provide an answer before moving forward.");
         return;

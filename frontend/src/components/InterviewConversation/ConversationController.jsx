@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   useConversationState,
   createConversationTurn,
@@ -7,6 +7,8 @@ import { useInterviewRuntime, INTERVIEW_RUNTIME_STATES } from '../../modules/int
 import { mergeTranscript } from '../../utils/mergeTranscript';
 import InterviewAI from './InterviewAI';
 import InterviewCandidate from './InterviewCandidate';
+import { voiceService } from '../../services/voice.service';
+import toast from 'react-hot-toast';
 
 // Import modular styles
 import './InterviewConversation.css';
@@ -40,18 +42,21 @@ const ConversationController = ({
   isInterviewFinished,
   voiceProps,
   handleAnswerChange,
+  isAutomaticMode,
+  onAnswerReady,
 }) => {
+  const [isTranscribing, setIsTranscribing] = useState(false);
   // ─── Consume Interview Runtime ────────────────────
   const { camera, runtime, device, face, browser, violations } = useInterviewRuntime();
   const { stream: cameraStream, cameraState, error: cameraError } = camera;
   const isRuntimeActive = runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE || runtime.state === INTERVIEW_RUNTIME_STATES.FINISHING;
 
-  // ─── Derive Conversation State ────────────────────
   const { conversationState, statusMessage, transcriptState } = useConversationState({
     isGenerating,
     voiceState: voiceProps.voiceState,
     isInterviewFinished,
     submitting,
+    isTranscribing,
   });
 
   // ─── Current Conversation Turn ────────────────────
@@ -67,12 +72,33 @@ const ConversationController = ({
 
 
   // ─── Voice Transcript Handler ─────────────────────
-  const handleVoiceTranscript = useCallback((transcript) => {
-    if (!currentQuestion) return;
-    const currentAnswer = answers[currentQuestion.id] || '';
-    const newText = mergeTranscript(currentAnswer, transcript);
-    handleAnswerChange(currentQuestion.id, newText);
-  }, [currentQuestion, answers, handleAnswerChange]);
+  const handleRecordingComplete = useCallback(async (audioBlob) => {
+    if (!currentQuestion || !audioBlob) return;
+
+    setIsTranscribing(true);
+    try {
+      const response = await voiceService.transcribe(audioBlob);
+      if (response.success && response.transcript) {
+        // Merge transcript with any existing answer
+        const currentAnswer = answers[currentQuestion.id] || '';
+        const newText = mergeTranscript(currentAnswer, response.transcript);
+        
+        handleAnswerChange(currentQuestion.id, newText);
+        
+        // Notify parent that the answer is completely ready
+        if (onAnswerReady) {
+          onAnswerReady(newText);
+        }
+      } else {
+        throw new Error("Failed to get transcript from response");
+      }
+    } catch (err) {
+      console.error("Transcription error in ConversationController:", err);
+      toast.error("Transcription failed. Please try speaking again.");
+    } finally {
+      setIsTranscribing(false);
+    }
+  }, [currentQuestion, answers, handleAnswerChange, onAnswerReady]);
 
   const handleClearAnswer = useCallback(() => {
     if (!currentQuestion) return;
@@ -113,7 +139,9 @@ const ConversationController = ({
           browserStatus={browser?.status}
           activeViolations={violations?.active}
           setVideoElement={face?.setVideoElement}
-          onTranscript={handleVoiceTranscript}
+          isAutomaticMode={isAutomaticMode}
+          isTranscribing={isTranscribing}
+          onRecordingComplete={handleRecordingComplete}
           onClearAnswer={handleClearAnswer}
         />
       </section>

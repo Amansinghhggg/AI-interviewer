@@ -1,25 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { AlertCircle, UploadCloud, RefreshCcw, WifiOff } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 import { useVoiceRecorder, RECORDING_STATES } from "../../hooks/useVoiceRecorder";
-import { useNetworkStatus } from "../../hooks/useNetworkStatus";
-import { voiceService } from "../../services/voice.service";
 import { getVoiceErrorMessage } from "../../utils/voiceErrors";
 
 import { VoiceControls } from "./VoiceControls";
-import { VoicePlayer } from "./VoicePlayer";
-import { VoiceLoading } from "./VoiceLoading";
-import { VoiceWaveform } from "./VoiceWaveform";
 
-// UI States
-const UI_STATES = {
-  READY: "READY",
-  UPLOADING: "UPLOADING",
-  TRANSCRIBING: "TRANSCRIBING",
-};
-
-export const VoiceRecorder = ({ onTranscript }) => {
+export const VoiceRecorder = ({ 
+  isListening, 
+  isAutomaticMode, 
+  isTranscribing, 
+  onRecordingComplete 
+}) => {
   const {
     recordingState,
     audioBlob,
@@ -32,10 +25,6 @@ export const VoiceRecorder = ({ onTranscript }) => {
     deleteRecording,
   } = useVoiceRecorder();
 
-  const isOnline = useNetworkStatus();
-  const [uiState, setUiState] = useState(UI_STATES.READY);
-  const [uploadError, setUploadError] = useState(null);
-  
   // Ref for keyboard event listener attachment
   const containerRef = useRef(null);
 
@@ -46,42 +35,34 @@ export const VoiceRecorder = ({ onTranscript }) => {
     }
   }, []);
 
-  const handleUpload = async () => {
-    if (!audioBlob) return;
-    if (!isOnline) {
-      toast.error("You are offline. Reconnect to transcribe.");
-      return;
+  // Auto-start recording when isListening goes true
+  useEffect(() => {
+    if (isAutomaticMode && isListening && recordingState === RECORDING_STATES.IDLE) {
+      startRecording();
     }
+  }, [isAutomaticMode, isListening, recordingState, startRecording]);
 
-    setUiState(UI_STATES.UPLOADING);
-    setUploadError(null);
-
-    try {
-      setUiState(UI_STATES.TRANSCRIBING);
-      
-      const response = await voiceService.transcribe(audioBlob);
-      
-      if (response.success && response.transcript) {
-        if (onTranscript) {
-          onTranscript(response.transcript);
-        }
-        deleteRecording();
-        setUiState(UI_STATES.READY);
-      } else {
-        throw new Error("Failed to get transcript from response");
+  // Auto-complete recording when silence stops it
+  useEffect(() => {
+    if (isAutomaticMode && recordingState === RECORDING_STATES.RECORDED && audioBlob) {
+      if (onRecordingComplete) {
+        onRecordingComplete(audioBlob);
+        deleteRecording(); // Clean up internal blob so it doesn't double-fire
       }
-    } catch (err) {
-      console.error("Transcription error:", err);
-      setUploadError(err.response?.data?.message || err.message || "Failed to transcribe audio.");
-      setUiState(UI_STATES.READY);
-      toast.error("Transcription failed");
+    }
+  }, [isAutomaticMode, recordingState, audioBlob, onRecordingComplete, deleteRecording]);
+
+  const handleUpload = () => {
+    if (!audioBlob) return;
+    if (onRecordingComplete) {
+      onRecordingComplete(audioBlob);
+      // In manual mode, we also clean up after emitting
+      deleteRecording();
     }
   };
 
   const handleReset = () => {
     deleteRecording();
-    setUiState(UI_STATES.READY);
-    setUploadError(null);
   };
 
   const handleKeyDown = (e) => {
@@ -98,7 +79,7 @@ export const VoiceRecorder = ({ onTranscript }) => {
   // Determine active error
   const activeError = recorderError 
     ? getVoiceErrorMessage(recorderError) 
-    : uploadError;
+    : null;
 
   // Formatting for the REC indicator
   const formatRecDuration = (ms) => {
@@ -131,16 +112,32 @@ export const VoiceRecorder = ({ onTranscript }) => {
         </div>
       )}
 
-      {/* Inline Controls */}
-      <VoiceControls
-        recordingState={recordingState}
-        duration={duration}
-        onStart={startRecording}
-        onStop={() => stopRecording(false)}
-        onDelete={handleReset}
-        onUpload={handleUpload}
-        isUploading={uiState === UI_STATES.UPLOADING || uiState === UI_STATES.TRANSCRIBING}
-      />
+      {/* Inline Controls for Manual Mode */}
+      {!isAutomaticMode && (
+        <VoiceControls
+          recordingState={recordingState}
+          duration={duration}
+          onStart={startRecording}
+          onStop={() => stopRecording(false)}
+          onDelete={handleReset}
+          onUpload={handleUpload}
+          isUploading={isTranscribing}
+        />
+      )}
+
+      {/* Manual Submit Button for Automatic Mode */}
+      {isAutomaticMode && recordingState === RECORDING_STATES.RECORDING && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            stopRecording(false);
+          }}
+          className="mt-2 w-full py-2.5 px-4 bg-primary-600/20 hover:bg-primary-500/30 text-primary-300 border border-primary-500/30 rounded-xl font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          Submit Early
+        </button>
+      )}
     </div>
   );
 };

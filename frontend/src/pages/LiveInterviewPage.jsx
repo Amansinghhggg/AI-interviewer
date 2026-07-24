@@ -41,6 +41,9 @@ const LiveInterviewAIContent = ({
   const { save, retry, state: uploadState, retries, error } = usePersistence();
   const navigate = useNavigate();
 
+  // Mode flag for automatic vs manual orchestration
+  const isAutomaticMode = true;
+
   // Start recording automatically when runtime is ready
   useEffect(() => {
     if (runtime.state === INTERVIEW_RUNTIME_STATES.RECORDING_READY) {
@@ -121,25 +124,29 @@ const LiveInterviewAIContent = ({
             isInterviewFinished={isInterviewFinished}
             voiceProps={voiceProps}
             handleAnswerChange={handleAnswerChange}
+            isAutomaticMode={isAutomaticMode}
+            onAnswerReady={handleNext}
           />
         </div>
 
-        {/* Navigation */}
-        <div className="mt-8 flex justify-end">
-          <Navigation
-            currentIndex={currentIndex}
-            totalQuestions={totalQuestions}
-            isInterviewFinished={isInterviewFinished}
-            isTimeUp={timeLeft === 0}
-            isAi={true}
-            handlePrev={handlePrev}
-            handleNext={handleNext}
-            handleSubmit={handleSubmit}
-            submitting={submitting}
-            generating={isGenerating}
-            hasAnswer={!!(currentQuestion && answers[currentQuestion.id])}
-          />
-        </div>
+        {/* Navigation - Hidden in AI Mode because progression is automatic */}
+        {!isAutomaticMode && (
+          <div className="mt-8 flex justify-end">
+            <Navigation
+              currentIndex={currentIndex}
+              totalQuestions={totalQuestions}
+              isInterviewFinished={isInterviewFinished}
+              isTimeUp={timeLeft === 0}
+              isAi={true}
+              handlePrev={handlePrev}
+              handleNext={handleNext}
+              handleSubmit={handleSubmit}
+              submitting={submitting}
+              generating={isGenerating}
+              hasAnswer={!!(currentQuestion && answers[currentQuestion.id])}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -24,26 +24,16 @@ import { VOICE_STATES } from '../../../../hooks/useQuestionVoice';
  * @param {boolean} params.submitting - From useInterview (submitting interview)
  * @returns {{ conversationState: string, statusMessage: string, transcriptState: string }}
  */
-export const useConversationState = ({ isGenerating, voiceState, isInterviewFinished, submitting }) => {
+export const useConversationState = ({ isGenerating, voiceState, isInterviewFinished, submitting, isTranscribing }) => {
   const conversationState = useMemo(() => {
-    // Interview finished or submitting — processing
-    if (submitting) {
-      return CONVERSATION_STATES.PROCESSING;
-    }
-
-    // AI is generating the next question
-    if (isGenerating) {
-      return CONVERSATION_STATES.PROCESSING;
+    // Any backend processing is seen as "THINKING" to the user
+    if (submitting || isGenerating || isTranscribing || voiceState === VOICE_STATES.GENERATING) {
+      return CONVERSATION_STATES.THINKING;
     }
 
     // Voice error
     if (voiceState === VOICE_STATES.ERROR) {
       return CONVERSATION_STATES.ERROR;
-    }
-
-    // AI is generating TTS audio
-    if (voiceState === VOICE_STATES.GENERATING) {
-      return CONVERSATION_STATES.THINKING;
     }
 
     // AI is speaking the question
@@ -58,16 +48,15 @@ export const useConversationState = ({ isGenerating, voiceState, isInterviewFini
 
     // Default — waiting / idle
     return CONVERSATION_STATES.WAITING;
-  }, [isGenerating, voiceState, isInterviewFinished, submitting]);
+  }, [isGenerating, voiceState, isInterviewFinished, submitting, isTranscribing]);
 
   // Derive transcript state from conversation state
   const transcriptState = useMemo(() => {
     switch (conversationState) {
       case CONVERSATION_STATES.LISTENING:
         return TRANSCRIPT_STATES.LISTENING;
-      case CONVERSATION_STATES.PROCESSING:
-        return TRANSCRIPT_STATES.PROCESSING;
       case CONVERSATION_STATES.THINKING:
+        return TRANSCRIPT_STATES.PROCESSING;
       case CONVERSATION_STATES.SPEAKING:
         return TRANSCRIPT_STATES.COMPLETED;
       default:

@@ -26,7 +26,9 @@ const InterviewCandidate = ({
   browserStatus = null,
   activeViolations = [],
   setVideoElement = null,
-  onTranscript,
+  isAutomaticMode,
+  isTranscribing,
+  onRecordingComplete,
   onClearAnswer,
 }) => {
   const isListening = conversationState === CONVERSATION_STATES.LISTENING;
@@ -64,7 +66,10 @@ const InterviewCandidate = ({
           <div className="w-full sm:w-1/3 flex flex-col gap-4">
             <div className="flex-1 flex flex-col justify-center p-5 rounded-2xl bg-dark-800/30 border border-dark-700/30">
               <VoiceInputButton
-                onTranscript={onTranscript}
+                isListening={isListening}
+                isAutomaticMode={isAutomaticMode}
+                isTranscribing={isTranscribing}
+                onRecordingComplete={onRecordingComplete}
               />
             </div>
             

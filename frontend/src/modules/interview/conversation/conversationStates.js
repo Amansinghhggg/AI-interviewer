@@ -13,7 +13,7 @@
  */
 
 export const CONVERSATION_STATES = {
-  /** AI is generating the next question */
+  /** AI is generating next question, transcribing, or synthesizing speech */
   THINKING: 'THINKING',
 
   /** AI is speaking the question aloud */
@@ -22,25 +22,20 @@ export const CONVERSATION_STATES = {
   /** Candidate's turn to respond */
   LISTENING: 'LISTENING',
 
-  /** Idle — between states, initial load */
+  /** Initial load / waiting for start */
   WAITING: 'WAITING',
 
-  /** Candidate answer submitted, awaiting next question */
-  PROCESSING: 'PROCESSING',
-
-  /** Voice or generation error occurred */
+  /** Error state */
   ERROR: 'ERROR',
 };
 
 /**
  * Human-readable status messages for each conversation state.
- * These are conversational — not generic loader text.
  */
 export const CONVERSATION_STATUS_MESSAGES = {
-  [CONVERSATION_STATES.THINKING]: 'Preparing your next question...',
-  [CONVERSATION_STATES.SPEAKING]: 'Listen carefully...',
-  [CONVERSATION_STATES.LISTENING]: 'Your turn to respond',
+  [CONVERSATION_STATES.THINKING]: 'Thinking...',
+  [CONVERSATION_STATES.SPEAKING]: 'Speaking...',
+  [CONVERSATION_STATES.LISTENING]: 'Listening...',
   [CONVERSATION_STATES.WAITING]: 'Getting ready...',
-  [CONVERSATION_STATES.PROCESSING]: 'Analyzing your answer...',
-  [CONVERSATION_STATES.ERROR]: 'Something went wrong. The interview will continue.',
+  [CONVERSATION_STATES.ERROR]: 'Connection issue',
 };
