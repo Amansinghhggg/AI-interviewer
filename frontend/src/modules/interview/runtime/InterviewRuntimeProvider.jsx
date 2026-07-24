@@ -7,7 +7,7 @@ import { useBrowserMonitoring } from '../../browser-monitoring';
 import { useViolationEngine } from '../../violation-engine';
 import { useInterviewSession } from '../../interview-session';
 
-export const InterviewRuntimeProvider = ({ children }) => {
+export const InterviewRuntimeProvider = ({ children, sessionId, candidateId }) => {
   const {
     cameraRuntime,
     recordingRuntime,
@@ -25,8 +25,8 @@ export const InterviewRuntimeProvider = ({ children }) => {
   // Initialize session once
   useEffect(() => {
     sessionBuilder.initialize({
-      interviewId: 'inter_' + Math.random().toString(36).substr(2, 9),
-      candidateId: 'cand_' + Math.random().toString(36).substr(2, 9),
+      interviewId: sessionId || 'inter_' + Math.random().toString(36).substr(2, 9),
+      candidateId: candidateId || 'cand_' + Math.random().toString(36).substr(2, 9),
       metadata: {
         userAgent: navigator.userAgent
       }

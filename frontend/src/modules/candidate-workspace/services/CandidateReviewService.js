@@ -1,6 +1,7 @@
 import { REVIEW_STATES, CANDIDATE_STATUSES } from '../config/constants.js';
 import { normalizeReviewData } from '../utils/normalize.js';
 import { ReplayEngine } from '../../replay/index.js';
+import { ReplayMapper } from '../../replay/mappers/ReplayMapper.js';
 
 export class CandidateReviewService {
     constructor() {
@@ -27,8 +28,9 @@ export class CandidateReviewService {
             this.review = normalizeReviewData(session);
             this.emit('reviewchange', this.review);
             
-            // Initialize ReplayEngine
-            ReplayEngine.loadSession(session);
+            // Initialize ReplayEngine using mapped session
+            const replaySession = ReplayMapper.map(session);
+            ReplayEngine.loadSession(replaySession);
             
             // In a real app we'd load status and notes from backend here.
             this.hiringStatus = CANDIDATE_STATUSES.PENDING_REVIEW;

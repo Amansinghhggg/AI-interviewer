@@ -1,8 +1,8 @@
 import React from 'react';
-import { useEmployerReview } from '../hooks/useEmployerReview.js';
+import { useCandidateReview } from '../hooks/useCandidateReview.js';
 
 export const CandidateCard = () => {
-    const { review } = useEmployerReview();
+    const { review } = useCandidateReview();
     
     if (!review) return null;
     const { candidate, interview } = review;

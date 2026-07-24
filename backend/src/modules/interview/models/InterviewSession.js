@@ -53,6 +53,21 @@ const interviewSessionSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    recording: {
+      url: { type: String, default: null },
+      publicId: { type: String, default: null },
+      provider: { type: String, default: null },
+      mimeType: { type: String, default: null },
+      size: { type: Number, default: null },
+      duration: { type: Number, default: null },
+      status: {
+        type: String,
+        enum: ["UPLOADING", "READY", "FAILED"],
+        default: "UPLOADING",
+      },
+      originalFilename: { type: String, default: null },
+      uploadedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

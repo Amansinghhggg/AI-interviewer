@@ -16,6 +16,7 @@ import AnswerBox from "../components/Interview/AnswerBox";
 // Conversational Interview (used for AI interviews)
 import { ConversationController } from "../components/InterviewConversation";
 import { InterviewRuntimeProvider, useInterviewRuntime, INTERVIEW_RUNTIME_STATES } from "../modules/interview/runtime";
+import { usePersistence } from "../modules/persistence/hooks/usePersistence";
 
 const LiveInterviewAIContent = ({
   interview,
@@ -35,6 +36,7 @@ const LiveInterviewAIContent = ({
   handlePrev,
 }) => {
   const { runtime, actions } = useInterviewRuntime();
+  const { save } = usePersistence();
 
   // Start recording automatically when runtime is ready
   useEffect(() => {
@@ -53,10 +55,12 @@ const LiveInterviewAIContent = ({
           recordingSession
         );
         console.log("[LiveInterviewPage] Finalized Interview Session:", interviewSession);
-        // This session can be stored or uploaded in future sprints
+        
+        // Trigger the background upload pipeline immediately
+        save(interviewSession, recordingSession?.blob);
       });
     }
-  }, [isInterviewFinished, runtime.state, actions, questions, answers]);
+  }, [isInterviewFinished, runtime.state, actions, questions, answers, save]);
 
   return (
     <div className="min-h-screen bg-dark-900 flex flex-col relative overflow-hidden font-sans pt-16">
@@ -139,6 +143,7 @@ const LiveInterviewPage = () => {
     timeLeft,
     isInterviewFinished,
     isAi,
+    session,
     handleNext,
     handlePrev,
     handleAnswerChange,
@@ -194,7 +199,7 @@ const LiveInterviewPage = () => {
   // ═══════════════════════════════════════════════
   if (isAi) {
     return (
-      <InterviewRuntimeProvider>
+      <InterviewRuntimeProvider sessionId={session?._id} candidateId={user?.email}>
         <LiveInterviewAIContent
           interview={interview}
           questions={questions}

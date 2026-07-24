@@ -376,6 +376,62 @@ class InterviewSessionService {
       };
     }
   }
+
+  /**
+   * Uploads the recording to Cloudinary and saves metadata to InterviewSession.
+   * 
+   * @param {string} sessionId 
+   * @param {string} candidateId 
+   * @param {Object} file - multer file object
+   * @returns {Promise<Object>} Updated session
+   */
+  async uploadRecordingToCloudinary(sessionId, candidateId, file) {
+    const session = await InterviewSession.findOne({ _id: sessionId, candidateId });
+    if (!session) {
+      throw new Error("not_found");
+    }
+
+    try {
+      const cloudinaryServiceStore = await import("./CloudinaryService.js");
+      const CloudinaryService = cloudinaryServiceStore.default;
+
+      // Update status to UPLOADING initially if not already set (it's the default anyway)
+      
+      const result = await CloudinaryService.uploadStream(file.buffer, file.originalname);
+
+      // Save recording metadata to session
+      session.recording = {
+        url: result.secure_url,
+        publicId: result.public_id,
+        provider: "cloudinary",
+        mimeType: file.mimetype,
+        size: result.bytes,
+        duration: result.duration || 0,
+        status: "READY",
+        originalFilename: file.originalname,
+        uploadedAt: new Date()
+      };
+
+      await session.save();
+
+      console.log(`[UploadPipeline] Recording saved to Cloudinary for session ${sessionId}`);
+      console.log(`[UploadPipeline] Final Video URL: ${result.secure_url}`);
+      
+      return session;
+    } catch (error) {
+      console.error("[UploadPipeline] Cloudinary upload failed:", error);
+      
+      session.recording = {
+        ...(session.recording || {}),
+        status: "FAILED",
+        originalFilename: file.originalname,
+        uploadedAt: new Date()
+      };
+      await session.save();
+      
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+  }
 }
 
 export default new InterviewSessionService();

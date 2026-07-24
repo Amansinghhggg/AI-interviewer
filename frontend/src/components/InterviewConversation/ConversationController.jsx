@@ -43,7 +43,7 @@ const ConversationController = ({
 }) => {
   // ─── Consume Interview Runtime ────────────────────
   const { camera, runtime, device, face, browser, violations } = useInterviewRuntime();
-  const { stream: cameraStream, state: cameraState, error: cameraError } = camera;
+  const { stream: cameraStream, cameraState, error: cameraError } = camera;
   const isRuntimeActive = runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE || runtime.state === INTERVIEW_RUNTIME_STATES.FINISHING;
 
   // ─── Derive Conversation State ────────────────────
@@ -91,6 +91,7 @@ const ConversationController = ({
           conversationState={conversationState}
           statusMessage={statusMessage}
           aiTranscript={aiTranscript}
+          onReplay={voiceProps?.replay}
         />
       </section>
 

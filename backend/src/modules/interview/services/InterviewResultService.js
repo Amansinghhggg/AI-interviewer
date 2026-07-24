@@ -27,7 +27,7 @@ class InterviewResultService {
     }
 
     // 2. Fetch InterviewResult
-    const result = await InterviewResult.findOne({ _id: resultId, interviewId });
+    const result = await InterviewResult.findOne({ _id: resultId, interviewId }).populate("sessionId");
     if (!result) {
       throw new Error("result_not_found");
     }
@@ -88,6 +88,7 @@ class InterviewResultService {
         confidence: result.scores?.confidence || 0,
         topicCoverage: result.scores?.topicCoverage || 0,
       },
+      recording: result.sessionId.recording || null,
       questionBreakdown: result.questionEvaluations.map(qe => ({
         questionId: qe.questionId,
         question: qe.question,

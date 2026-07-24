@@ -13,8 +13,10 @@ export class UploadPipeline {
         
         // Stage 1: Recording Upload
         if (recordingBlob) {
+            // Priority: _id (raw obj), interviewId (mapped from runtime provider), sessionId (fallback)
+            const sid = session._id || session.interviewId || session.sessionId;
             onProgress({ currentStage: UPLOAD_STAGES.RECORDING_UPLOAD, stageProgress: 0, overallProgress: 0 });
-            await this.recordingService.uploadRecording(recordingBlob, (stageProgress) => {
+            await this.recordingService.uploadRecording(sid, recordingBlob, (stageProgress) => {
                  onProgress({ stageProgress, overallProgress: Math.floor(stageProgress * 0.5) });
             });
         }

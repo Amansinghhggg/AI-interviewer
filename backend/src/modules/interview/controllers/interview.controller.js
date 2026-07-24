@@ -446,6 +446,37 @@ const getInterviewResult = async (req, res, next) => {
   }
 };
 
+// @desc    Candidate uploads a recording for a session
+// @route   POST /api/interviews/:sessionId/recording
+// @access  Candidate only
+const uploadRecording = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No recording file provided." });
+    }
+
+    const sessionStore = await import("../services/InterviewSessionService.js");
+    const InterviewSessionService = sessionStore.default;
+
+    const result = await InterviewSessionService.uploadRecordingToCloudinary(
+      req.params.sessionId,
+      req.user._id,
+      req.file
+    );
+
+    res.status(200).json({
+      success: true,
+      recording: result.recording,
+      message: "Recording uploaded successfully.",
+    });
+  } catch (error) {
+    if (error.message === "not_found") {
+      return res.status(404).json({ success: false, message: "Interview session not found." });
+    }
+    next(error);
+  }
+};
+
 export {
   createInterview,
   getInterviews,
@@ -459,5 +490,6 @@ export {
   getInterviewQuestions,
   getInterviewSession,
   submitAnswer,
-  getInterviewResult
+  getInterviewResult,
+  uploadRecording
 };

@@ -1,5 +1,10 @@
+import api from '../../../services/api.js';
+
 export class RecordingPersistenceService {
-    async uploadRecording(recordingBlob, onProgress) {
+    async uploadRecording(sessionId, recordingBlob, onProgress) {
+        if (!sessionId) {
+            throw new Error("sessionId is required for upload");
+        }
         if (!recordingBlob) {
             return { success: true, skipped: true };
         }
@@ -7,25 +12,29 @@ export class RecordingPersistenceService {
             throw new Error("Recording input must be a Blob");
         }
         
-        // Convert to File if required inside the persistence layer
+        // Convert to File
         const recordingFile = new File([recordingBlob], `recording-${Date.now()}.webm`, { type: recordingBlob.type });
 
-        // Mock chunked upload
-        const totalSize = recordingFile.size || 1024 * 1024 * 5; // Default mock size 5MB if blob size is 0
-        let uploaded = 0;
-        const chunkSize = totalSize / 4; 
+        const formData = new FormData();
+        formData.append("recording", recordingFile);
 
-        while (uploaded < totalSize) {
-            await new Promise(resolve => setTimeout(resolve, 400));
-            uploaded += chunkSize;
-            if (uploaded > totalSize) uploaded = totalSize;
-            
-            const progress = Math.round((uploaded / totalSize) * 100);
-            if (onProgress) {
-                onProgress(progress);
-            }
+        try {
+            const response = await api.post(`/interviews/${sessionId}/recording`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress && progressEvent.total) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress(progress);
+                    }
+                }
+            });
+
+            return { success: true, fileUrl: response.data.recording?.url };
+        } catch (error) {
+            console.error("Recording upload failed:", error);
+            throw new Error("Failed to upload recording: " + (error.response?.data?.message || error.message));
         }
-
-        return { success: true, fileUrl: 'mocked-url.webm' };
     }
 }

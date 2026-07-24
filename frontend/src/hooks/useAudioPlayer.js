@@ -88,9 +88,17 @@ export const useAudioPlayer = ({
 
   const play = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.play().catch(e => {
-        if (onError) onError(e);
-      });
+      const promise = audioRef.current.play();
+      if (promise !== undefined) {
+        return promise.catch(e => {
+          if (e.name === 'NotAllowedError') {
+            console.warn("Autoplay blocked by browser");
+            throw e; // Let caller handle it (e.g. degrade to READY state)
+          }
+          if (onError) onError(e);
+          throw e;
+        });
+      }
     }
   }, [onError]);
 
@@ -111,9 +119,17 @@ export const useAudioPlayer = ({
   const replay = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => {
-        if (onError) onError(e);
-      });
+      const promise = audioRef.current.play();
+      if (promise !== undefined) {
+        return promise.catch(e => {
+          if (e.name === 'NotAllowedError') {
+            console.warn("Autoplay blocked by browser");
+            throw e;
+          }
+          if (onError) onError(e);
+          throw e;
+        });
+      }
     }
   }, [onError]);
 

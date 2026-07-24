@@ -1,4 +1,5 @@
 import { CONVERSATION_STATES } from '../../modules/interview/conversation';
+import { Volume2 } from 'lucide-react';
 
 /**
  * AITranscript
@@ -12,8 +13,9 @@ import { CONVERSATION_STATES } from '../../modules/interview/conversation';
  * @param {object} props
  * @param {string} props.transcript - The question text to display
  * @param {string} props.conversationState - CONVERSATION_STATES value
+ * @param {function} props.onReplay - Callback to replay the audio
  */
-const AITranscript = ({ transcript, conversationState }) => {
+const AITranscript = ({ transcript, conversationState, onReplay }) => {
   const isVisible = transcript && (
     conversationState === CONVERSATION_STATES.SPEAKING ||
     conversationState === CONVERSATION_STATES.LISTENING ||
@@ -27,7 +29,18 @@ const AITranscript = ({ transcript, conversationState }) => {
       <h2 className="text-3xl sm:text-4xl leading-tight text-white font-semibold tracking-tight">
         {transcript}
       </h2>
-      <p className="text-xs text-dark-500 mt-6 font-medium uppercase tracking-widest opacity-60">Listen to the question</p>
+      <div className="flex items-center gap-3 mt-6">
+        <p className="text-xs text-dark-500 font-medium uppercase tracking-widest opacity-60">Listen to the question</p>
+        {onReplay && (
+          <button 
+            onClick={onReplay}
+            className="p-1.5 rounded-full bg-dark-700/50 hover:bg-dark-600 text-dark-300 hover:text-dark-100 transition-colors"
+            title="Play Audio"
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

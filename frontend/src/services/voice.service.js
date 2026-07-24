@@ -1,11 +1,4 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-const apiClient = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+import api from "./api";
 
 export const voiceService = {
   /**
@@ -19,7 +12,7 @@ export const voiceService = {
     formData.append("audio", audioBlob, "recording.webm");
 
     try {
-      const response = await apiClient.post("/voice/transcribe", formData, {
+      const response = await api.post("/voice/transcribe", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -38,7 +31,7 @@ export const voiceService = {
    */
   speak: async (text, voice) => {
     try {
-      const response = await apiClient.post('/voice/speak', 
+      const response = await api.post('/voice/speak', 
         { text, voice },
         { responseType: 'blob' }
       );
@@ -63,7 +56,7 @@ export const voiceService = {
    * @returns {Promise<any>}
    */
   health: async () => {
-    const response = await apiClient.get("/voice/health");
+    const response = await api.get("/voice/health");
     return response.data;
   },
 };

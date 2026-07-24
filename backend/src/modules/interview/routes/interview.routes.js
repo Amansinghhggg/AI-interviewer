@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import {
   createInterview,
   getInterviews,
@@ -12,11 +13,13 @@ import {
   getInterviewQuestions,
   getInterviewSession,
   submitAnswer,
-  getInterviewResult
+  getInterviewResult,
+  uploadRecording
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(protect);
 
@@ -36,6 +39,8 @@ router.get("/:id/session", authorize("candidate"), getInterviewSession);
 router.post("/:id/answer", authorize("candidate"), submitAnswer);
 router.post("/:id/submit", authorize("candidate"), submitInterview);
 router.get("/:id/questions", authorize("candidate"), getInterviewQuestions);
+
+router.post("/:sessionId/recording", authorize("candidate"), upload.single("recording"), uploadRecording);
 
 router
   .route("/:id")

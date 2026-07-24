@@ -15,7 +15,7 @@ import AITranscript from './AITranscript';
  * @param {string} props.statusMessage - Human-readable status text
  * @param {string} props.aiTranscript - The current question text
  */
-const InterviewAI = ({ conversationState, statusMessage, aiTranscript }) => {
+const InterviewAI = ({ conversationState, statusMessage, aiTranscript, onReplay }) => {
   const isSpeaking = conversationState === CONVERSATION_STATES.SPEAKING;
   const isError = conversationState === CONVERSATION_STATES.ERROR;
   const isActive = isSpeaking || conversationState === CONVERSATION_STATES.LISTENING;
@@ -47,6 +47,7 @@ const InterviewAI = ({ conversationState, statusMessage, aiTranscript }) => {
         <AITranscript
           transcript={aiTranscript}
           conversationState={conversationState}
+          onReplay={onReplay}
         />
       </div>
 

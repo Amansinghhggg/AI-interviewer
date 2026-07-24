@@ -1,8 +1,8 @@
 import React from 'react';
-import { useEmployerReview } from '../hooks/useEmployerReview.js';
+import { useCandidateReview } from '../hooks/useCandidateReview.js';
 
 export const ViolationWidget = () => {
-    const { review } = useEmployerReview();
+    const { review } = useCandidateReview();
     
     if (!review || !review.violations) return null;
 

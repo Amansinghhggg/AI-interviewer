@@ -41,16 +41,16 @@ export const ReplayPlayer = () => {
     }
 
     return (
-        <div className="replay-player">
+        <div className="replay-player rounded-xl overflow-hidden bg-black shadow-lg">
             <video
                 ref={videoRef}
                 src={recording.url}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={() => controls.updateTimeFromVideo(recording.duration || videoRef.current.duration)}
-                className="replay-video"
-                controls={false}
+                className="replay-video w-full h-auto"
+                controls={true}
+                controlsList="nodownload"
                 poster={recording.thumbnail}
-                style={{ width: '100%', height: 'auto', backgroundColor: '#000' }}
             />
         </div>
     );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { candidateReviewService } from '../services/CandidateReviewService.js';
 
 export function useCandidateReview() {
@@ -31,32 +31,18 @@ export function useCandidateReview() {
         };
     }, []);
 
-    const loadSession = (session) => {
-        candidateReviewService.loadSession(session);
-    };
-
-    const updateStatus = (status) => {
-        candidateReviewService.updateStatus(status);
-    };
-
-    const addNote = (text) => {
-        candidateReviewService.addNote(text);
-    };
-
-    const resetStatus = () => {
-        candidateReviewService.resetStatus();
-    };
+    const actions = useMemo(() => ({
+        loadSession: (session) => candidateReviewService.loadSession(session),
+        updateStatus: (status) => candidateReviewService.updateStatus(status),
+        addNote: (text) => candidateReviewService.addNote(text),
+        resetStatus: () => candidateReviewService.resetStatus()
+    }), []);
 
     return {
         review,
         state,
         hiringStatus,
         notes,
-        actions: {
-            loadSession,
-            updateStatus,
-            addNote,
-            resetStatus
-        }
+        actions
     };
 }

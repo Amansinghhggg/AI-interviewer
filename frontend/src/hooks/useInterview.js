@@ -233,6 +233,7 @@ export const useInterview = (id, navigate, user) => {
     timeLeft,
     isInterviewFinished,
     isAi,
+    session,
     handleNext,
     handlePrev,
     handleAnswerChange,
