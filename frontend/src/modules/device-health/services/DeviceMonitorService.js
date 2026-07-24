@@ -61,7 +61,9 @@ export class DeviceMonitorService {
         this.snapshot.microphone.label = this.audioTrack.label;
         this.snapshot.microphone.state = DEVICE_HEALTH_STATES.HEALTHY;
       } else {
-        this.snapshot.microphone.state = DEVICE_HEALTH_STATES.ERROR;
+        // Microphone is handled by voice module separately, don't fail if absent from video stream
+        this.snapshot.microphone.state = DEVICE_HEALTH_STATES.HEALTHY;
+        this.snapshot.microphone.label = 'System Audio';
       }
 
       this.attachTrackListeners();

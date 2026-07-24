@@ -243,5 +243,6 @@ export const useRecording = () => {
     pause,
     resume,
     reset,
+    attachStream,
   };
 };

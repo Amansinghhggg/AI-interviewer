@@ -1,3 +1,4 @@
-export { EmployerReviewWorkspace } from './layout/EmployerReviewWorkspace.jsx';
-export { useEmployerReview } from './hooks/useEmployerReview.js';
-export { REVIEW_STATES } from './config/constants.js';
+export { CandidateWorkspace } from './layout/CandidateWorkspace.jsx';
+export { useCandidateReview } from './hooks/useCandidateReview.js';
+export { REVIEW_STATES, CANDIDATE_STATUSES } from './config/constants.js';
+export { candidateReviewService as CandidateReviewService } from './services/CandidateReviewService.js';

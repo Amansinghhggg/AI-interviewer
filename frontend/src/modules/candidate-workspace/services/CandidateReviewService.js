@@ -1,14 +1,21 @@
-import { REVIEW_STATES } from '../config/constants.js';
+import { REVIEW_STATES, CANDIDATE_STATUSES } from '../config/constants.js';
 import { normalizeReviewData } from '../utils/normalize.js';
 import { ReplayEngine } from '../../replay/index.js';
 
-export class EmployerReviewService {
+export class CandidateReviewService {
     constructor() {
         this.state = REVIEW_STATES.LOADING;
         this.review = null;
+        
+        // Local state for Sprint 13
+        this.hiringStatus = CANDIDATE_STATUSES.PENDING_REVIEW;
+        this.notes = [];
+        
         this.listeners = {
             statechange: [],
-            reviewchange: []
+            reviewchange: [],
+            statuschange: [],
+            noteschange: []
         };
     }
 
@@ -20,15 +27,41 @@ export class EmployerReviewService {
             this.review = normalizeReviewData(session);
             this.emit('reviewchange', this.review);
             
-            // Initialize ReplayEngine, but the workspace doesn't control playback,
-            // we just load it so the embedded widgets work automatically.
+            // Initialize ReplayEngine
             ReplayEngine.loadSession(session);
+            
+            // In a real app we'd load status and notes from backend here.
+            this.hiringStatus = CANDIDATE_STATUSES.PENDING_REVIEW;
+            this.emit('statuschange', this.hiringStatus);
             
             this.updateState(REVIEW_STATES.READY);
         } catch (error) {
             console.error('Failed to load session for review', error);
             this.updateState(REVIEW_STATES.ERROR);
         }
+    }
+
+    updateStatus(newStatus) {
+        if (Object.values(CANDIDATE_STATUSES).includes(newStatus)) {
+            this.hiringStatus = newStatus;
+            this.emit('statuschange', this.hiringStatus);
+        }
+    }
+
+    addNote(text, author = 'Current User') {
+        if (!text.trim()) return;
+        const newNote = {
+            id: `note_${Date.now()}`,
+            text,
+            author,
+            createdAt: new Date().toISOString()
+        };
+        this.notes = [...this.notes, newNote];
+        this.emit('noteschange', this.notes);
+    }
+
+    resetStatus() {
+        this.updateStatus(CANDIDATE_STATUSES.PENDING_REVIEW);
     }
 
     updateState(newState) {
@@ -57,4 +90,4 @@ export class EmployerReviewService {
     }
 }
 
-export const employerReviewService = new EmployerReviewService();
+export const candidateReviewService = new CandidateReviewService();
