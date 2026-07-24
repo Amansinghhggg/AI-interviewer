@@ -55,6 +55,21 @@ export class PersistenceCoordinator {
             throw new Error(`Business validation failed: ${businessValidation.errors.join(', ')}`);
         }
 
+        const sid = session._id || session.interviewId || session.sessionId;
+
+        // 3. Prevent Duplicate Upload Jobs
+        const existingJobs = this.queue.getJobs();
+        const duplicateJob = existingJobs.find(j => {
+            if (j.type !== UPLOAD_JOB_TYPES.INTERVIEW_SESSION) return false;
+            const jSid = j.payload.session._id || j.payload.session.interviewId || j.payload.session.sessionId;
+            return jSid === sid && ['QUEUED', 'UPLOADING', 'RETRYING', 'PROCESSING'].includes(j.state);
+        });
+
+        if (duplicateJob) {
+            console.log(`[PersistenceCoordinator] Ignored duplicate upload request for session: ${sid}`);
+            return duplicateJob;
+        }
+
         const job = new UploadJob({
             type: UPLOAD_JOB_TYPES.INTERVIEW_SESSION,
             payload: { session, recordingBlob }

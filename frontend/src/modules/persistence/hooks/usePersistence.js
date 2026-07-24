@@ -42,12 +42,27 @@ export function usePersistence() {
         return job;
     }, []);
 
+    const retry = useCallback(() => {
+        const queue = persistenceCoordinator.getQueue();
+        const jobs = queue.getJobs();
+        const activeJob = jobs.find(j => j.id === activeJobId) || (jobs.length > 0 ? jobs[jobs.length - 1] : null);
+        
+        if (activeJob && activeJob.state === 'FAILED') {
+            activeJob.updateState('RETRYING');
+            activeJob.retries = 0;
+            queue.processNext();
+        }
+    }, [activeJobId]);
+
     const activeJob = jobs.find(j => j.id === activeJobId) || (jobs.length > 0 ? jobs[jobs.length - 1] : null);
 
     return {
         save,
+        retry,
         state: activeJob ? activeJob.state : null,
         progress: activeJob ? activeJob.progress : null,
+        retries: activeJob ? activeJob.retries : 0,
+        error: activeJob ? activeJob.error : null,
         jobs,
         queue: persistenceCoordinator.getQueue()
     };

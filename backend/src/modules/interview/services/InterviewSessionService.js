@@ -391,13 +391,25 @@ class InterviewSessionService {
       throw new Error("not_found");
     }
 
+    // 3. Idempotent Upload Completion
+    if (session.recording?.status === "READY") {
+      console.log(`[UploadPipeline] Ignored redundant upload request for session ${sessionId}. Status is already READY.`);
+      return session;
+    }
+
     try {
       const cloudinaryServiceStore = await import("./CloudinaryService.js");
       const CloudinaryService = cloudinaryServiceStore.default;
 
       // Update status to UPLOADING initially if not already set (it's the default anyway)
+      session.recording = {
+        ...(session.recording || {}),
+        status: "UPLOADING",
+        uploadedAt: new Date()
+      };
+      await session.save();
       
-      const result = await CloudinaryService.uploadStream(file.buffer, file.originalname);
+      const result = await CloudinaryService.uploadRecording(file.buffer, file.originalname);
 
       // Save recording metadata to session
       session.recording = {
@@ -414,8 +426,17 @@ class InterviewSessionService {
 
       await session.save();
 
+      // 6. Internal Upload Logging
       console.log(`[UploadPipeline] Recording saved to Cloudinary for session ${sessionId}`);
-      console.log(`[UploadPipeline] Final Video URL: ${result.secure_url}`);
+      console.log(JSON.stringify({
+        event: "recording_uploaded",
+        sessionId: session._id,
+        candidateId: session.candidateId,
+        publicId: result.public_id,
+        duration: result.duration || 0,
+        sizeBytes: result.bytes,
+        uploadStrategy: "upload_stream"
+      }));
       
       return session;
     } catch (error) {

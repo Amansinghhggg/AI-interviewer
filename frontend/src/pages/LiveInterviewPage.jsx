@@ -17,6 +17,7 @@ import AnswerBox from "../components/Interview/AnswerBox";
 import { ConversationController } from "../components/InterviewConversation";
 import { InterviewRuntimeProvider, useInterviewRuntime, INTERVIEW_RUNTIME_STATES } from "../modules/interview/runtime";
 import { usePersistence } from "../modules/persistence/hooks/usePersistence";
+import UploadScreen from "../components/Interview/UploadScreen";
 
 const LiveInterviewAIContent = ({
   interview,
@@ -37,7 +38,8 @@ const LiveInterviewAIContent = ({
   session,  // backend session — needed for real question timestamps
 }) => {
   const { runtime, actions } = useInterviewRuntime();
-  const { save } = usePersistence();
+  const { save, retry, state: uploadState, retries, error } = usePersistence();
+  const navigate = useNavigate();
 
   // Start recording automatically when runtime is ready
   useEffect(() => {
@@ -66,6 +68,19 @@ const LiveInterviewAIContent = ({
       });
     }
   }, [isInterviewFinished, runtime.state, actions, questions, answers, session, save]);
+
+  // If there's an active upload state, take over the screen
+  if (uploadState) {
+    return (
+      <UploadScreen
+        uploadState={uploadState}
+        retries={retries}
+        error={error}
+        onRetry={retry}
+        onContinue={() => navigate("/interviews")}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dark-900 flex flex-col relative overflow-hidden font-sans pt-16">
@@ -174,15 +189,17 @@ const LiveInterviewPage = () => {
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = "Are you sure you want to leave? Your progress will be saved locally, but it is recommended to complete the interview in one sitting.";
+      if (!isInterviewFinished) {
+        e.preventDefault();
+        e.returnValue = "Are you sure you want to leave? Your progress will be saved locally, but it is recommended to complete the interview in one sitting.";
+      }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       questionVoiceService.clearCache();
     };
-  }, []);
+  }, [isInterviewFinished]);
 
   // Also clear cache if interview completes
   useEffect(() => {
