@@ -44,8 +44,8 @@ const RecommendationEnum = z.enum([
   "STRONG_HIRE",
   "HIRE",
   "BORDERLINE",
-  "NO_HIRE",
-  "STRONG_NO_HIRE",
+  "NEEDS_IMPROVEMENT",
+  "REJECT",
 ]);
 
 // ── Full Evaluation Response Schema ──────────────────────────────────────────

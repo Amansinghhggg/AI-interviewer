@@ -14,15 +14,15 @@ export const recommendationConfig = {
     icon: "🟡",
     label: "BORDERLINE",
   },
-  NO_HIRE: {
+  NEEDS_IMPROVEMENT: {
+    color: "bg-orange-500/20 text-orange-400 border-orange-500/50",
+    icon: "🟠",
+    label: "NEEDS IMPROVEMENT",
+  },
+  REJECT: {
     color: "bg-red-500/20 text-red-400 border-red-500/50",
     icon: "🔴",
-    label: "NO HIRE",
-  },
-  STRONG_NO_HIRE: {
-    color: "bg-rose-500/20 text-rose-400 border-rose-500/50",
-    icon: "🔴",
-    label: "STRONG NO HIRE",
+    label: "REJECT",
   },
   UNKNOWN: {
     color: "bg-gray-500/20 text-gray-400 border-gray-500/50",

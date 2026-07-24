@@ -179,15 +179,15 @@ export class EvaluationPromptBuilder {
   static #buildHiringRecommendation() {
     return [
       "=== HIRING RECOMMENDATION ===",
-      "Based on the overall evaluation, provide exactly ONE of the following recommendations:",
+      "Based on the overall score, provide exactly ONE of the following recommendations following this EXACT mapping:",
       "",
-      "STRONG_HIRE — Exceptional candidate, clear top performer.",
-      "HIRE — Good candidate who meets or exceeds requirements.",
-      "BORDERLINE — Mixed signals, could go either way.",
-      "NO_HIRE — Does not meet the requirements for this role.",
-      "STRONG_NO_HIRE — Significant gaps, clearly not ready.",
+      "Score 9-10  => STRONG_HIRE",
+      "Score 8-8.9 => HIRE",
+      "Score 6.5-7.9 => BORDERLINE",
+      "Score 5-6.4 => NEEDS_IMPROVEMENT",
+      "Score < 5   => REJECT",
       "",
-      "The recommendation field MUST be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NO_HIRE, STRONG_NO_HIRE.",
+      "The recommendation field MUST be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NEEDS_IMPROVEMENT, REJECT.",
       "Do NOT invent new recommendation values.",
     ].join("\n");
   }
@@ -229,7 +229,7 @@ export class EvaluationPromptBuilder {
       "",
       "RULES:",
       '- "scores" — All six scores are required. Use the 0-10 scale.',
-      '- "recommendation" — Must be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NO_HIRE, STRONG_NO_HIRE.',
+      '- "recommendation" — Must be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NEEDS_IMPROVEMENT, REJECT.',
       '- "reasoning" — A concise paragraph explaining WHY this recommendation was given.',
       '- "strengths" — Array of 2-5 specific strengths observed in the interview.',
       '- "weaknesses" — Array of 2-5 specific weaknesses observed in the interview.',

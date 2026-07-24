@@ -219,8 +219,8 @@ try {
     "STRONG_HIRE",
     "HIRE",
     "BORDERLINE",
-    "NO_HIRE",
-    "STRONG_NO_HIRE",
+    "NEEDS_IMPROVEMENT",
+    "REJECT",
   ];
   for (const e of enums) {
     if (!generatedPrompt.includes(e)) {

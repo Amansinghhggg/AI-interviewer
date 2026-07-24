@@ -331,7 +331,7 @@ try {
 
 // 16. All recommendation enum values accepted
 try {
-  const enums = ["STRONG_HIRE", "HIRE", "BORDERLINE", "NO_HIRE", "STRONG_NO_HIRE"];
+  const enums = ["STRONG_HIRE", "HIRE", "BORDERLINE", "NEEDS_IMPROVEMENT", "REJECT"];
   for (const rec of enums) {
     const validated = EvaluationResponseValidator.validate({
       ...validEvaluation,

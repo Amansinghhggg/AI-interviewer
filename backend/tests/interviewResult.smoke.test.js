@@ -101,8 +101,8 @@ try {
     "STRONG_HIRE",
     "HIRE",
     "BORDERLINE",
-    "NO_HIRE",
-    "STRONG_NO_HIRE",
+    "NEEDS_IMPROVEMENT",
+    "REJECT",
   ];
   for (const val of validValues) {
     const doc = new InterviewResult({ ...validDoc, recommendation: val });
