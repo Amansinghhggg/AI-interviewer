@@ -55,6 +55,7 @@ const validDoc = {
         "A closure is a function that retains access to its lexical scope...",
       scores: { technical: 8, communication: 9 },
       feedback: "Clear and concise explanation with a good example.",
+      keyTakeaways: ["Explained lexical scope well", "Provided practical example"],
     },
     {
       questionId: "q2",
@@ -62,6 +63,7 @@ const validDoc = {
       answer: "The event loop is a mechanism that...",
       scores: { technical: 7, communication: 8 },
       feedback: "Decent answer but missed microtask queue details.",
+      keyTakeaways: ["Missed microtask queue details"],
     },
   ],
   aiMetadata: {
@@ -270,6 +272,7 @@ try {
         answer: "Test answer",
         scores: { technical: 15, communication: -1 },
         feedback: "Test",
+        keyTakeaways: ["Test"],
       },
     ],
   });
@@ -287,7 +290,7 @@ try {
 try {
   const doc = new InterviewResult({
     ...validDoc,
-    questionEvaluations: [{ feedback: "Good" }],
+    questionEvaluations: [{ feedback: "Good", keyTakeaways: ["Good"] }],
   });
   const err = doc.validateSync();
   if (!err)

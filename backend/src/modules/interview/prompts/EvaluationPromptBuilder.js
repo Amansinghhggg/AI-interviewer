@@ -84,6 +84,12 @@ export class EvaluationPromptBuilder {
       "You are an experienced Senior Technical Interviewer responsible for evaluating candidates fairly and objectively.",
       "You must evaluate the candidate's knowledge, reasoning, communication, and problem-solving ability based on the complete interview transcript below.",
       "Be strict but fair. Base every score and observation on concrete evidence from the transcript.",
+      "",
+      "=== PROFESSIONAL TONE & RULES ===",
+      "- Evaluate ONLY demonstrated knowledge. Do not assume knowledge they did not explicitly state.",
+      "- Calibrate your expectations based on the configured Experience Level.",
+      "- Do NOT reward long answers over technically correct, concise answers. Precision matters.",
+      "- Avoid vague phrases (e.g., 'Good understanding', 'Decent answer'). Provide concrete, evidence-backed observations tied to the interview concepts.",
     ].join("\n");
   }
 
@@ -158,6 +164,10 @@ export class EvaluationPromptBuilder {
       "3. Problem Solving — Analytical thinking, edge-case awareness, and reasoning approach.",
       "4. Confidence — Poise, conviction, and composure when answering.",
       "5. Topic Coverage — Breadth of knowledge across the required interview topics.",
+      "",
+      "DIFFICULTY-AWARE EVALUATION:",
+      "Every question in the transcript contains a Difficulty tag. Use this as a qualitative baseline.",
+      "A correct answer to a Hard question demonstrates stronger technical depth than a correct answer to an Easy question.",
     ].join("\n");
   }
 
@@ -198,7 +208,7 @@ export class EvaluationPromptBuilder {
     const questionExamples = transcript
       .map(
         (entry) =>
-          `    {\n      "questionId": ${JSON.stringify(entry.questionId)},\n      "scores": {\n        "technical": 0,\n        "communication": 0\n      },\n      "feedback": "..."\n    }`
+          `    {\n      "questionId": ${JSON.stringify(entry.questionId)},\n      "scores": {\n        "technical": 0,\n        "communication": 0\n      },\n      "feedback": "...",\n      "keyTakeaways": ["...", "..."]\n    }`
       )
       .join(",\n");
 
@@ -230,14 +240,15 @@ export class EvaluationPromptBuilder {
       "RULES:",
       '- "scores" — All six scores are required. Use the 0-10 scale.',
       '- "recommendation" — Must be exactly one of: STRONG_HIRE, HIRE, BORDERLINE, NEEDS_IMPROVEMENT, REJECT.',
-      '- "reasoning" — A concise paragraph explaining WHY this recommendation was given.',
-      '- "strengths" — Array of 2-5 specific strengths observed in the interview.',
-      '- "weaknesses" — Array of 2-5 specific weaknesses observed in the interview.',
+      '- "reasoning" — A concise paragraph explaining WHY this recommendation was given based on their performance.',
+      '- "strengths" — Array of 2-5 broad, recruiter-friendly strengths observed in the interview.',
+      '- "weaknesses" — Array of 2-5 broad, recruiter-friendly weaknesses observed in the interview.',
       '- "questionEvaluations" — One entry per question, in the same order as the transcript.',
       '  - "questionId" — Must match the Question ID from the transcript exactly.',
       '  - "scores.technical" — Technical accuracy score for this specific answer.',
       '  - "scores.communication" — Communication clarity score for this specific answer.',
       '  - "feedback" — 1-2 sentence feedback for this specific answer.',
+      '  - "keyTakeaways" — Array of 2-4 concise bullet points summarizing the most important observations from the candidate\'s answer. These MUST be concept-level observations (e.g., "Correctly explained MongoDB indexes", "Missed React lifecycle phases") rather than generic praise.',
     ].join("\n");
   }
 }

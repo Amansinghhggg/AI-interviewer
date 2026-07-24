@@ -56,18 +56,21 @@ const validEvaluation = {
       scores: { technical: 9, communication: 9 },
       feedback:
         "Excellent explanation of the Virtual DOM with accurate details about the diffing algorithm.",
+      keyTakeaways: ["Accurate details about diffing algorithm", "Excellent explanation"],
     },
     {
       questionId: "q2",
       scores: { technical: 8, communication: 8 },
       feedback:
         "Good closure explanation with a practical counter example. Could have mentioned memory implications.",
+      keyTakeaways: ["Practical counter example", "Could have mentioned memory implications"],
     },
     {
       questionId: 3,
       scores: { technical: 7, communication: 8 },
       feedback:
         "Decent event loop explanation but missed microtask queue details.",
+      keyTakeaways: ["Missed microtask queue details"],
     },
   ],
 };
@@ -314,6 +317,7 @@ try {
         questionId: "q1",
         scores: { technical: 0, communication: 10 },
         feedback: "Boundary test.",
+        keyTakeaways: ["Boundary case"],
       },
     ],
   };

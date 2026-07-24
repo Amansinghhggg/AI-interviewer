@@ -39,6 +39,10 @@ const questionEvaluationSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    keyTakeaways: {
+      type: [String],
+      default: [],
+    },
   },
   { _id: false }
 );

@@ -34,6 +34,7 @@ const QuestionEvaluationSchema = z
     questionId: z.union([z.string(), z.number()]),
     scores: QuestionScoresSchema,
     feedback: z.string().min(1),
+    keyTakeaways: z.array(z.string().min(1)).min(1).max(4),
   })
   .strip(); // Remove unknown properties
 

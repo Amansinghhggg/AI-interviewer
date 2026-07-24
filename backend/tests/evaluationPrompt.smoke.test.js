@@ -249,6 +249,7 @@ try {
     '"questionEvaluations"',
     '"questionId"',
     '"feedback"',
+    '"keyTakeaways"',
   ];
   for (const key of requiredKeys) {
     if (!generatedPrompt.includes(key)) {
