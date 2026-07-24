@@ -20,10 +20,14 @@ export class ReplayTimelineBuilder {
         // 2. Conversation (Questions)
         if (session.conversation && session.conversation.questions) {
             session.conversation.questions.forEach((q, index) => {
-                if (q.askedAt) {
-                    const qStart = (new Date(q.askedAt).getTime() - sessionStart) / 1000;
-                    const qEnd = q.answeredAt 
-                        ? (new Date(q.answeredAt).getTime() - sessionStart) / 1000 
+                // Support both q.askedAt (legacy) and q.startedAt (new normalized shape)
+                const askedAt = q.askedAt || q.startedAt;
+                const answeredAt = q.answeredAt || q.endedAt;
+
+                if (askedAt) {
+                    const qStart = (new Date(askedAt).getTime() - sessionStart) / 1000;
+                    const qEnd = answeredAt
+                        ? (new Date(answeredAt).getTime() - sessionStart) / 1000
                         : qStart + 15; // fallback
                     
                     timeline.push({
@@ -31,30 +35,42 @@ export class ReplayTimelineBuilder {
                         type: TIMELINE_EVENT_TYPES.QUESTION,
                         startTime: Math.max(0, qStart),
                         endTime: Math.max(0, qEnd),
-                        payload: { question: q.text, answer: q.answer, index: index + 1 }
+                        payload: {
+                            question: q.text || q.question || '',
+                            answer: q.answer,
+                            index: index + 1
+                        }
                     });
                 }
             });
         }
 
-        // 3. Violations
-        if (session.violations) {
+        // 3. Violations — handle the normalized { type, severity, message, timestamp, resolvedAt } shape
+        if (session.violations && Array.isArray(session.violations)) {
             session.violations.forEach((v, index) => {
-                const vStart = v.timestamp ? (new Date(v.timestamp).getTime() - sessionStart) / 1000 : 0;
-                const vEnd = v.resolvedAt ? (new Date(v.resolvedAt).getTime() - sessionStart) / 1000 : vStart + 5;
-                
+                // Violations without a timestamp are pinned at t=0 rather than discarded
+                const vTimestamp = v.timestamp ? new Date(v.timestamp).getTime() : sessionStart;
+                const vStart = (vTimestamp - sessionStart) / 1000;
+                const vEnd = v.resolvedAt
+                    ? (new Date(v.resolvedAt).getTime() - sessionStart) / 1000
+                    : vStart + 5;
+
                 timeline.push({
-                    id: `violation-${index}`,
+                    id: v.id || `violation-${index}`,
                     type: TIMELINE_EVENT_TYPES.VIOLATION,
                     startTime: Math.max(0, vStart),
                     endTime: Math.max(0, vEnd),
-                    payload: { rule: v.rule || v.type, message: v.message || 'Violation detected' }
+                    payload: {
+                        rule: v.type || v.rule || 'Unknown',
+                        severity: v.severity || 'WARNING',
+                        message: v.message || 'Violation detected'
+                    }
                 });
             });
         }
 
         // 4. Monitoring Events
-        if (session.monitoring) {
+        if (session.monitoring && Array.isArray(session.monitoring)) {
             session.monitoring.forEach((m, index) => {
                 const mStart = m.timestamp ? (new Date(m.timestamp).getTime() - sessionStart) / 1000 : 0;
                 

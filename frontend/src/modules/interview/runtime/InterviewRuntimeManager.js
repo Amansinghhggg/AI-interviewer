@@ -27,18 +27,47 @@ export const useInterviewRuntimeManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Monitor Camera State
+  // 2. Monitor Camera State — when camera is ACTIVE, also acquire mic and merge both streams
   useEffect(() => {
     if (camera.cameraState === CAMERA_STATES.ACTIVE && camera.stream) {
       if (runtimeState === INTERVIEW_RUNTIME_STATES.INITIALIZING) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setRuntimeState(INTERVIEW_RUNTIME_STATES.CAMERA_READY);
         emitEvent(INTERVIEW_RUNTIME_EVENTS.CAMERA_READY);
-        
-        recording.attachStream(camera.stream);
-         
-        setRuntimeState(INTERVIEW_RUNTIME_STATES.RECORDING_READY);
-        emitEvent(INTERVIEW_RUNTIME_EVENTS.RECORDING_READY);
+
+        // Acquire microphone audio separately, then merge with video stream.
+        // CameraService is intentionally video-only; audio is captured here at
+        // the runtime manager level so both can be merged into one combined
+        // MediaStream for the MediaRecorder.
+        navigator.mediaDevices
+          .getUserMedia({ audio: true, video: false })
+          .then((micStream) => {
+            // Combine: video tracks from camera + audio tracks from mic
+            const videoTracks = camera.stream.getVideoTracks();
+            const audioTracks = micStream.getAudioTracks();
+
+            const combinedStream = new MediaStream([...videoTracks, ...audioTracks]);
+
+            console.log(
+              '[InterviewRuntime] Combined stream tracks:',
+              combinedStream.getTracks().map((t) => `${t.kind}: ${t.label}`)
+            );
+
+            recording.attachStream(combinedStream);
+
+            setRuntimeState(INTERVIEW_RUNTIME_STATES.RECORDING_READY);
+            emitEvent(INTERVIEW_RUNTIME_EVENTS.RECORDING_READY);
+          })
+          .catch((micError) => {
+            console.warn(
+              '[InterviewRuntime] Microphone unavailable — falling back to video-only recording:',
+              micError.message
+            );
+            // Graceful fallback: record without audio rather than blocking the interview
+            recording.attachStream(camera.stream);
+            setRuntimeState(INTERVIEW_RUNTIME_STATES.RECORDING_READY);
+            emitEvent(INTERVIEW_RUNTIME_EVENTS.RECORDING_READY);
+          });
       }
     } else if (camera.cameraState === CAMERA_STATES.ERROR) {
         

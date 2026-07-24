@@ -36,8 +36,20 @@ export class InterviewSessionBuilder {
 
   attachConversation({ questions = [], answers = [] }) {
     this._ensureNotFinalized();
+    // Normalize to a canonical shape that supports both:
+    //   - Legacy: { text, askedAt, answeredAt, answer }
+    //   - New:    { question, startedAt, endedAt, answer, topic, difficulty, type }
+    const normalizedQuestions = questions.map((q) => ({
+      question: q.question || q.text || '',
+      answer: q.answer || null,
+      startedAt: q.startedAt || q.askedAt || null,
+      endedAt: q.endedAt || q.answeredAt || null,
+      topic: q.topic || null,
+      difficulty: q.difficulty || null,
+      type: q.type || null,
+    }));
     this.sessionData.conversation = {
-      questions,
+      questions: normalizedQuestions,
       answers
     };
     return this;

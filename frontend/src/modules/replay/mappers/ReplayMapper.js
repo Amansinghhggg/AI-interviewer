@@ -28,6 +28,19 @@ export class ReplayMapper {
             };
         });
 
+        // Map violations from the session's violation timeline.
+        // The ViolationEngine stores entries with { type, severity, timestamp, resolvedAt }.
+        // We normalize these into the shape ReplayTimelineBuilder expects.
+        const rawViolations = resultData.violations || resultData.recording?.violations || [];
+        const mappedViolations = rawViolations.map((v, i) => ({
+            id: v.id || `violation-${i}`,
+            type: v.type || v.rule || 'UNKNOWN',
+            severity: v.severity || 'WARNING',
+            message: v.message || v.description || v.type || 'Violation detected',
+            timestamp: v.timestamp ? new Date(v.timestamp) : null,
+            resolvedAt: v.resolvedAt ? new Date(v.resolvedAt) : null,
+        }));
+
         return {
             startedAt: new Date(sessionStart),
             endedAt: new Date(sessionStart + (durationSec * 1000)),
@@ -37,7 +50,7 @@ export class ReplayMapper {
                 questions: mappedQuestions,
                 answers: {}
             },
-            violations: [],
+            violations: mappedViolations,
             monitoring: []
         };
     }

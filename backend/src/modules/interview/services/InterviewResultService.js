@@ -1,4 +1,5 @@
 import InterviewResult from "../models/InterviewResult.js";
+import InterviewSession from "../models/InterviewSession.js";
 import Interview from "../models/interview.model.js";
 import User from "../../users/user.model.js";
 import { getScoreInterpretation } from "../utils/scoreInterpretation.js";

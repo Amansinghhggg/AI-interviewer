@@ -10,13 +10,38 @@ import StrengthsCard from '../../../components/InterviewResult/StrengthsCard';
 import WeaknessesCard from '../../../components/InterviewResult/WeaknessesCard';
 import QuestionBreakdownAccordion from '../../../components/InterviewResult/QuestionBreakdownAccordion';
 
-import { CandidateStatusWidget } from '../widgets/CandidateStatusWidget.jsx';
 import { ReplayWidget } from '../widgets/ReplayWidget.jsx';
-import { TranscriptWidget } from '../widgets/TranscriptWidget.jsx';
-import { ViolationWidget } from '../widgets/ViolationWidget.jsx';
-import { HiringActionsWidget } from '../widgets/HiringActionsWidget.jsx';
-import { EmployerNotesWidget } from '../widgets/EmployerNotesWidget.jsx';
-import { EvaluationWidget } from '../../evaluation-engine/index.js';
+import { WarningsTimeline, TranscriptPanel } from '../../replay/index.js';
+
+// ─── Section Header ─────────────────────────────────────────────────────────
+const SectionHeader = ({ title, subtitle }) => (
+    <div style={{ marginBottom: '16px' }}>
+        <h3 style={{
+            margin: 0,
+            fontSize: '15px',
+            fontWeight: 700,
+            color: '#e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+        }}>
+            <span style={{
+                display: 'inline-block',
+                width: '3px',
+                height: '18px',
+                borderRadius: '2px',
+                background: 'linear-gradient(180deg, #7c3aed, #a855f7)',
+                flexShrink: 0,
+            }} />
+            {title}
+        </h3>
+        {subtitle && (
+            <p style={{ margin: '4px 0 0 13px', fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>
+                {subtitle}
+            </p>
+        )}
+    </div>
+);
 
 export const CandidateWorkspace = ({ resultData }) => {
     const { state, actions } = useCandidateReview();
@@ -30,86 +55,119 @@ export const CandidateWorkspace = ({ resultData }) => {
     if (!resultData) return null;
 
     if (state === REVIEW_STATES.LOADING) {
-        return <div className="workspace-loading" style={{ padding: '40px', textAlign: 'center' }}>Loading Candidate Workspace...</div>;
+        return (
+            <div style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+                Loading Candidate Workspace...
+            </div>
+        );
     }
 
     if (state === REVIEW_STATES.ERROR) {
-        return <div className="workspace-error" style={{ padding: '40px', textAlign: 'center', color: 'red' }}>Failed to load candidate data.</div>;
+        return (
+            <div style={{ padding: '60px', textAlign: 'center', color: '#ef4444' }}>
+                Failed to load candidate data.
+            </div>
+        );
     }
 
     const { candidate, interview, summary, evaluation, charts, questionBreakdown } = resultData;
 
     return (
-        <div className="candidate-workspace max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <div style={{ flex: 1 }}>
-                    <CandidateHeader candidate={candidate} interview={interview} questionCount={questionBreakdown.length} />
-                </div>
-                <div style={{ minWidth: '300px', marginLeft: '20px' }}>
-                    <CandidateStatusWidget />
-                </div>
-            </div>
+        <div
+            className="candidate-workspace"
+            style={{
+                maxWidth: '900px',
+                margin: '0 auto',
+                padding: '32px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '40px',
+            }}
+        >
+            {/* ── 1. Candidate Header ── */}
+            <CandidateHeader
+                candidate={candidate}
+                interview={interview}
+                questionCount={questionBreakdown.length}
+            />
 
-            <div className="workspace-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
-                
-                {/* Main Content Column */}
-                <div className="main-column" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    
-                    {/* Top Row: Replay & Transcript */}
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        <div className="xl:col-span-1">
-                            <h3 className="text-lg font-bold text-white mb-4 pl-2 border-l-4 border-primary-500">Session Replay</h3>
-                            <ReplayWidget />
-                        </div>
-                        <div className="xl:col-span-1">
-                            <h3 className="text-lg font-bold text-white mb-4 pl-2 border-l-4 border-primary-500">Transcript</h3>
-                            <TranscriptWidget />
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <EvaluationWidget session={resultData} />
-                    </div>
-                    
-                    {/* Analytics Row */}
-                    <div>
-                        <h3 className="text-lg font-bold text-white mb-4 pl-2 border-l-4 border-primary-500">Performance Analytics</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="md:col-span-1">
-                                <ResultSummaryCard summary={summary} evaluation={evaluation} />
-                            </div>
-                            <div className="md:col-span-1">
-                                <RadarChartCard scores={charts} />
-                            </div>
-                            <div className="md:col-span-1">
-                                <ProgressScoreCard scores={charts} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <StrengthsCard strengths={summary.strengths} />
-                        <WeaknessesCard weaknesses={summary.weaknesses} />
-                    </div>
-
-                    <div>
-                        <h3 className="text-lg font-bold text-white mb-4 pl-2 border-l-4 border-primary-500">Question Breakdown</h3>
-                        <QuestionBreakdownAccordion questionEvaluations={questionBreakdown} />
-                    </div>
+            {/* ── 2. Performance Analytics ── */}
+            <section>
+                <SectionHeader
+                    title="Performance Analytics"
+                    subtitle="AI-generated evaluation scores and hiring recommendation"
+                />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+                    <ResultSummaryCard summary={summary} evaluation={evaluation} />
+                    <RadarChartCard scores={charts} />
+                    <ProgressScoreCard scores={charts} />
                 </div>
-                
-                {/* Context & Actions Sidebar Column */}
-                <div className="sidebar-column" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <HiringActionsWidget />
-                    <EmployerNotesWidget />
-                    <ViolationWidget />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <StrengthsCard strengths={summary.strengths} />
+                    <WeaknessesCard weaknesses={summary.weaknesses} />
                 </div>
-            </div>
-            
+            </section>
+
+            {/* ── 3. Session Replay ── */}
+            <section>
+                <SectionHeader
+                    title="Session Replay"
+                    subtitle="Video recording with question and violation markers"
+                />
+                <div style={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                }}>
+                    <ReplayWidget />
+                </div>
+            </section>
+
+            {/* ── 4. Transcript ── */}
+            <section>
+                <SectionHeader
+                    title="Interview Transcript"
+                    subtitle="Questions and answers — click any entry to seek to that moment"
+                />
+                <div style={{
+                    borderRadius: '16px',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.07)',
+                    padding: '20px',
+                }}>
+                    <TranscriptPanel />
+                </div>
+            </section>
+
+            {/* ── 5. Warnings Timeline ── */}
+            <section>
+                <SectionHeader
+                    title="Interview Warnings"
+                    subtitle="Integrity violations — click any warning to seek the video"
+                />
+                <WarningsTimeline />
+            </section>
+
+            {/* ── 6. Question Breakdown ── */}
+            <section>
+                <SectionHeader
+                    title="Question Breakdown"
+                    subtitle="Per-question scores and AI feedback"
+                />
+                <QuestionBreakdownAccordion questionEvaluations={questionBreakdown} />
+            </section>
+
             <style>{`
-                @media (max-width: 1024px) {
-                    .workspace-grid {
+                @media (max-width: 768px) {
+                    .candidate-workspace > section > div[style*="grid-template-columns: repeat(3"] {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .candidate-workspace > section > div[style*="grid-template-columns: 1fr 1fr"] {
                         grid-template-columns: 1fr !important;
                     }
                 }
@@ -117,3 +175,5 @@ export const CandidateWorkspace = ({ resultData }) => {
         </div>
     );
 };
+
+

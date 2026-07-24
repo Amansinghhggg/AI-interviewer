@@ -35,9 +35,27 @@ export const InterviewRuntimeProvider = ({ children, sessionId, candidateId }) =
   }, []);
 
   // Provide a specialized action to attach monitoring facts and finalize
-  const finalizeInterviewSession = (conversation, finalizedRecordingSession) => {
+  const finalizeInterviewSession = (conversation, finalizedRecordingSession, backendSession) => {
     sessionBuilder.attachRecording(finalizedRecordingSession || recordingRuntime.session);
-    sessionBuilder.attachConversation(conversation);
+
+    // Prefer the backend session's questions (which carry real askedAt/answeredAt timestamps)
+    // over the frontend-only questions array. Fall back to frontend conversation if unavailable.
+    const questionsWithTimestamps = backendSession?.questions?.length
+      ? backendSession.questions.map((q) => ({
+          question: q.question,
+          answer: q.answer || null,
+          startedAt: q.askedAt || null,
+          endedAt: q.answeredAt || null,
+          topic: q.topic,
+          difficulty: q.difficulty,
+          type: q.type,
+        }))
+      : conversation.questions || [];
+
+    sessionBuilder.attachConversation({
+      questions: questionsWithTimestamps,
+      answers: conversation.answers || [],
+    });
     sessionBuilder.attachViolations({
       active: violationRuntime.active,
       history: violationRuntime.history,

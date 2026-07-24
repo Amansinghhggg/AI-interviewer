@@ -34,6 +34,7 @@ const LiveInterviewAIContent = ({
   handleNext,
   handleSubmit,
   handlePrev,
+  session,  // backend session — needed for real question timestamps
 }) => {
   const { runtime, actions } = useInterviewRuntime();
   const { save } = usePersistence();
@@ -49,10 +50,14 @@ const LiveInterviewAIContent = ({
   useEffect(() => {
     if (isInterviewFinished && runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE) {
       actions.stop().then(recordingSession => {
-        // Assemble all pieces into the canonical InterviewSession
+        // Assemble all pieces into the canonical InterviewSession.
+        // Pass the backend `session` as the third argument so real question
+        // timestamps (askedAt / answeredAt from MongoDB) are used instead of
+        // the frontend-only questions array.
         const interviewSession = actions.finalizeInterviewSession(
           { questions, answers },
-          recordingSession
+          recordingSession,
+          session  // backend session with real timestamps
         );
         console.log("[LiveInterviewPage] Finalized Interview Session:", interviewSession);
         
@@ -60,7 +65,7 @@ const LiveInterviewAIContent = ({
         save(interviewSession, recordingSession?.blob);
       });
     }
-  }, [isInterviewFinished, runtime.state, actions, questions, answers, save]);
+  }, [isInterviewFinished, runtime.state, actions, questions, answers, session, save]);
 
   return (
     <div className="min-h-screen bg-dark-900 flex flex-col relative overflow-hidden font-sans pt-16">
@@ -216,6 +221,7 @@ const LiveInterviewPage = () => {
           handleNext={handleNext}
           handlePrev={handlePrev}
           handleSubmit={handleSubmit}
+          session={session}
         />
       </InterviewRuntimeProvider>
     );
