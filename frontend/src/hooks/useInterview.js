@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import toast from "react-hot-toast";
 import { saveInterview, restoreInterview, clearInterview } from "../utils/localStorage.js";
+import { withRetry } from "../utils/retryUtility";
+import { runtimeDiagnostics } from "../utils/diagnostics";
 
 export const useInterview = (id, navigate, user) => {
   const [loading, setLoading] = useState(true);
@@ -154,6 +156,13 @@ export const useInterview = (id, navigate, user) => {
 
     if (isAi && currentIndex === questions.length - 1) {
       // It's an AI interview and we are on the latest question.
+      
+      // Prevent duplicate submissions
+      if (isGenerating) {
+        runtimeDiagnostics("RecoveryStarted", { context: "DUPLICATE_SUBMISSION_PREVENTED" });
+        return;
+      }
+
       // We must submit the answer to get the next question.
       const answerText = overrideAnswer !== undefined ? overrideAnswer : (answers[currentQ.id] || "");
       if (!answerText.trim() && timeLeft > 0) {
@@ -162,8 +171,38 @@ export const useInterview = (id, navigate, user) => {
       }
 
       setIsGenerating(true);
+      let submissionToastId = null;
+
       try {
-        const { data } = await api.post(`/interviews/${id}/answer`, { answer: answerText });
+        const { data } = await withRetry({
+          operation: () => api.post(`/interviews/${id}/answer`, { answer: answerText }),
+          maxRetries: 3,
+          retryDelay: 1500,
+          shouldRetry: (error) => {
+            // Only retry 5xx or network errors. Don't retry 400 Bad Request
+            if (error.response && error.response.status < 500) return false;
+            return true;
+          },
+          onRetry: (error, attempt) => {
+            runtimeDiagnostics("RecoveryStarted", { context: "SUBMISSION_RETRY", attempt, error });
+            if (!submissionToastId) {
+              submissionToastId = toast.loading(`Network unstable. Saving answer (${attempt}/3)...`);
+            } else {
+              toast.loading(`Network unstable. Saving answer (${attempt}/3)...`, { id: submissionToastId });
+            }
+          },
+          onSuccess: (result, attempt) => {
+            if (attempt > 0) {
+              runtimeDiagnostics("RecoverySucceeded", { context: "SUBMISSION_RETRY", attempt });
+            }
+          },
+          onFailure: (error, attempt) => {
+            runtimeDiagnostics("RecoveryFailed", { context: "SUBMISSION_FAILED_FINAL", attempt, error });
+          }
+        });
+
+        if (submissionToastId) toast.dismiss(submissionToastId);
+
         if (data.success) {
           setSession(data.session);
           setQuestions(data.session.questions);
@@ -176,7 +215,8 @@ export const useInterview = (id, navigate, user) => {
           }
         }
       } catch (error) {
-        toast.error(error.response?.data?.message || "Failed to generate next question.");
+        if (submissionToastId) toast.dismiss(submissionToastId);
+        toast.error(error.response?.data?.message || "Failed to generate next question after multiple attempts.");
       } finally {
         setIsGenerating(false);
       }
@@ -194,9 +234,9 @@ export const useInterview = (id, navigate, user) => {
     }
   };
 
-  const handleAnswerChange = (questionId, value) => {
+  const handleAnswerChange = useCallback((questionId, value) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
-  };
+  }, []);
 
   const handleSubmit = async (force = false) => {
     if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;

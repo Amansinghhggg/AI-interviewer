@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { VoiceErrors } from "../utils/voiceErrors";
 import { VOICE_CONFIG } from "../config/voice.config";
+import { runtimeDiagnostics } from "../utils/diagnostics";
 
 export const RECORDING_STATES = {
   IDLE: "IDLE",
@@ -32,6 +33,7 @@ export const useVoiceRecorder = () => {
   const silenceStartRef = useRef(null);
   const animationFrameRef = useRef(null);
   const isRecordingRef = useRef(false); // needed for strict inside-loop checks
+  const hasSpokenRef = useRef(false);
 
   const cleanup = useCallback(() => {
     isRecordingRef.current = false;
@@ -119,6 +121,7 @@ export const useVoiceRecorder = () => {
 
     if (!isSilent) {
       // User is speaking, reset silence timer
+      hasSpokenRef.current = true;
       silenceStartRef.current = now;
       if (isSilenceWarning) setIsSilenceWarning(false);
     } else {
@@ -127,10 +130,14 @@ export const useVoiceRecorder = () => {
       
       const silenceDuration = now - silenceStartRef.current;
       
-      if (silenceDuration > VOICE_CONFIG.VOICE_AUTO_STOP_MS) {
+      const timeout = hasSpokenRef.current 
+        ? VOICE_CONFIG.VOICE_AUTO_STOP_MS 
+        : VOICE_CONFIG.VOICE_INITIAL_SILENCE_MS;
+      
+      if (silenceDuration > timeout) {
         stopRecording(true);
         return; // exit loop
-      } else if (silenceDuration > VOICE_CONFIG.VOICE_SILENCE_WARNING_MS) {
+      } else if (hasSpokenRef.current && silenceDuration > VOICE_CONFIG.VOICE_SILENCE_WARNING_MS) {
         if (!isSilenceWarning) setIsSilenceWarning(true);
       }
     }
@@ -174,15 +181,21 @@ export const useVoiceRecorder = () => {
         }
       };
 
+      mediaRecorder.onerror = (event) => {
+        runtimeDiagnostics("RecoveryStarted", { error: event.error?.message, context: "MEDIA_RECORDER_ERROR" });
+        setError(VoiceErrors.UNKNOWN);
+        stopRecording(true);
+      };
+
       mediaRecorder.onstop = () => {
-        // Only set to RECORDED if we didn't cleanup manually due to too short
         if (audioChunksRef.current.length > 0) {
           const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
           const url = URL.createObjectURL(blob);
           setAudioBlob(blob);
           setAudioUrl(url);
           setRecordingState(RECORDING_STATES.RECORDED);
-          toast.success("Recording finished", { id: 'recording-finished' });
+        } else {
+          setRecordingState(RECORDING_STATES.IDLE);
         }
         
         isRecordingRef.current = false;
@@ -206,23 +219,44 @@ export const useVoiceRecorder = () => {
       };
 
       // Set up Web Audio API for silence detection
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const audioCtx = new AudioContext();
-      audioContextRef.current = audioCtx;
-      analyserRef.current = audioCtx.createAnalyser();
-      analyserRef.current.fftSize = 2048;
-      sourceRef.current = audioCtx.createMediaStreamSource(stream);
-      sourceRef.current.connect(analyserRef.current);
+      const initAudioContext = () => {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        audioContextRef.current = audioCtx;
+        analyserRef.current = audioCtx.createAnalyser();
+        analyserRef.current.fftSize = 2048;
+        sourceRef.current = audioCtx.createMediaStreamSource(stream);
+        sourceRef.current.connect(analyserRef.current);
+      };
+
+      try {
+        initAudioContext();
+      } catch (audioCtxError) {
+        runtimeDiagnostics("RecoveryStarted", { context: "AUDIO_CONTEXT_FAILED", error: audioCtxError.message });
+        try {
+          // Attempt recovery once
+          initAudioContext();
+          runtimeDiagnostics("RecoverySucceeded", { context: "AUDIO_CONTEXT_FAILED" });
+        } catch (retryError) {
+          runtimeDiagnostics("RecoveryFailed", { context: "AUDIO_CONTEXT_FAILED", error: retryError.message });
+          // Terminate gracefully rather than falling back to manual
+          toast.error("Silence detection failed. Please refresh the page.");
+          setRecordingState(RECORDING_STATES.ERROR);
+          return; // Abort recording setup
+        }
+      }
 
       mediaRecorder.start();
       isRecordingRef.current = true;
+      hasSpokenRef.current = false;
       setRecordingState(RECORDING_STATES.RECORDING);
       startTimeRef.current = Date.now();
       silenceStartRef.current = Date.now();
-      toast("Recording started", { icon: "🎙️", id: "recording-start" });
 
-      // Start detect silence loop
-      detectSilence();
+      // Start detect silence loop if available
+      if (analyserRef.current) {
+        detectSilence();
+      }
 
       // Start timer using timestamps to avoid drift
       timerIntervalRef.current = setInterval(() => {
@@ -230,23 +264,22 @@ export const useVoiceRecorder = () => {
         setDuration(elapsed);
 
         if (elapsed >= VOICE_CONFIG.MAX_RECORDING_DURATION_MS) {
-          // Reached max duration, auto-stop
-          toast("Maximum recording duration reached.", { icon: "⏱️" });
           stopRecording(true);
         }
       }, 100);
 
     } catch (err) {
-      console.error("Microphone access error:", err);
+      runtimeDiagnostics("RecoveryFailed", { context: "MIC_PERMISSION_ERROR", error: err.name });
       setRecordingState(RECORDING_STATES.ERROR);
       
       if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
         setError(VoiceErrors.PERMISSION_DENIED);
-        toast.error("Microphone access denied.");
+        toast.error("Microphone access denied. Please allow permissions in your browser.");
       } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
         setError(VoiceErrors.MIC_NOT_FOUND);
       } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
         setError(VoiceErrors.MIC_IN_USE);
+        toast.error("Microphone disconnected or in use by another app.");
       } else {
         setError(VoiceErrors.UNKNOWN);
       }

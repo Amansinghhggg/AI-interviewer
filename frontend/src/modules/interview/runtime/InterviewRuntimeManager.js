@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useCamera } from '../../camera';
 import { useRecording } from '../../recording';
 import { INTERVIEW_RUNTIME_STATES, INTERVIEW_RUNTIME_EVENTS } from './InterviewRuntimeState';
@@ -129,16 +129,18 @@ export const useInterviewRuntimeManager = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const actions = useMemo(() => ({
+    start,
+    stop,
+    pause,
+    resume
+  }), [start, stop, pause, resume]);
+
   return {
     cameraRuntime: camera,
     recordingRuntime: recording,
     runtimeState,
     runtimeError,
-    actions: {
-      start,
-      stop,
-      pause,
-      resume
-    }
+    actions
   };
 };

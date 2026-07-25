@@ -9,9 +9,18 @@ import InterviewAI from './InterviewAI';
 import InterviewCandidate from './InterviewCandidate';
 import { voiceService } from '../../services/voice.service';
 import toast from 'react-hot-toast';
+import { withRetry } from '../../utils/retryUtility';
+import { runtimeDiagnostics } from '../../utils/diagnostics';
 
 // Import modular styles
 import './InterviewConversation.css';
+
+const isInsufficientTranscript = (transcript) => {
+  if (!transcript || typeof transcript !== 'string') return true;
+  const cleaned = transcript.trim();
+  // Filter out extremely short inputs that might just be noise
+  return cleaned.length < 2;
+};
 
 /**
  * ConversationController
@@ -76,9 +85,52 @@ const ConversationController = ({
     if (!currentQuestion || !audioBlob) return;
 
     setIsTranscribing(true);
+    let transcriptionToastId = null;
+
     try {
-      const response = await voiceService.transcribe(audioBlob);
-      if (response.success && response.transcript) {
+      const response = await withRetry({
+        operation: () => voiceService.transcribe(audioBlob),
+        maxRetries: 3,
+        retryDelay: 1000,
+        shouldRetry: (error) => {
+          // Retry on 5xx or network errors. Do not retry 400s (invalid audio)
+          if (error.response && error.response.status < 500) return false;
+          return true;
+        },
+        onRetry: (error, attempt) => {
+          runtimeDiagnostics("RecoveryStarted", { context: "STT_RETRY", attempt, error });
+          if (!transcriptionToastId) {
+            transcriptionToastId = toast.loading(`Connection lost. Retrying (${attempt}/3)...`);
+          } else {
+            toast.loading(`Connection lost. Retrying (${attempt}/3)...`, { id: transcriptionToastId });
+          }
+        },
+        onSuccess: (result, attempt) => {
+          if (attempt > 0) {
+            runtimeDiagnostics("RecoverySucceeded", { context: "STT_RETRY", attempt });
+          }
+        },
+        onFailure: (error, attempt) => {
+          runtimeDiagnostics("RecoveryFailed", { context: "STT_FAILED_FINAL", attempt, error });
+        }
+      });
+
+      if (transcriptionToastId) {
+        toast.dismiss(transcriptionToastId);
+      }
+
+      if (response.success && response.transcript !== undefined) {
+        if (isInsufficientTranscript(response.transcript)) {
+          runtimeDiagnostics("RecoveryStarted", { context: "STT_INSUFFICIENT_TRANSCRIPT", transcript: response.transcript });
+          toast("I couldn't clearly understand your answer. Please answer the question again.", { icon: "⚠️" });
+          
+          // Wait 1.5s to let the user read before restarting listening
+          setTimeout(() => {
+            setIsTranscribing(false);
+          }, 1500);
+          return;
+        }
+
         // Merge transcript with any existing answer
         const currentAnswer = answers[currentQuestion.id] || '';
         const newText = mergeTranscript(currentAnswer, response.transcript);
@@ -89,16 +141,20 @@ const ConversationController = ({
         if (onAnswerReady) {
           onAnswerReady(newText);
         }
+        
+        // Clear isTranscribing synchronously since we succeeded
+        setIsTranscribing(false);
       } else {
         throw new Error("Failed to get transcript from response");
       }
     } catch (err) {
-      console.error("Transcription error in ConversationController:", err);
-      toast.error("Transcription failed. Please try speaking again.");
-    } finally {
+      if (transcriptionToastId) {
+        toast.dismiss(transcriptionToastId);
+      }
+      toast.error("Transcription failed after multiple attempts. Please try speaking again.");
       setIsTranscribing(false);
     }
-  }, [currentQuestion, answers, handleAnswerChange, onAnswerReady]);
+  }, [currentQuestion, answers, handleAnswerChange, onAnswerReady, setIsTranscribing]);
 
   const handleClearAnswer = useCallback(() => {
     if (!currentQuestion) return;
