@@ -1,10 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { Camera, Loader2, AlertCircle } from 'lucide-react';
 import { CAMERA_STATES } from '../utils/camera.states';
-import { DeviceHealthIndicator } from '../../device-health';
-import { FaceStatusIndicator } from '../../face-detection';
-import { BrowserStatusIndicator } from '../../browser-monitoring';
-import { ViolationIndicator } from '../../violation-engine';
+import { DeviceHealthIndicator } from '../../device-health/index';
+import { FaceStatusIndicator } from '../../face-detection/index';
+import { BrowserStatusIndicator } from '../../browser-monitoring/index';
+import { ViolationIndicator } from '../../violation-engine/index';
 
 /**
  * InterviewCamera

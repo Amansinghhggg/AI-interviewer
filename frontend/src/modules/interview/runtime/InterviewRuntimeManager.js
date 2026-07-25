@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useCamera } from '../../camera';
-import { useRecording } from '../../recording';
+import { useCamera } from '../../camera/index';
+import { useRecording } from '../../recording/index';
 import { INTERVIEW_RUNTIME_STATES, INTERVIEW_RUNTIME_EVENTS } from './InterviewRuntimeState';
 import { RUNTIME_CONFIG } from './runtime.config';
 import { CAMERA_STATES } from '../../camera/utils/camera.states';

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Intervu AI | Candidate Evaluation Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1326;
+            color: #dae2fd;
+            scroll-behavior: smooth;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .radar-grid {
+            stroke: #334155;
+            stroke-width: 1;
+            fill: none;
+        }
+
+        .radar-area {
+            fill: rgba(139, 92, 246, 0.2);
+            stroke: #8b5cf6;
+            stroke-width: 2;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #171f33;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3449;
+            border-radius: 10px;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
+        }
+
+        /* Tab Transition Logic */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-trigger.active {
+            color: #8b5cf6;
+            border-bottom-color: #8b5cf6;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#2d3449",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#cbc3d7",
+                        "outline-variant": "#494454",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#dae2fd",
+                        "primary-container": "#a078ff",
+                        "on-primary-fixed-variant": "#5516be",
+                        "surface-tint": "#d0bcff",
+                        "surface-container": "#171f33",
+                        "surface-container-highest": "#2d3449",
+                        "secondary-fixed": "#acedff",
+                        "on-primary-container": "#340080",
+                        "inverse-surface": "#dae2fd",
+                        "on-tertiary": "#003824",
+                        "on-primary": "#3c0091",
+                        "tertiary": "#4edea3",
+                        "surface-container-low": "#131b2e",
+                        "on-primary-fixed": "#23005c",
+                        "secondary-container": "#03b5d3",
+                        "inverse-primary": "#6d3bd7",
+                        "surface-bright": "#31394d",
+                        "surface-container-high": "#222a3d",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#6ffbbe",
+                        "outline": "#958ea0",
+                        "primary-fixed-dim": "#d0bcff",
+                        "surface": "#0b1326",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "surface-container-lowest": "#060e20",
+                        "on-surface": "#dae2fd",
+                        "surface-dim": "#0b1326",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-tertiary-container": "#00311f",
+                        "tertiary-container": "#00a572",
+                        "primary-fixed": "#e9ddff",
+                        "inverse-on-surface": "#283044",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-secondary": "#003640",
+                        "on-secondary-container": "#00424e",
+                        "background": "#0b1326",
+                        "on-error": "#690005",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "secondary": "#4cd7f6",
+                        "on-tertiary-fixed": "#002113",
+                        "primary": "#8b5cf6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "grid_columns": "12",
+                        "xs": "4px",
+                        "2xl": "48px",
+                        "md": "16px",
+                        "gutter": "24px",
+                        "base": "4px",
+                        "margin": "32px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background selection:bg-primary/30">
+<!-- Sidebar Navigation Shell -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-0 h-screen p-4 w-64 bg-surface-container border-r border-outline-variant z-50">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h1 class="text-headline-sm font-black text-primary leading-tight">Intervu AI</h1>
+<p class="text-label-sm text-on-surface-variant">Recruitment Suite</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container/20 text-primary rounded-lg px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+<span class="font-label-md text-label-md">Candidates</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-md text-label-md">Library</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Team</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-outline-variant space-y-2">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant rounded-lg px-4 py-3 transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 p-8 min-h-screen">
+<!-- Header: Candidate Info -->
+<header class="flex justify-between items-center mb-6 bg-surface-container rounded-xl p-8 border border-outline-variant relative overflow-hidden">
+<div class="flex items-center gap-8 relative z-10">
+<div class="w-20 h-20 rounded-xl bg-surface-variant flex items-center justify-center text-display-lg font-bold text-primary shadow-lg">T</div>
+<div class="space-y-4">
+<div>
+<h2 class="text-headline-lg font-bold text-on-surface">test</h2>
+<div class="flex items-center gap-2 text-on-surface-variant text-body-md">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+<span class="">test@gmail.com</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-4">
+<div class="px-3 py-1 bg-surface-variant/50 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">work</span>
+<span class="text-label-md font-bold uppercase">MERN STACK DEVELOPER</span>
+</div>
+<div class="px-3 py-1 bg-surface-variant/50 rounded-lg flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">business</span>
+<span class="text-label-md">Aman Corporations</span>
+</div>
+<div class="px-3 py-1 bg-surface-variant/50 rounded-lg flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="text-label-md">Jul 21, 2026</span>
+</div>
+</div>
+</div>
+</div>
+<div class="text-right z-10">
+<p class="text-label-md font-bold text-on-surface-variant mb-1 uppercase tracking-widest">OVERALL RESULT</p>
+<div class="flex items-baseline justify-end gap-1 mb-4">
+<span class="text-[64px] font-black text-error">4.5</span>
+<span class="text-headline-sm text-on-surface-variant">/10</span>
+</div>
+<div class="bg-error/10 border border-error/30 text-error rounded-full px-6 py-2 inline-flex items-center gap-2 shadow-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></span>
+<span class="text-label-md font-black uppercase tracking-wider">Needs Improvement</span>
+</div>
+</div>
+<div class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent"></div>
+</header>
+<!-- Tab Navigation -->
+<div class="flex gap-8 mb-8 border-b border-outline-variant/30 overflow-x-auto">
+<button class="tab-trigger px-4 py-4 text-label-md font-black uppercase tracking-widest border-b-2 border-transparent transition-all hover:text-primary whitespace-nowrap" id="tab-evaluation-trigger" onclick="switchTab('evaluation')">
+            Evaluation
+        </button>
+<button class="tab-trigger px-4 py-4 text-label-md font-black uppercase tracking-widest border-b-2 border-transparent transition-all hover:text-primary whitespace-nowrap active" id="tab-session-details-trigger" onclick="switchTab('session-details')">
+            Session Details
+        </button>
+</div>
+<!-- Tab Content: Evaluation -->
+<div class="tab-content" id="evaluation-content">
+<div class="grid grid_columns gap-gutter items-start">
+<div class="col-span-12 space-y-gutter grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Performance Analytics -->
+<section class="glass-card rounded-xl p-8">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-2">
+<div class="w-1 h-6 bg-primary rounded-full"></div>
+<h3 class="text-label-md font-black text-on-surface tracking-widest uppercase">Performance Analytics</h3>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-help">info</span>
+</div>
+<div class="relative w-full aspect-square flex items-center justify-center mb-4">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="radar-grid" cx="50" cy="50" r="10"></circle>
+<circle class="radar-grid" cx="50" cy="50" r="20"></circle>
+<circle class="radar-grid" cx="50" cy="50" r="30"></circle>
+<circle class="radar-grid" cx="50" cy="50" r="40"></circle>
+<circle class="radar-grid" cx="50" cy="50" r="50"></circle>
+<path class="radar-grid opacity-30" d="M50 0 L50 100 M0 50 L100 50 M15 15 L85 85 M15 85 L85 15"></path>
+<polygon class="radar-area" points="50,25 75,40 60,70 30,65 25,45"></polygon>
+</svg>
+<div class="absolute top-[-5%] text-[10px] font-black text-on-surface-variant uppercase">Technical</div>
+<div class="absolute right-[-10%] top-1/2 -translate-y-1/2 text-[10px] font-black text-on-surface-variant uppercase rotate-90">Communication</div>
+<div class="absolute bottom-[-5%] text-[10px] font-black text-on-surface-variant uppercase">Confidence</div>
+<div class="absolute left-[-10%] top-1/2 -translate-y-1/2 text-[10px] font-black text-on-surface-variant uppercase -rotate-90">Topic Coverage</div>
+</div>
+</section>
+<!-- Detailed Breakdown -->
+<section class="glass-card rounded-xl p-8">
+<h3 class="text-label-md font-black text-on-surface tracking-widest uppercase mb-8">Detailed Breakdown</h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between text-label-md mb-3">
+<span class="text-on-surface font-medium">Technical Ability</span>
+<span class="font-black text-primary">50%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/2"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-3">
+<span class="text-on-surface font-medium">Topic Coverage</span>
+<span class="font-black text-primary">40%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[40%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-3">
+<span class="text-on-surface font-medium">Confidence</span>
+<span class="font-black text-error">20%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-error w-[20%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-label-md mb-3">
+<span class="text-on-surface font-medium">Problem Solving</span>
+<span class="font-black text-error">20%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-error w-[20%]"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Key Strengths & Areas -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="glass-card rounded-xl p-8 border-l-[6px] border-tertiary">
+<div class="flex items-center gap-3 mb-6 text-tertiary">
+<span class="material-symbols-outlined font-bold">check_circle</span>
+<h3 class="text-label-md font-black uppercase tracking-widest">Key Strengths</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-tertiary mt-1">•</span>
+<span class="">Demonstrated basic understanding of React's Virtual DOM</span>
+</li>
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-tertiary mt-1">•</span>
+<span class="">Showed knowledge of MongoDB for storage</span>
+</li>
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-tertiary mt-1">•</span>
+<span class="">Mentioned relevant libraries for user authentication and password hashing</span>
+</li>
+</ul>
+</div>
+<div class="glass-card rounded-xl p-8 border-l-[6px] border-error">
+<div class="flex items-center gap-3 mb-6 text-error">
+<span class="material-symbols-outlined font-bold">warning</span>
+<h3 class="text-label-md font-black uppercase tracking-widest">Areas For Improvement</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-error mt-1">•</span>
+<span class="">Struggled with articulating technical concepts</span>
+</li>
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-error mt-1">•</span>
+<span class="">Lacked depth and detail in their answers</span>
+</li>
+<li class="flex gap-3 text-body-sm text-on-surface-variant leading-relaxed">
+<span class="text-error mt-1">•</span>
+<span class="">Poor problem-solving skills and lack of edge-case awareness</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Question Breakdown -->
+</div>
+</div>
+</div>
+<!-- Tab Content: Session Details -->
+<div class="tab-content space-y-gutter active" id="session-details-content">
+<!-- Session Replay -->
+<section class="glass-card rounded-xl overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-2">
+<div class="w-1 h-5 bg-primary rounded-full"></div>
+<h3 class="text-label-md font-black text-on-surface tracking-widest uppercase">Session Replay</h3>
+</div>
+<div class="flex items-center gap-2 text-[11px] font-bold text-tertiary bg-tertiary/10 px-3 py-1 rounded-full border border-tertiary/20">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="">INTEGRITY CHECK PASSED</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 min-h-[400px]">
+<div class="md:col-span-2 bg-black flex flex-col items-center justify-center relative group cursor-pointer">
+<div class="w-20 h-20 rounded-full border-4 border-primary/50 flex items-center justify-center group-hover:scale-110 group-hover:border-primary transition-all duration-300">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+<p class="text-label-md text-on-surface-variant mt-6 font-medium">Click to play recording</p>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant">
+<div class="h-full bg-primary w-[15%]"></div>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low border-l border-outline-variant">
+<h4 class="text-label-sm font-black uppercase text-on-surface-variant mb-6 tracking-widest">TIMESTAMPS</h4>
+<div class="space-y-2">
+<button class="w-full text-left p-3 rounded-lg bg-primary/10 border border-primary/30 flex items-center gap-4 transition-all">
+<span class="text-label-sm font-mono text-primary font-bold">00:00</span>
+<span class="text-body-sm font-bold text-on-surface">Explain how React's Virtual DOM works.</span>
+</button>
+<button class="w-full text-left p-3 rounded-lg hover:bg-surface-variant/50 transition-colors flex items-center gap-4 group">
+<span class="text-label-sm font-mono text-on-surface-variant group-hover:text-on-surface transition-colors">00:00</span>
+<span class="text-body-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Suppose you're building a MERN stack application. How would you handle user authentication using MongoDB for storage?</span>
+</button>
+<button class="w-full text-left p-3 rounded-lg hover:bg-surface-variant/50 transition-colors flex items-center gap-4 group">
+<span class="text-label-sm font-mono text-on-surface-variant group-hover:text-on-surface transition-colors">00:01</span>
+<span class="text-body-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Suppose you're building a MERN stack application, and MongoDB is used for storage. How would you handle database schema changes?</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Interview Transcript -->
+<!-- Integrity Check -->
+<section class="space-y-6">
+<div class="flex items-center gap-2 px-1">
+<div class="w-1 h-5 bg-primary rounded-full"></div>
+<h3 class="text-label-md font-black text-on-surface tracking-widest uppercase">Question Breakdown</h3>
+</div>
+<div class="space-y-4">
+<div class="glass-card rounded-xl overflow-hidden border border-outline-variant hover:border-primary/50 transition-colors group">
+<div class="p-6 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-label-md font-black text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">1</div>
+<h4 class="text-body-lg font-bold text-on-surface">Explain how React's Virtual DOM works.</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">expand_more</span>
+</div>
+<div class="px-8 pb-8 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-outline-variant/30 pt-8 bg-surface-container-low/30">
+<div>
+<p class="text-[10px] font-black text-on-surface-variant uppercase mb-2 tracking-widest">Topic</p>
+<p class="text-body-sm font-bold text-on-surface">General</p>
+</div>
+<div>
+<p class="text-[10px] font-black text-on-surface-variant uppercase mb-2 tracking-widest">Difficulty</p>
+<span class="px-3 py-1 bg-secondary/10 text-secondary border border-secondary/20 rounded text-[10px] font-black uppercase tracking-wider">Medium</span>
+</div>
+<div>
+<p class="text-[10px] font-black text-on-surface-variant uppercase mb-2 tracking-widest">Tech Score</p>
+<div class="flex items-baseline gap-1">
+<span class="text-body-lg font-black text-tertiary">6</span>
+<span class="text-[11px] text-on-surface-variant">/10</span>
+</div>
+</div>
+<div>
+<p class="text-[10px] font-black text-on-surface-variant uppercase mb-2 tracking-widest">Comm Score</p>
+<div class="flex items-baseline gap-1">
+<span class="text-body-lg font-black text-error">3</span>
+<span class="text-[11px] text-on-surface-variant">/10</span>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-xl overflow-hidden border border-outline-variant hover:border-primary/50 transition-colors group">
+<div class="p-6 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-label-md font-black text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">2</div>
+<h4 class="text-body-lg font-bold text-on-surface">Handling user authentication in MERN.</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">expand_more</span>
+</div>
+</div>
+<div class="glass-card rounded-xl overflow-hidden border border-outline-variant opacity-70 hover:opacity-100 transition-all group">
+<div class="p-6 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-6">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-label-md font-black text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">3</div>
+<h4 class="text-body-lg font-bold text-on-surface">Database schema changes in MongoDB.</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">expand_more</span>
+</div>
+</div>
+</div>
+</section><section class="bg-surface-container-low border border-outline-variant rounded-xl p-8 flex flex-col md:flex-row items-center justify-center text-on-surface-variant gap-6 shadow-inner">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-tertiary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<p class="text-body-md font-bold text-on-surface">Integrity Report</p>
+</div>
+<div class="h-px md:h-8 w-full md:w-px bg-outline-variant/50"></div>
+<p class="text-body-sm font-medium italic">No violations detected during this interview. Candidate maintained consistent focus and engagement throughout the session.</p>
+</section>
+</div>
+</main>
+<!-- Floating AI Interaction FAB -->
+<div class="fixed bottom-10 right-10 z-50">
+<button class="w-16 h-16 bg-primary text-white rounded-full shadow-[0_8px_30px_rgb(139,92,246,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden relative">
+<span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform z-10" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute inset-0 rounded-full animate-ping bg-primary/20 -z-10"></div>
+</button>
+</div>
+<script>
+    function switchTab(tabId) {
+        // Hide all content
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        // Deactivate all triggers
+        document.querySelectorAll('.tab-trigger').forEach(trigger => trigger.classList.remove('active'));
+        
+        // Show selected content
+        document.getElementById(tabId + '-content').classList.add('active');
+        // Activate selected trigger
+        document.getElementById('tab-' + tabId + '-trigger').classList.add('active');
+    }
+
+    // Micro-interactions for breakdown cards
+    document.querySelectorAll('.glass-card.group').forEach(card => {
+        card.addEventListener('click', () => {
+            const detail = card.querySelector('.grid');
+            if (detail) {
+                detail.classList.toggle('hidden');
+                const icon = card.querySelector('.material-symbols-outlined:last-child');
+                if (icon) {
+                    icon.style.transform = detail.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            }
+        });
+    });
+</script>
+</body></html>

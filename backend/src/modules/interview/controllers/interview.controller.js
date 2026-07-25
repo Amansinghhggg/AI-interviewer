@@ -177,7 +177,7 @@ const joinInterview = async (req, res, next) => {
   }
 };
 
-// @desc    Candidate gets the current active interview session (AI Interview)
+// @desc    Candidate gets the current active interview session (Intervu)
 // @route   GET /api/interviews/:id/session
 // @access  Candidate only
 const getInterviewSession = async (req, res, next) => {
@@ -246,7 +246,7 @@ const startInterview = async (req, res, next) => {
       
       return res.status(200).json({
         success: true,
-        message: "AI Interview started.",
+        message: "Intervu started.",
         session,
         currentQuestion: firstQuestion
       });

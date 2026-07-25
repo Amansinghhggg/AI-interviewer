@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useInterviewRuntimeManager } from './InterviewRuntimeManager';
 import { InterviewRuntimeContext } from './InterviewRuntimeContext';
-import { useDeviceHealth } from '../../device-health';
-import { useFaceDetection } from '../../face-detection';
-import { useBrowserMonitoring } from '../../browser-monitoring';
-import { useViolationEngine } from '../../violation-engine';
-import { useInterviewSession } from '../../interview-session';
+import { useDeviceHealth } from '../../device-health/index';
+import { useFaceDetection } from '../../face-detection/index';
+import { useBrowserMonitoring } from '../../browser-monitoring/index';
+import { useViolationEngine } from '../../violation-engine/index';
+import { useInterviewSession } from '../../interview-session/index';
 
 export const InterviewRuntimeProvider = ({ children, sessionId, candidateId }) => {
   const {
