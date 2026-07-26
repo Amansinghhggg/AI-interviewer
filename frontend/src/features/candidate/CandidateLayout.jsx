@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 export default function CandidateLayout() {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -59,7 +59,13 @@ export default function CandidateLayout() {
 
                 <div className="p-4 border-t border-[var(--color-surface-variant,var(--border))] space-y-2 min-w-[288px]">
                     <button onClick={() => navigate('/candidate/profile')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/profile' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <User className="w-6 h-6 shrink-0" />
+                        {user?.profilePicture ? (
+                            <img src={user.profilePicture} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                        ) : (
+                            <div className="w-6 h-6 shrink-0 rounded-full bg-[var(--color-primary-md3)]/20 text-[var(--color-primary-md3)] flex items-center justify-center text-[10px] font-black uppercase border border-[var(--color-primary-md3)]/30">
+                                {user?.name ? user.name.substring(0, 1) : "U"}
+                            </div>
+                        )}
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
                     </button>
                     <button className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)] rounded-xl transition-all">

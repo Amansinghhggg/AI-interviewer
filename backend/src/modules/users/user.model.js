@@ -28,6 +28,15 @@ const userSchema = new mongoose.Schema(
       enum: ["employer", "candidate"],
       required: [true, "Role is required"],
     },
+    profilePicture: {
+      type: String,
+      default: "",
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    }
   },
   {
     timestamps: true,
