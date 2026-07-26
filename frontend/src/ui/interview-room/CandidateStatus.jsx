@@ -24,9 +24,9 @@ const CandidateStatus = ({ conversationState }) => {
   };
 
   const getStatusColor = () => {
-    if (isListening) return 'text-[var(--color-accent-teal)]';
-    if (isProcessing) return 'text-[var(--color-accent-blue)]';
-    return 'text-[var(--color-text-muted)]';
+    if (isListening) return 'text-[var(--color-success)]';
+    if (isProcessing) return 'text-[var(--primary)]';
+    return 'text-[var(--text-secondary)]';
   };
 
   return (
@@ -34,7 +34,7 @@ const CandidateStatus = ({ conversationState }) => {
       {isListening && (
         <div className="relative">
           <Mic className="w-4 h-4" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[var(--color-accent-teal)] rounded-full animate-listening-glow shadow-[var(--color-accent-teal-glow)] shadow-md" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[var(--color-success)] rounded-full animate-listening-glow shadow-md" />
         </div>
       )}
       <span>{getStatusText()}</span>

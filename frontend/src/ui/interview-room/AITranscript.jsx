@@ -26,15 +26,15 @@ const AITranscript = ({ transcript, conversationState, onReplay }) => {
     <div 
       className={`mt-6 transition-all duration-500 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
     >
-      <h2 className="text-3xl sm:text-4xl leading-tight text-white font-bold tracking-tight text-center">
+      <h2 className="text-3xl sm:text-4xl leading-tight text-[var(--text-primary)] font-bold tracking-tight text-center">
         {transcript}
       </h2>
       <div className="flex items-center justify-center gap-4 mt-8">
-        <p className="text-xs text-[var(--color-text-muted)] font-bold uppercase tracking-[0.2em] opacity-80">Listen to the question</p>
+        <p className="text-xs text-[var(--text-secondary)] font-bold uppercase tracking-[0.2em] opacity-80">Listen to the question</p>
         {onReplay && (
           <button 
             onClick={onReplay}
-            className="p-2 rounded-full bg-[var(--color-bg-elevated)] hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] hover:text-white transition-all shadow-sm border border-[var(--color-border-subtle)]"
+            className="p-2 rounded-full bg-[var(--background-secondary)] hover:bg-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm border border-[var(--border)]"
             title="Play Audio"
           >
             <Volume2 className="w-4 h-4" />

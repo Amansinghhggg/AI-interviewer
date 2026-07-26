@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import { ArrowLeft, Key, Loader2, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const JoinInterviewPage = () => {
   const navigate = useNavigate();
@@ -35,40 +36,45 @@ const JoinInterviewPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] pt-24 pb-12 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Noise & Glows */}
-      <div className="absolute inset-0 noise pointer-events-none z-0"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--color-accent-teal-glow)] rounded-full blur-[150px] opacity-20 pointer-events-none z-0 animate-pulse-glow"></div>
-
-      <div className="w-full max-w-md relative z-10">
+    <div className="bg-transparent w-full font-['Inter'] h-[calc(100vh-2rem)] flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
+        
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-white transition-colors mb-6 font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-surface-variant)]/50 hover:bg-[var(--color-surface-variant)] text-[var(--color-on-surface)] rounded-xl text-xs font-black uppercase tracking-widest transition-colors border border-[var(--color-outline-variant)]/30 mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
 
-        <div className="surface-elevated p-10 text-center animate-fade-in-up shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--color-accent-teal)] to-[var(--color-accent-blue)]"></div>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl p-10 shadow-2xl relative overflow-hidden"
+        >
+          {/* Subtle Accent Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--color-primary-md3)]"></div>
           
-          <div className="w-16 h-16 rounded-2xl bg-[rgba(45,212,191,0.15)] flex items-center justify-center mx-auto mb-6 border border-[rgba(45,212,191,0.3)] shadow-[var(--color-accent-teal-glow)] shadow-lg">
-            <Key className="w-8 h-8 text-[var(--color-accent-teal)]" />
+          <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary-md3)]/10 flex items-center justify-center mb-8 border border-[var(--color-primary-md3)]/20 shadow-lg shadow-[var(--color-primary-md3)]/10">
+            <Key className="w-8 h-8 text-[var(--color-primary-md3)]" />
           </div>
           
-          <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">Join an Interview</h1>
-          <p className="text-[var(--color-text-secondary)] mb-8">
+          <h1 className="text-3xl font-black text-[var(--color-on-surface)] mb-2 uppercase tracking-tight">Join an Interview</h1>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-10 font-bold tracking-wider">
             Enter the unique interview code provided by your employer.
           </p>
 
-          <form onSubmit={handleJoin} className="space-y-6">
+          <form onSubmit={handleJoin} className="space-y-8">
             <div>
+              <label className="block text-[10px] font-black tracking-[0.2em] text-[var(--color-on-surface-variant)] uppercase mb-2">
+                Interview Code
+              </label>
               <input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="Enter Interview Code"
-                className="input-field w-full px-4 py-4 text-center text-xl font-mono tracking-widest uppercase focus:border-[var(--color-accent-teal)] focus:shadow-[0_0_0_1px_var(--color-accent-teal)]"
+                placeholder="E.g. XYZ-123"
+                className="w-full px-6 py-5 bg-[var(--color-surface-container-highest)] border border-[var(--color-outline-variant)]/50 rounded-2xl text-center text-xl font-mono tracking-[0.3em] uppercase text-[var(--color-on-surface)] focus:border-[var(--color-primary-md3)] focus:ring-1 focus:ring-[var(--color-primary-md3)] transition-all outline-none"
                 autoComplete="off"
               />
             </div>
@@ -76,19 +82,19 @@ const JoinInterviewPage = () => {
             <button
               type="submit"
               disabled={isLoading || !code.trim()}
-              className="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2 group/btn shadow-[var(--color-accent-teal-glow)] shadow-xl bg-gradient-to-r from-[var(--color-accent-teal)] to-[var(--color-accent-blue)]"
+              className="w-full py-5 bg-[var(--color-primary-md3)] text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[var(--color-primary-md3)]/90 transition-all shadow-lg shadow-[var(--color-primary-md3)]/30 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {isLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
                 <>
-                  Join Interview
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover/btn:translate-x-1" />
+                  Join Campaign
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
                 </>
               )}
             </button>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

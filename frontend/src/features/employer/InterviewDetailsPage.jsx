@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
   Loader2,
@@ -16,8 +16,11 @@ import {
   Edit,
   Trash2,
   X,
-  Search
+  Search,
+  Sparkles,
+  AlignLeft
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const InterviewDetailsPage = () => {
   const { id } = useParams();
@@ -28,7 +31,9 @@ const InterviewDetailsPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newCandidateEmail, setNewCandidateEmail] = useState("");
   const [addingCandidate, setAddingCandidate] = useState(false);
-
+  const [addMode, setAddMode] = useState("single"); // 'single' | 'bulk' | 'csv'
+  const [bulkEmails, setBulkEmails] = useState("");
+  const [csvFile, setCsvFile] = useState(null);
   const fetchInterview = async () => {
     try {
       const { data } = await api.get(`/interviews/${id}`);
@@ -48,15 +53,15 @@ const InterviewDetailsPage = () => {
   }, [id]);
 
   const deleteInterview = async () => {
-    if (!window.confirm("Are you sure you want to delete this interview?")) return;
+    if (!window.confirm("Are you sure you want to delete this campaign?")) return;
     try {
       const { data } = await api.delete(`/interviews/${id}`);
       if (data.success) {
-        toast.success("Interview deleted");
+        toast.success("Campaign deleted");
         navigate("/employer/dashboard");
       }
     } catch (error) {
-      toast.error("Failed to delete interview");
+      toast.error("Failed to delete campaign");
     }
   };
 
@@ -73,316 +78,408 @@ const InterviewDetailsPage = () => {
     }
   };
 
-  const addCandidate = async (e) => {
-    e.preventDefault();
-    if (!newCandidateEmail) return;
+  const handleBulkSubmit = async (emailsArray) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const validEmails = emailsArray.filter(email => emailRegex.test(email));
     
+    if (validEmails.length === 0) {
+      toast.error("No valid emails found.");
+      return;
+    }
+
     setAddingCandidate(true);
     try {
-      const { data } = await api.patch(`/interviews/${id}`, { addCandidateEmail: newCandidateEmail });
+      const { data } = await api.patch(`/interviews/${id}`, { candidateEmails: validEmails });
       if (data.success) {
-        toast.success("Candidate added successfully");
+        toast.success(`${validEmails.length} candidates added successfully`);
         setInterview(data.interview);
         setNewCandidateEmail("");
+        setBulkEmails("");
+        setCsvFile(null);
         setIsAddModalOpen(false);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add candidate");
+      toast.error(error.response?.data?.message || "Failed to add candidates");
     } finally {
       setAddingCandidate(false);
     }
   };
 
+  const addCandidate = async (e) => {
+    e.preventDefault();
+    if (addMode === "single") {
+      if (!newCandidateEmail) return;
+      handleBulkSubmit([newCandidateEmail]);
+    } else if (addMode === "bulk") {
+      if (!bulkEmails.trim()) return;
+      const emailsArray = bulkEmails.split(/[\s,;]+/).map(e => e.trim()).filter(Boolean);
+      handleBulkSubmit(emailsArray);
+    } else if (addMode === "csv") {
+      if (!csvFile) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        const emailsArray = text.split(/[\s,;]+/).map(e => e.trim()).filter(Boolean);
+        handleBulkSubmit(emailsArray);
+      };
+      reader.readAsText(csvFile);
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    const styles = {
+      Pending: "bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)]/30",
+      "In Progress": "bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/20",
+      Completed: "bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/20",
+    };
+    return styles[status] || styles.Pending;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-[var(--color-accent-blue)]" />
+      <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] flex items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-[var(--color-primary-md3)]" />
       </div>
     );
   }
 
   if (!interview) return null;
 
-  return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] pt-24 pb-12 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute inset-0 noise pointer-events-none z-0"></div>
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[var(--color-accent-violet)] rounded-full blur-[150px] opacity-20 -z-10 animate-pulse-glow"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[var(--color-accent-blue)] rounded-full blur-[150px] opacity-20 -z-10 animate-pulse-glow" style={{ animationDelay: '1.5s' }}></div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 animate-fade-in-up">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-on-surface)] hover:-translate-x-1 transition-all duration-300 mb-8 font-medium"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+  const inputClasses = "flex w-full rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 px-4 py-3 text-sm font-bold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-md3)]/50 focus:border-[var(--color-primary-md3)] transition-all duration-300";
 
-        <div className="space-y-8">
-          {/* Details Section */}
-          <div className="space-y-6">
-            <div className="surface-elevated p-8 sm:p-10">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+  return (
+    <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] pt-12 pb-24 font-['Inter']">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-8 space-y-8">
+
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)] transition-colors mb-4 text-[11px] font-black uppercase tracking-widest"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+        </motion.div>
+
+        {/* Campaign Header & Overview Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-primary-md3)]/10 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[var(--color-secondary)]/5 rounded-full blur-[60px] pointer-events-none" />
+
+            <div className="p-8 md:p-10 relative z-10">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 pb-10 border-b border-[var(--color-outline-variant)]/30">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-black text-[var(--color-on-surface)] tracking-tight">
+                  <h1 className="text-4xl font-black text-[var(--color-on-surface)] mb-4 tracking-tight uppercase">
                     {interview.title}
                   </h1>
-                  <p className="text-[var(--color-text-secondary)] mt-3 flex items-center gap-2 font-medium text-lg">
-                    <Briefcase className="w-5 h-5 text-[var(--color-accent-blue)]" />
-                    {interview.jobRole}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-4 text-[var(--color-on-surface-variant)]">
+                    <span className="flex items-center gap-2 text-sm font-black tracking-widest uppercase">
+                      <Briefcase className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                      {interview.jobRole}
+                    </span>
+                    <span className="flex items-center gap-2 text-[10px] font-black tracking-[0.2em] uppercase bg-[var(--color-surface-container-highest)]/50 px-3 py-1.5 rounded-lg border border-[var(--color-outline-variant)]/30 text-[var(--color-primary-md3)] shadow-[0_0_10px_rgba(139,92,246,0.1)]">
+                      <Key className="w-3.5 h-3.5" />
+                      Code: {interview.interviewCode}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  <span className="badge badge-muted flex items-center gap-2 h-10 px-4 text-sm font-mono">
-                    <Key className="w-4 h-4 text-[var(--color-accent-blue)]" />
-                    {interview.interviewCode}
-                  </span>
-                  <Link 
-                    to={`/employer/interviews/${interview._id}/edit`}
-                    className="btn-secondary h-10 px-4 flex items-center gap-2"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </Link>
-                  <button 
-                    onClick={deleteInterview}
-                    className="btn-danger h-10 px-4 flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
+                <div className="flex gap-3">
+                  <button onClick={() => navigate(`/employer/interviews/${interview._id}/edit`)} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Details
+                  </button>
+                  <button onClick={deleteInterview} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-error)]/10 text-[var(--color-error)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-error)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
+                    <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4 mb-10">
-                <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(245,158,11,0.1)] text-[var(--color-accent-amber)] text-sm font-medium border border-[rgba(245,158,11,0.2)]">
-                  <Clock className="w-4 h-4" />
-                  {interview.duration} Minutes
-                </span>
-                <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(45,212,191,0.1)] text-[var(--color-accent-teal)] text-sm font-medium capitalize border border-[rgba(45,212,191,0.2)]">
-                  <Tag className="w-4 h-4" />
-                  {interview.experienceLevel}
-                </span>
-                <span className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[rgba(79,142,247,0.1)] text-[var(--color-accent-blue)] text-sm font-medium border border-[rgba(79,142,247,0.2)]">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(interview.createdAt).toLocaleDateString()}
-                </span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                {/* Duration */}
+                <div className="bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/30 rounded-2xl p-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-tertiary)]/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-[var(--color-tertiary)]/20 transition-all"></div>
+                  <div className="relative z-10 flex justify-between items-start mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-tertiary)]/10 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-[var(--color-tertiary)]" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-[0.2em] mb-1">Duration</p>
+                  <h3 className="text-2xl font-black text-[var(--color-on-surface)]">{interview.duration} <span className="text-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">Mins</span></h3>
+                </div>
+
+                {/* Experience */}
+                <div className="bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/30 rounded-2xl p-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-warning)]/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-[var(--color-warning)]/20 transition-all"></div>
+                  <div className="relative z-10 flex justify-between items-start mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-warning)]/10 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-[var(--color-warning)]" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-[0.2em] mb-1">Experience</p>
+                  <h3 className="text-2xl font-black text-[var(--color-on-surface)]">{interview.experienceLevel}</h3>
+                </div>
+
+                {/* Created On */}
+                <div className="bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/30 rounded-2xl p-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-secondary)]/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-[var(--color-secondary)]/20 transition-all"></div>
+                  <div className="relative z-10 flex justify-between items-start mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-secondary)]/10 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-[var(--color-secondary)]" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-[0.2em] mb-1">Created On</p>
+                  <h3 className="text-2xl font-black text-[var(--color-on-surface)]">{new Date(interview.createdAt).toLocaleDateString()}</h3>
+                </div>
+
+                {/* Candidates */}
+                <div className="bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/30 rounded-2xl p-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary-md3)]/10 rounded-full blur-[30px] pointer-events-none group-hover:bg-[var(--color-primary-md3)]/20 transition-all"></div>
+                  <div className="relative z-10 flex justify-between items-start mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-primary-md3)]/10 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-[0.2em] mb-1">Candidates</p>
+                  <h3 className="text-2xl font-black text-[var(--color-on-surface)]">{interview.assignedCandidates?.length || 0}</h3>
+                </div>
               </div>
 
-              <div className="space-y-8 text-base">
-                <div>
-                  <h3 className="text-lg text-[var(--color-on-surface)] font-bold mb-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--color-bg-elevated)] flex items-center justify-center border border-[var(--color-border-default)]">
-                      <Briefcase className="w-5 h-5 text-[var(--color-accent-blue)]" />
-                    </div>
-                    Description
-                  </h3>
-                  <p className="text-[var(--color-text-secondary)] leading-relaxed ml-14">
-                    {interview.description || "No description provided."}
-                  </p>
-                </div>
-                
-                {interview.topics && interview.topics.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg text-[var(--color-on-surface)] font-bold mb-3 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[var(--color-bg-elevated)] flex items-center justify-center border border-[var(--color-border-default)]">
-                        <Tag className="w-5 h-5 text-[var(--color-accent-teal)]" />
-                      </div>
-                      Topics
+                    <h3 className="text-xs font-black text-[var(--color-on-surface)] mb-3 uppercase tracking-widest flex items-center gap-2">
+                      <AlignLeft className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                      Description
                     </h3>
-                    <div className="flex flex-wrap gap-2 ml-14">
-                      {interview.topics.map(t => (
-                        <span key={t} className="px-3 py-1.5 rounded-lg bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border-subtle)] font-medium text-sm">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="text-[var(--color-on-surface-variant)] leading-relaxed text-sm font-medium bg-[var(--color-surface-container-highest)]/20 p-4 rounded-xl border border-[var(--color-outline-variant)]/20">
+                      {interview.description || "No description provided."}
+                    </p>
                   </div>
-                )}
+
+                  {interview.topics && interview.topics.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-black text-[var(--color-on-surface)] mb-3 uppercase tracking-widest flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                        Covered Topics
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {interview.topics.map(t => (
+                          <span key={t} className="px-3 py-1.5 bg-[var(--color-surface-variant)]/50 border border-[var(--color-outline-variant)]/30 rounded-lg flex items-center gap-2 text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-widest">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div>
-                  <h3 className="text-lg text-[var(--color-on-surface)] font-bold mb-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--color-bg-elevated)] flex items-center justify-center border border-[var(--color-border-default)]">
-                      <CheckCircle2 className="w-5 h-5 text-[var(--color-accent-teal)]" />
-                    </div>
-                    Instructions
+                  <h3 className="text-xs font-black text-[var(--color-on-surface)] mb-3 uppercase tracking-widest flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                    AI System Instructions
                   </h3>
-                  <p className="text-[var(--color-text-secondary)] leading-relaxed ml-14">
-                    {interview.instructions || "No specific instructions provided."}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Candidates Section */}
-          <div className="animate-fade-in-up-delay-1">
-            <div className="surface-elevated overflow-hidden flex flex-col p-0">
-              <div className="px-8 py-6 border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-overlay)] flex flex-col sm:flex-row sm:items-center justify-between gap-6 backdrop-blur-md">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[rgba(79,142,247,0.15)] flex items-center justify-center border border-[rgba(79,142,247,0.3)] shadow-[var(--color-accent-blue-glow)] shadow-lg">
-                    <Users className="w-6 h-6 text-[var(--color-accent-blue)]" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-[var(--color-on-surface)] tracking-tight">Assigned Candidates</h2>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1 font-medium">
-                      {interview.assignedCandidates?.length || 0} candidate(s) total
+                  <div className="bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-primary-md3)]/20 rounded-xl p-5 shadow-[0_0_15px_rgba(139,92,246,0.05)] h-[calc(100%-2rem)]">
+                    <p className="text-[var(--color-on-surface-variant)] leading-relaxed text-sm font-medium">
+                      {interview.instructions || "No specific instructions provided. The AI will use standard interview protocols for this role and experience level."}
                     </p>
                   </div>
                 </div>
-                <div className="relative w-full sm:w-72 group">
-                  <Search className="w-5 h-5 text-[var(--color-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[var(--color-accent-blue)] transition-colors" />
+              </div>
+
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Candidates Table */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-3xl shadow-2xl overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between p-6 md:p-8 border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/20">
+              <div className="mb-6 md:mb-0">
+                <h2 className="text-2xl font-black tracking-tight text-[var(--color-on-surface)] uppercase mb-1">Assigned Candidates</h2>
+                <p className="text-[11px] text-[var(--color-on-surface-variant)] font-bold tracking-[0.2em] uppercase">Manage invites and review interview results.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                <div className="relative flex-1 sm:w-72">
+                  <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-primary-md3)]" />
                   <input
-                    type="text"
-                    placeholder="Search candidate by email..."
+                    placeholder="Search candidates..."
+                    className={`${inputClasses} pl-11`}
                     value={searchCandidate}
                     onChange={(e) => setSearchCandidate(e.target.value)}
-                    className="input-field w-full pl-11 py-2.5 text-sm"
                   />
                 </div>
-              </div>
-              
-              <div className="flex-1 overflow-auto custom-scrollbar">
-                {interview.assignedCandidates?.length === 0 ? (
-                  <div className="text-center py-16 text-[var(--color-text-muted)]">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50 text-[var(--color-text-muted)]" />
-                    <p className="font-medium text-lg text-[var(--color-text-secondary)]">No candidates assigned yet.</p>
-                  </div>
-                ) : (
-                  <div className="min-w-[800px]">
-                    <table className="w-full text-left border-collapse">
-                      <thead className="bg-[var(--color-bg-overlay)] sticky top-0 z-10 backdrop-blur-sm border-b border-[var(--color-border-subtle)]">
-                        <tr>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Candidate Email</th>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Joined At</th>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Submitted At</th>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">View Result</th>
-                          <th className="px-6 py-4 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider text-right">Delete</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--color-border-subtle)]">
-                        {interview.assignedCandidates
-                          ?.filter((c) => c.email.toLowerCase().includes(searchCandidate.toLowerCase()))
-                          .map((candidate, idx) => (
-                            <tr key={idx} className="hover:bg-[var(--color-bg-overlay)] transition-colors group">
-                              <td className="px-6 py-5 whitespace-nowrap">
-                                <div className="text-sm font-bold text-[var(--color-on-surface)]" title={candidate.email}>
-                                  {candidate.email}
-                                </div>
-                              </td>
-                              <td className="px-6 py-5 whitespace-nowrap">
-                                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-[var(--color-text-secondary)]">
-                                  {candidate.status === "Pending" && <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-text-muted)]" />}
-                                  {candidate.status === "In Progress" && <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent-amber)]" />}
-                                  {candidate.status === "Completed" && <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent-teal)] shadow-[var(--color-accent-teal-glow)] shadow-md" />}
-                                  {candidate.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-medium">
-                                {candidate.joinedAt ? new Date(candidate.joinedAt).toLocaleString() : "-"}
-                              </td>
-                              <td className="px-6 py-5 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-medium">
-                                {candidate.submittedAt ? new Date(candidate.submittedAt).toLocaleString() : "-"}
-                              </td>
-                              <td className="px-6 py-5 whitespace-nowrap text-sm">
-                                {candidate.status === "Completed" ? (
-                                  <Link 
-                                    to={`/employer/interviews/${id}/results/${candidate.resultId}`}
-                                    className="text-[var(--color-accent-blue)] hover:text-[var(--color-on-surface)] font-bold transition-colors underline underline-offset-4 decoration-[var(--color-accent-blue-glow)] hover:decoration-[var(--color-accent-blue)]"
-                                  >
-                                    View Result
-                                  </Link>
-                                ) : (
-                                  <span className="text-[var(--color-text-muted)]">-</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-5 whitespace-nowrap text-right">
-                                <button
-                                  onClick={() => removeCandidate(candidate.email)}
-                                  className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-accent-red)] hover:bg-[rgba(244,63,94,0.1)] transition-colors inline-block"
-                                  title="Delete Candidate"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-6 border-t border-[var(--color-border-subtle)] bg-[var(--color-bg-overlay)] flex justify-end">
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
+                <button onClick={() => setIsAddModalOpen(true)} className="px-6 py-3 bg-[var(--color-primary-md3)] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[var(--color-primary-md3)]/90 transition-colors shadow-lg shadow-[var(--color-primary-md3)]/30 flex items-center justify-center shrink-0">
+                  <Plus className="w-4 h-4 mr-2" />
                   Add Candidate
                 </button>
               </div>
             </div>
+
+            {interview.assignedCandidates?.length === 0 ? (
+              <div className="text-center py-24 px-4">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-variant)] flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-[var(--color-on-surface-variant)]" />
+                </div>
+                <h3 className="text-lg font-black text-[var(--color-on-surface)] uppercase tracking-wider mb-2">No candidates yet</h3>
+                <p className="text-[var(--color-on-surface-variant)] mb-8 max-w-md mx-auto text-sm font-medium">Start by inviting candidates to this interview campaign to see them here.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
+                      <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Candidate Email</th>
+                      <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Status</th>
+                      <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Joined At</th>
+                      <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Submitted At</th>
+                      <th className="py-5 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {interview.assignedCandidates
+                      ?.filter((c) => c.email.toLowerCase().includes(searchCandidate.toLowerCase()))
+                      .map((candidate, idx) => (
+                        <tr key={idx} className="border-b border-[var(--color-outline-variant)]/20 hover:bg-[var(--color-surface-container-highest)]/10 transition-colors group">
+                          <td className="py-5 px-8">
+                            <div className="font-bold text-sm text-[var(--color-on-surface)]">{candidate.email}</div>
+                          </td>
+                          <td className="py-5 px-8">
+                            <span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${getStatusStyle(candidate.status)}`}>
+                              {candidate.status}
+                            </span>
+                          </td>
+                          <td className="py-5 px-8">
+                            <span className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wider">
+                              {candidate.joinedAt ? new Date(candidate.joinedAt).toLocaleString() : "-"}
+                            </span>
+                          </td>
+                          <td className="py-5 px-8">
+                            <span className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wider">
+                              {candidate.submittedAt ? new Date(candidate.submittedAt).toLocaleString() : "-"}
+                            </span>
+                          </td>
+                          <td className="py-5 px-8 text-right space-x-3 whitespace-nowrap">
+                            {candidate.status === "Completed" && (
+                              <button onClick={() => navigate(`/employer/interviews/${id}/results/${candidate.resultId}`)} className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary-md3)]/10 hover:bg-[var(--color-primary-md3)]/20 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                                View Result
+                              </button>
+                            )}
+                            <button onClick={() => removeCandidate(candidate.email)} className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-transparent hover:bg-[var(--color-error)]/10 text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Add Candidate Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="surface-elevated rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-6 border-b border-[var(--color-border-subtle)] flex items-center justify-between bg-[var(--color-bg-overlay)]">
-              <h3 className="text-xl font-bold text-[var(--color-on-surface)]">Add Candidate</h3>
-              <button 
-                onClick={() => setIsAddModalOpen(false)}
-                className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-bg-elevated)] transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={addCandidate} className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
-                  Candidate Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={newCandidateEmail}
-                  onChange={(e) => setNewCandidateEmail(e.target.value)}
-                  placeholder="Enter candidate's email address"
-                  className="input-field w-full px-4 py-3"
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border-subtle)] mt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="btn-secondary py-2.5 px-5"
-                >
-                  Cancel
+      {/* Add Candidate Dialog */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-[#000000]/80 backdrop-blur-md"
+              onClick={() => setIsAddModalOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-[var(--color-surface-container-low)] rounded-3xl shadow-2xl overflow-hidden border border-[var(--color-outline-variant)]/30"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary-md3)]/10 rounded-full blur-[40px] pointer-events-none" />
+
+              <div className="flex items-center justify-between p-6 md:p-8 border-b border-[var(--color-outline-variant)]/30 relative z-10">
+                <h3 className="text-xl font-black uppercase tracking-widest text-[var(--color-on-surface)] flex items-center gap-3">
+                  <Plus className="w-6 h-6 text-[var(--color-primary-md3)]" />
+                  Invite Candidate
+                </h3>
+                <button onClick={() => setIsAddModalOpen(false)} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors p-2 rounded-full hover:bg-[var(--color-surface-variant)]/50">
+                  <X className="w-5 h-5" />
                 </button>
-                <button
-                  type="submit"
-                  disabled={addingCandidate || !newCandidateEmail}
-                  className="btn-primary py-2.5 px-6 flex items-center gap-2"
-                >
-                  {addingCandidate ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    "Add Candidate"
+              </div>
+              <form onSubmit={addCandidate} className="relative z-10">
+                <div className="p-6 md:p-8">
+                  <div className="flex bg-[var(--color-surface-container-highest)]/30 p-1 rounded-xl mb-6">
+                    {["single", "bulk", "csv"].map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setAddMode(mode)}
+                        className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${addMode === mode ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30" : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"}`}
+                      >
+                        {mode === 'single' ? 'Single' : mode === 'bulk' ? 'Paste Many' : 'CSV Upload'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {addMode === "single" && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-[var(--color-on-surface)]">Candidate Email Address</label>
+                      <input
+                        type="email"
+                        required
+                        value={newCandidateEmail}
+                        onChange={(e) => setNewCandidateEmail(e.target.value)}
+                        placeholder="candidate@example.com"
+                        className={inputClasses}
+                      />
+                    </motion.div>
                   )}
-                </button>
-              </div>
-            </form>
+
+                  {addMode === "bulk" && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <label className="block text-[11px] font-black uppercase tracking-widest mb-2 text-[var(--color-on-surface)]">Paste Multiple Emails</label>
+                      <p className="text-[10px] text-[var(--color-on-surface-variant)] font-bold mb-3">Format: Comma, space, or newline separated.</p>
+                      <textarea
+                        required
+                        value={bulkEmails}
+                        onChange={(e) => setBulkEmails(e.target.value)}
+                        placeholder={"candidate1@example.com, candidate2@example.com\ncandidate3@example.com"}
+                        className={`${inputClasses} min-h-[120px] py-4 resize-y`}
+                      />
+                    </motion.div>
+                  )}
+
+                  {addMode === "csv" && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      <label className="block text-[11px] font-black uppercase tracking-widest mb-2 text-[var(--color-on-surface)]">Upload CSV File</label>
+                      <p className="text-[10px] text-[var(--color-on-surface-variant)] font-bold mb-3">Upload a text or CSV file containing emails.</p>
+                      <input
+                        type="file"
+                        accept=".csv,.txt"
+                        required
+                        onChange={(e) => setCsvFile(e.target.files[0])}
+                        className="w-full text-sm text-[var(--color-on-surface-variant)] file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:uppercase file:tracking-widest file:bg-[var(--color-primary-md3)]/10 file:text-[var(--color-primary-md3)] hover:file:bg-[var(--color-primary-md3)]/20 cursor-pointer bg-[var(--color-surface-container-highest)]/30 rounded-xl border border-[var(--color-outline-variant)]/30"
+                      />
+                      {csvFile && (
+                        <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-green-500 flex items-center">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          {csvFile.name} Selected
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+                <div className="flex justify-end gap-4 p-6 md:px-8 md:py-6 bg-[var(--color-surface-container-highest)]/20 border-t border-[var(--color-outline-variant)]/30">
+                  <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-6 py-3 bg-transparent hover:bg-[var(--color-surface-variant)]/50 text-[var(--color-on-surface)] rounded-xl text-xs font-black uppercase tracking-widest transition-colors border border-[var(--color-outline-variant)]/30">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={addingCandidate || (addMode === 'single' && !newCandidateEmail) || (addMode === 'bulk' && !bulkEmails) || (addMode === 'csv' && !csvFile)} className="px-6 py-3 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-[var(--color-primary-md3)]/30 flex items-center justify-center min-w-[140px]">
+                    {addingCandidate ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Send Invite"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

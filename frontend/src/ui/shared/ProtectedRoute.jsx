@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Loader2 } from "lucide-react";
@@ -5,10 +6,18 @@ import { Loader2 } from "lucide-react";
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
 
+  useEffect(() => {
+    if (role === "candidate" || user?.role === "candidate") {
+      document.body.classList.add("theme-candidate");
+    } else {
+      document.body.classList.remove("theme-candidate");
+    }
+  }, [role, user]);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-900">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
       </div>
     );
   }

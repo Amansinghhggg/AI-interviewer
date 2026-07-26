@@ -112,13 +112,22 @@ class InterviewService {
   }
 
   async getAssignedInterviews(candidateEmail) {
-    return await Interview.find({
+    const interviews = await Interview.find({
       "assignedCandidates.email": candidateEmail,
       status: "active",
     })
       .populate("employer", "name")
-      .select("-assignedCandidates")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+      
+    return interviews.map(interview => {
+      const candidateInfo = interview.assignedCandidates?.find(c => c.email === candidateEmail);
+      delete interview.assignedCandidates; // Protect other candidates' data
+      return {
+        ...interview,
+        candidateStatus: candidateInfo?.status || "Pending"
+      };
+    });
   }
 
   async joinInterview(interviewCode, candidateEmail) {

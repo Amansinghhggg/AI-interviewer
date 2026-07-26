@@ -1,0 +1,101 @@
+import React from 'react';
+import { useMotionValue } from 'framer-motion';
+import { AvatarState } from './types';
+import { useAudioEngine } from './useAudioEngine';
+import { useAnimationEngine } from './useAnimationEngine';
+import SVGRenderer from './renderers/SVGRenderer';
+import AvatarWaveform from './renderers/components/AvatarWaveform';
+import { cn } from "../../../../utils/cn";
+import { Mic, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function AIAvatar({ 
+  state = AvatarState.IDLE, 
+  audioElement, 
+  className 
+}) {
+  // Initialize highly performant MotionValues
+  const mouthOpen = useMotionValue(0);     // 0 to 1
+  const eyeBlink = useMotionValue(1);      // 1 (open) to 0.1 (closed)
+  const headRotation = useMotionValue(0);  // degrees (-x to +x)
+  const breathScale = useMotionValue(1);   // 1 to 1.01
+  const eyeLookX = useMotionValue(0);      // pixels offset for pupils
+
+  // Start internal engines decoupled from UI rendering
+  useAudioEngine(audioElement, mouthOpen, state);
+  useAnimationEngine(state, { eyeBlink, headRotation, breathScale, eyeLookX });
+
+  return (
+    <div
+      className={cn(
+        "relative w-48 h-48 sm:w-56 sm:h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-[32px] overflow-hidden shadow-2xl bg-gradient-to-b from-[#1c1c24] to-[#0a0a0f] border border-[var(--border)] flex items-center justify-center group transition-all duration-500",
+        state === AvatarState.SPEAKING && "ring-2 ring-[var(--primary)] ring-offset-4 ring-offset-[var(--background)] shadow-[0_0_40px_rgba(99,102,241,0.2)]",
+        state === AvatarState.THINKING && "ring-1 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)] shadow-[0_0_20px_rgba(99,102,241,0.1)]",
+        className
+      )}
+    >
+      {/* 2D Vector Renderer (Decoupled Engine Client) */}
+      <div className="absolute inset-0 flex items-end justify-center pt-12">
+        <SVGRenderer 
+           mouthOpen={mouthOpen}
+           eyeBlink={eyeBlink}
+           headRotation={headRotation}
+           breathScale={breathScale}
+           eyeLookX={eyeLookX}
+           isThinking={state === AvatarState.THINKING}
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-20 pointer-events-none" />
+
+      {/* State Indicators (Waveform / Status Badges) */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center w-full px-8 z-30">
+        
+        <AnimatePresence mode="wait">
+          {state === AvatarState.SPEAKING && (
+            <motion.div
+              key="waveform"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4"
+            >
+               <AvatarWaveform mouthOpen={mouthOpen} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="wait">
+          {state === AvatarState.LISTENING && (
+            <motion.div
+              key="listening"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white shadow-xl"
+            >
+              <div className="relative flex items-center justify-center w-5 h-5">
+                <div className="absolute w-full h-full bg-[var(--color-success)] rounded-full animate-ping opacity-20" />
+                <Mic className="w-4 h-4 text-[var(--color-success)]" />
+              </div>
+              <span className="text-sm font-medium tracking-wide">Listening...</span>
+            </motion.div>
+          )}
+
+          {state === AvatarState.THINKING && (
+            <motion.div
+              key="thinking"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white shadow-xl"
+            >
+              <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
+              <span className="text-sm font-medium tracking-wide">Processing...</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

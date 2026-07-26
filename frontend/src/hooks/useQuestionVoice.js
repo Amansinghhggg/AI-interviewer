@@ -22,7 +22,8 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
     replay: audioReplay,
     clear: audioClear,
     load,
-    isPlaying
+    isPlaying,
+    audioRef
   } = useAudioPlayer({
     onLoaded: () => {
       if (isVoiceDisabled) return; // don't auto-play if disabled
@@ -137,6 +138,7 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
     play,
     pause,
     stop,
-    replay
+    replay,
+    audioRef
   };
 };

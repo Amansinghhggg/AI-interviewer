@@ -152,6 +152,7 @@ export const useAudioPlayer = ({
     clear,
     load,
     isPlaying,
-    isLoading
+    isLoading,
+    audioRef
   };
 };

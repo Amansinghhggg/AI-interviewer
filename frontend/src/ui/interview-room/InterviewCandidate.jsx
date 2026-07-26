@@ -1,18 +1,11 @@
-import { Mic, Camera } from 'lucide-react';
+import { useEffect } from 'react';
 import { CONVERSATION_STATES } from '../../modules/interview/conversation/index';
 import CandidateTranscript from './CandidateTranscript';
-import CandidateStatus from './CandidateStatus';
 import { InterviewCamera } from '../../modules/camera/index';
-import { VoiceInputButton } from '../voice/index';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../../ui/components/Button';
+import { useVoiceRecorder, RECORDING_STATES } from '../../hooks/useVoiceRecorder';
 
-/**
- * InterviewCandidate
- *
- * Candidate participant section.
- * Composes: InterviewCamera + CandidateStatus + CandidateTranscript + VoiceInput.
- * Each sub-component remains independently reusable.
- * Purely presentational — receives all state through props.
- */
 const InterviewCandidate = ({
   conversationState,
   candidateTranscript,
@@ -30,87 +23,99 @@ const InterviewCandidate = ({
   isTranscribing,
   onRecordingComplete,
   onClearAnswer,
+  onAnswerReady
 }) => {
   const isListening = conversationState === CONVERSATION_STATES.LISTENING;
+  const { user } = useAuth();
+
+  const {
+    recordingState,
+    audioBlob,
+    startRecording,
+    stopRecording,
+    deleteRecording,
+  } = useVoiceRecorder();
+
+  // Auto-start recording when listening
+  useEffect(() => {
+    if (isAutomaticMode && isListening && recordingState === RECORDING_STATES.IDLE) {
+      startRecording();
+    }
+  }, [isAutomaticMode, isListening, recordingState, startRecording]);
+
+  // Handle completed recording blob (auto or manual)
+  useEffect(() => {
+    if (recordingState === RECORDING_STATES.RECORDED && audioBlob) {
+      if (onRecordingComplete) {
+        onRecordingComplete(audioBlob);
+        deleteRecording();
+      }
+    }
+  }, [recordingState, audioBlob, onRecordingComplete, deleteRecording]);
+
+  const handleManualSubmit = () => {
+    if (recordingState === RECORDING_STATES.RECORDING) {
+      // Force stop recording immediately. The effect above will catch the blob.
+      stopRecording(false);
+    } else if (candidateTranscript?.length > 0) {
+      // If already recorded and transcribed, just submit the text
+      onAnswerReady();
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full relative z-10">
+    <div className="flex flex-col h-full relative z-10 p-8">
       {/* Candidate Header */}
-      <div className="flex items-center justify-between w-full mb-6">
-        <div className="text-[var(--color-text-muted)] text-sm font-bold uppercase tracking-[0.2em]">
+      <div className="flex items-center gap-2 mb-auto">
+        <span className="w-2 h-2 rounded-full bg-[var(--color-success)]" />
+        <div className="text-[var(--text-secondary)] text-sm font-bold uppercase tracking-[0.2em]">
           You
         </div>
-        <CandidateStatus conversationState={conversationState} />
       </div>
 
-      <div className="flex flex-col gap-6 flex-1">
-        {/* Camera & Controls Row */}
-        <div className="flex flex-col sm:flex-row gap-6 items-stretch">
-          {/* Camera Preview */}
-          <div className="w-full sm:w-2/3 surface p-2 overflow-hidden shadow-lg border-none bg-[var(--color-bg-overlay)]">
-            <div className="rounded-xl overflow-hidden w-full h-full relative border border-[var(--color-border-subtle)]">
-              <InterviewCamera
-                stream={cameraStream}
-                state={cameraState}
-                warnings={cameraWarnings}
-                error={cameraError}
-                isRecording={isListening}
-                deviceSnapshot={deviceSnapshot}
-                faceSnapshot={faceSnapshot}
-                browserStatus={browserStatus}
-                activeViolations={activeViolations}
-                setVideoElement={setVideoElement}
-              />
-            </div>
-          </div>
-
-          {/* Minimal Controls / Status */}
-          <div className="w-full sm:w-1/3 flex flex-col gap-4">
-            <div className="flex-1 flex flex-col justify-center p-6 surface shadow-md group hover:border-[var(--color-border-active)] transition-colors">
-              <VoiceInputButton
-                isListening={isListening}
-                isAutomaticMode={isAutomaticMode}
-                isTranscribing={isTranscribing}
-                onRecordingComplete={onRecordingComplete}
-              />
-            </div>
-            
-            {/* System Status Indicators (Compact) */}
-            <div className="flex flex-col justify-center gap-4 p-5 surface shadow-sm">
-               <div className="flex items-center justify-between text-sm font-bold">
-                  <span className="text-[var(--color-text-secondary)] flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--color-bg-elevated)] flex items-center justify-center border border-[var(--color-border-subtle)]">
-                      <Mic className="w-4 h-4 text-[var(--color-text-muted)]" />
-                    </div>
-                    Microphone
-                  </span>
-                  <span className="text-[var(--color-accent-teal)] flex items-center gap-2 tracking-wide uppercase text-xs">
-                    Healthy <span className="w-2 h-2 rounded-full bg-[var(--color-accent-teal)] shadow-[var(--color-accent-teal-glow)] shadow-sm" />
-                  </span>
-               </div>
-               <div className="flex items-center justify-between text-sm font-bold">
-                  <span className="text-[var(--color-text-secondary)] flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[var(--color-bg-elevated)] flex items-center justify-center border border-[var(--color-border-subtle)]">
-                      <Camera className="w-4 h-4 text-[var(--color-text-muted)]" />
-                    </div>
-                    Camera
-                  </span>
-                  <span className="text-[var(--color-accent-teal)] flex items-center gap-2 tracking-wide uppercase text-xs">
-                    On <span className="w-2 h-2 rounded-full bg-[var(--color-accent-teal)] shadow-[var(--color-accent-teal-glow)] shadow-sm" />
-                  </span>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Transcript (Listening state is inside) */}
-        <div className="mt-2 flex-1">
-          <CandidateTranscript
-            transcript={candidateTranscript}
-            transcriptState={transcriptState}
-            onClearAnswer={onClearAnswer}
+      <div className="flex flex-col flex-1 mt-6 items-center w-full justify-center gap-8">
+        {/* Camera Preview */}
+        <div className="w-full max-w-2xl aspect-video bg-[#131316] rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
+          <InterviewCamera
+            stream={cameraStream}
+            state={cameraState}
+            warnings={cameraWarnings}
+            error={cameraError}
+            isRecording={isListening}
+            deviceSnapshot={deviceSnapshot}
+            faceSnapshot={faceSnapshot}
+            browserStatus={browserStatus}
+            activeViolations={activeViolations}
+            setVideoElement={setVideoElement}
           />
+          {/* Candidate Name Overlay */}
+          <div className="absolute bottom-6 left-6 bg-[#000000]/80 backdrop-blur-md px-4 py-2.5 rounded-full flex items-center gap-3 border border-white/10 shadow-lg">
+             <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+             <span className="text-white text-sm font-semibold tracking-wide">
+               {user?.name || "Candidate"}
+             </span>
+          </div>
         </div>
+
+        {/* Submit Answer Button */}
+        <div>
+          <Button 
+            onClick={handleManualSubmit}
+            disabled={recordingState !== RECORDING_STATES.RECORDING && (!candidateTranscript || candidateTranscript.length < 5) || isTranscribing}
+            className="bg-white hover:bg-gray-200 text-black px-12 py-6 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+          >
+            Submit Answer
+          </Button>
+        </div>
+      </div>
+
+      {/* Transcript (YOUR RESPONSE) */}
+      <div className="mt-auto w-full max-w-3xl mx-auto">
+        <CandidateTranscript
+          transcript={candidateTranscript}
+          transcriptState={transcriptState}
+          onClearAnswer={onClearAnswer}
+        />
       </div>
     </div>
   );

@@ -4,24 +4,27 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "../../services/api";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
   Loader2,
   FileText,
   Clock,
-  Hash,
   Tag,
   AlignLeft,
   BookOpen,
   Plus,
   X,
-  Sparkles,
   Users,
   Briefcase,
   Save,
   Edit
 } from "lucide-react";
+import { Button } from "../../ui/components/Button";
+import { Card, CardContent } from "../../ui/components/Card";
+import { Input } from "../../ui/components/Input";
+import { Badge } from "../../ui/components/Badge";
+import { motion } from "framer-motion";
 
 const updateInterviewSchema = z.object({
   title: z
@@ -174,202 +177,251 @@ const EditInterviewPage = () => {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface-variant)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-400" />
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface-variant)] pt-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface-variant)] transition-colors mb-6 animate-fade-in-up"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+    <div className="min-h-screen bg-[var(--background)] pt-24 pb-12">
+      <div className="max-w-[800px] mx-auto px-6">
+        
+        <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-8 text-sm font-medium"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        </motion.div>
 
-        <div className="mb-8 animate-fade-in-up">
-          <h1 className="text-2xl sm:text-3xl font-bold text-dark-50 flex items-center gap-3">
-            <Edit className="w-7 h-7 text-warning-400" />
-            Edit Interview
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] flex items-center gap-3 tracking-tight">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-warning)]/10 text-[var(--color-warning)] flex items-center justify-center">
+              <Edit className="w-5 h-5" />
+            </div>
+            Edit Campaign
           </h1>
-          <p className="text-[var(--color-on-surface-variant)] mt-2">
-            Update interview details and add new candidates.
+          <p className="text-[var(--text-secondary)] mt-3 text-lg">
+            Update campaign details and invite more candidates.
           </p>
-        </div>
+        </motion.div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in-up-delay-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-light rounded-2xl p-6">
-              <label htmlFor="interview-title" className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-                <FileText className="w-4 h-4 text-primary-400" />
-                Interview Title
-              </label>
-              <input
-                id="interview-title"
-                type="text"
-                {...register("title")}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all"
-              />
-              {errors.title && <p className="mt-1.5 text-sm text-danger-400">{errors.title.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Card>
+              <CardContent className="p-6 md:p-8 space-y-6">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                      <FileText className="w-4 h-4 text-[var(--text-secondary)]" />
+                      Campaign Title
+                    </label>
+                    <Input
+                      {...register("title")}
+                      className="w-full"
+                    />
+                    {errors.title && (
+                      <p className="mt-2 text-sm text-[var(--color-danger)] flex items-center gap-1">
+                        <span>•</span> {errors.title.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                      <Briefcase className="w-4 h-4 text-[var(--text-secondary)]" />
+                      Job Role
+                    </label>
+                    <Input
+                      {...register("jobRole")}
+                      className="w-full"
+                    />
+                    {errors.jobRole && (
+                      <p className="mt-2 text-sm text-[var(--color-danger)] flex items-center gap-1">
+                        <span>•</span> {errors.jobRole.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <AlignLeft className="w-4 h-4 text-[var(--text-secondary)]" />
+                    Description <span className="text-[var(--text-secondary)] font-normal text-xs">(optional)</span>
+                  </label>
+                  <textarea
+                    {...register("description")}
+                    rows={3}
+                    className="flex w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all duration-200 resize-none"
+                  />
+                  {errors.description && (
+                    <p className="mt-2 text-sm text-[var(--color-danger)] flex items-center gap-1">
+                      <span>•</span> {errors.description.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <Tag className="w-4 h-4 text-[var(--text-secondary)]" />
+                    Technical Topics
+                  </label>
+                  <div className="flex gap-3 mb-3">
+                    <Input
+                      type="text"
+                      value={topicInput}
+                      onChange={(e) => setTopicInput(e.target.value)}
+                      onKeyDown={handleTopicKeyDown}
+                      placeholder="e.g., React, System Design"
+                      className="flex-1"
+                    />
+                    <Button type="button" variant="secondary" onClick={addTopic}>
+                      <Plus className="w-4 h-4 mr-2" /> Add
+                    </Button>
+                  </div>
+                  {topics.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {topics.map((topic) => (
+                        <Badge key={topic} variant="secondary" className="pl-3 pr-2 py-1.5 flex items-center gap-1 text-sm">
+                          {topic}
+                          <button
+                            type="button"
+                            onClick={() => removeTopic(topic)}
+                            className="text-[var(--text-secondary)] hover:text-[var(--color-danger)] transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                      <BookOpen className="w-4 h-4 text-[var(--text-secondary)]" />
+                      Experience Level
+                    </label>
+                    <select
+                      {...register("experienceLevel")}
+                      className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all cursor-pointer"
+                    >
+                      <option value="Fresher">Fresher</option>
+                      <option value="1-2 Years">1-2 Years</option>
+                      <option value="3-5 Years">3-5 Years</option>
+                      <option value="5+ Years">5+ Years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                      <Clock className="w-4 h-4 text-[var(--text-secondary)]" />
+                      Duration (Minutes)
+                    </label>
+                    <Input
+                      type="number"
+                      {...register("duration")}
+                      min={5}
+                      max={120}
+                    />
+                    {errors.duration && (
+                      <p className="mt-2 text-sm text-[var(--color-danger)] flex items-center gap-1">
+                        <span>•</span> {errors.duration.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Card>
+              <CardContent className="p-6 md:p-8 space-y-6">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-1">
+                    <Users className="w-4 h-4 text-[var(--color-info)]" />
+                    Invite New Candidates
+                  </label>
+                  <p className="text-sm text-[var(--text-secondary)] mb-4">
+                    {existingCandidates.length} candidate(s) already assigned. Enter emails to assign more.
+                  </p>
+                  
+                  <div className="flex gap-3 mb-4">
+                    <Input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      onKeyDown={handleEmailKeyDown}
+                      placeholder="new.candidate@example.com"
+                      className="flex-1"
+                    />
+                    <Button type="button" variant="secondary" onClick={addEmail}>
+                      <Plus className="w-4 h-4 mr-2" /> Add
+                    </Button>
+                  </div>
+                  
+                  {newEmails.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-4 border border-[var(--border)] rounded-md bg-[var(--background-secondary)]/50 min-h-[60px]">
+                      {newEmails.map((email) => (
+                        <Badge key={email} variant="outline" className="pl-3 pr-2 py-1.5 flex items-center gap-2 bg-[var(--background)]">
+                          {email}
+                          <button
+                            type="button"
+                            onClick={() => removeNewEmail(email)}
+                            className="text-[var(--text-secondary)] hover:text-[var(--color-danger)] transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <AlignLeft className="w-4 h-4 text-[var(--text-secondary)]" />
+                    AI System Instructions <span className="text-[var(--text-secondary)] font-normal text-xs">(optional)</span>
+                  </label>
+                  <textarea
+                    {...register("instructions")}
+                    rows={4}
+                    className="flex w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all duration-200 resize-none"
+                  />
+                  {errors.instructions && (
+                    <p className="mt-2 text-sm text-[var(--color-danger)] flex items-center gap-1">
+                      <span>•</span> {errors.instructions.message}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <div className="flex justify-end gap-4 pt-6">
+              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="w-48 shadow-lg shadow-[var(--primary)]/20">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
             </div>
-
-            <div className="glass-light rounded-2xl p-6">
-              <label htmlFor="interview-jobrole" className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-                <Briefcase className="w-4 h-4 text-primary-400" />
-                Job Role
-              </label>
-              <input
-                id="interview-jobrole"
-                type="text"
-                {...register("jobRole")}
-                className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all"
-              />
-              {errors.jobRole && <p className="mt-1.5 text-sm text-danger-400">{errors.jobRole.message}</p>}
-            </div>
-          </div>
-
-          <div className="glass-light rounded-2xl p-6">
-            <label htmlFor="interview-description" className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-              <AlignLeft className="w-4 h-4 text-primary-400" />
-              Description <span className="text-[var(--color-on-surface-variant)] font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="interview-description"
-              {...register("description")}
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all resize-none"
-            />
-          </div>
-
-          <div className="glass-light rounded-2xl p-6">
-            <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-              <Tag className="w-4 h-4 text-primary-400" />
-              Topics
-            </label>
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                value={topicInput}
-                onChange={(e) => setTopicInput(e.target.value)}
-                onKeyDown={handleTopicKeyDown}
-                className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all"
-              />
-              <button
-                type="button"
-                onClick={addTopic}
-                className="px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] transition-all"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-            {topics.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {topics.map((topic) => (
-                  <span key={topic} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-500/10 text-primary-400 text-sm border border-primary-500/20">
-                    {topic}
-                    <button type="button" onClick={() => removeTopic(topic)} className="hover:text-danger-400 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-light rounded-2xl p-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-                <BookOpen className="w-4 h-4 text-primary-400" />
-                Experience Level
-              </label>
-              <select {...register("experienceLevel")} className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all appearance-none cursor-pointer">
-                <option value="Fresher">Fresher</option>
-                <option value="1-2 Years">1-2 Years</option>
-                <option value="3-5 Years">3-5 Years</option>
-                <option value="5+ Years">5+ Years</option>
-              </select>
-            </div>
-            <div className="glass-light rounded-2xl p-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-                <Clock className="w-4 h-4 text-primary-400" />
-                Duration (min)
-              </label>
-              <input type="number" {...register("duration")} className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all" min={5} max={120} />
-            </div>
-
-          </div>
-
-          <div className="glass-light rounded-2xl p-6 border-l-4 border-l-info-500">
-            <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-              <Users className="w-4 h-4 text-info-400" />
-              Add More Candidates
-            </label>
-            <p className="text-xs text-[var(--color-on-surface-variant)] mb-3">
-              {existingCandidates.length} candidate(s) already assigned. Enter emails to assign more.
-            </p>
-            <div className="flex gap-2 mb-3">
-              <input
-                type="email"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                onKeyDown={handleEmailKeyDown}
-                className="flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 placeholder-dark-500 focus:outline-none focus:border-info-500 focus:ring-1 focus:ring-info-500/50 transition-all"
-                placeholder="new.candidate@example.com"
-              />
-              <button
-                type="button"
-                onClick={addEmail}
-                className="px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] transition-all"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-            {newEmails.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {newEmails.map((email) => (
-                  <span key={email} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-info-500/20 text-info-300 text-sm border border-info-500/30">
-                    {email}
-                    <button type="button" onClick={() => removeNewEmail(email)} className="hover:text-danger-400 transition-colors ml-1">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="glass-light rounded-2xl p-6">
-            <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-on-surface-variant)] mb-2">
-              <AlignLeft className="w-4 h-4 text-primary-400" />
-              Instructions for Candidates
-            </label>
-            <textarea {...register("instructions")} rows={3} className="w-full px-4 py-3 rounded-xl bg-[var(--color-surface-variant)] border border-[var(--color-outline-variant)] text-dark-50 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/50 transition-all resize-none" />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-6 py-3 rounded-xl border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] transition-all duration-200 font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-warning-600 to-warning-500 text-[var(--color-on-surface)] font-semibold hover:from-warning-500 hover:to-warning-400 transition-all duration-300 shadow-lg shadow-warning-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Saving...</>
-              ) : (
-                <><Save className="w-5 h-5" /> Save Changes</>
-              )}
-            </button>
-          </div>
+          </motion.div>
         </form>
       </div>
     </div>

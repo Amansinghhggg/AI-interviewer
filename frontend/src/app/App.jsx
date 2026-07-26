@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../ui/shared/Navbar";
 import ProtectedRoute from "../ui/shared/ProtectedRoute";
 import LoginPage from "../features/auth/LoginPage";
 import SignupPage from "../features/auth/SignupPage";
 import EmployerDashboard from "../features/employer/EmployerDashboard";
+import EmployerLayout from "../features/employer/EmployerLayout";
 import CandidateDashboard from "../features/candidate/CandidateDashboard";
 import CreateInterviewPage from "../features/employer/CreateInterviewPage";
 import EditInterviewPage from "../features/employer/EditInterviewPage";
@@ -12,6 +12,7 @@ import InterviewDetailsPage from "../features/employer/InterviewDetailsPage";
 import JoinInterviewPage from "../features/candidate/JoinInterviewPage";
 import InterviewInstructionsPage from "../features/candidate/InterviewInstructionsPage";
 import PreInterviewPage from "../features/candidate/PreInterviewPage";
+import CandidateLayout from "../features/candidate/CandidateLayout";
 import LiveInterviewPage from "../features/interview/LiveInterviewPage";
 import EmployerInterviewResultPage from "../features/employer/EmployerInterviewResultPage";
 import VoiceTestPage from "../features/interview/VoiceTestPage";
@@ -22,10 +23,10 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary-400" />
-          <p className="text-dark-400 text-sm">Loading...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+          <p className="text-[var(--text-secondary)] text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -33,7 +34,6 @@ function App() {
 
   return (
     <>
-      <Navbar />
       <Routes>
         {/* Test Route */}
         <Route path="/test/voice" element={<VoiceTestPage />} />
@@ -76,80 +76,21 @@ function App() {
         />
 
         {/* Employer Routes */}
-        <Route
-          path="/employer/dashboard"
-          element={
-            <ProtectedRoute role="employer">
-              <EmployerDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employer/create-interview"
-          element={
-            <ProtectedRoute role="employer">
-              <CreateInterviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employer/interviews/:id/edit"
-          element={
-            <ProtectedRoute role="employer">
-              <EditInterviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employer/interviews/:id"
-          element={
-            <ProtectedRoute role="employer">
-              <InterviewDetailsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employer/interviews/:id/results/:resultId"
-          element={
-            <ProtectedRoute role="employer">
-              <EmployerInterviewResultPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route element={<ProtectedRoute role="employer"><EmployerLayout /></ProtectedRoute>}>
+          <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+          <Route path="/employer/create-interview" element={<CreateInterviewPage />} />
+          <Route path="/employer/interviews/:id/edit" element={<EditInterviewPage />} />
+          <Route path="/employer/interviews/:id" element={<InterviewDetailsPage />} />
+          <Route path="/employer/interviews/:id/results/:resultId" element={<EmployerInterviewResultPage />} />
+        </Route>
 
         {/* Candidate Routes */}
-        <Route
-          path="/candidate/dashboard"
-          element={
-            <ProtectedRoute role="candidate">
-              <CandidateDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/candidate/join"
-          element={
-            <ProtectedRoute role="candidate">
-              <JoinInterviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/candidate/interviews/:id"
-          element={
-            <ProtectedRoute role="candidate">
-              <InterviewInstructionsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/candidate/interviews/:id/start"
-          element={
-            <ProtectedRoute role="candidate">
-              <PreInterviewPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route element={<ProtectedRoute role="candidate"><CandidateLayout /></ProtectedRoute>}>
+          <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
+          <Route path="/candidate/join" element={<JoinInterviewPage />} />
+          <Route path="/candidate/interviews/:id" element={<InterviewInstructionsPage />} />
+          <Route path="/candidate/interviews/:id/start" element={<PreInterviewPage />} />
+        </Route>
         <Route
           path="/candidate/interviews/:id/live"
           element={

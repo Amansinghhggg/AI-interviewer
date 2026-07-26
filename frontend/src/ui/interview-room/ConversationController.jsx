@@ -45,6 +45,8 @@ const isInsufficientTranscript = (transcript) => {
  */
 const ConversationController = ({
   currentQuestion,
+  currentIndex,
+  totalQuestions,
   answers,
   isGenerating,
   submitting,
@@ -163,23 +165,27 @@ const ConversationController = ({
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 h-full w-full">
       {/* Intervu AI Section */}
       <section
-        className="surface-elevated rounded-3xl p-6 sm:p-10 flex flex-col justify-center relative overflow-hidden"
+        className="border-r border-[var(--border)] bg-[#0a0a0b] flex flex-col relative overflow-hidden h-full"
         aria-label="Intervu AI"
       >
         <InterviewAI
+          currentQuestion={currentQuestion}
+          currentIndex={currentIndex}
+          totalQuestions={totalQuestions}
           conversationState={conversationState}
           statusMessage={statusMessage}
           aiTranscript={aiTranscript}
           onReplay={voiceProps?.replay}
+          audioRef={voiceProps?.audioRef}
         />
       </section>
 
       {/* Candidate Section */}
       <section
-        className="surface-elevated rounded-3xl p-6 sm:p-10 flex flex-col relative overflow-hidden"
+        className="bg-[#0a0a0b] flex flex-col relative overflow-hidden h-full"
         aria-label="Candidate"
       >
         <InterviewCandidate
@@ -199,6 +205,7 @@ const ConversationController = ({
           isTranscribing={isTranscribing}
           onRecordingComplete={handleRecordingComplete}
           onClearAnswer={handleClearAnswer}
+          onAnswerReady={() => onAnswerReady(answers[currentQuestion?.id] || '')}
         />
       </section>
     </div>
