@@ -8,6 +8,7 @@ import errorHandler from "./middleware/errorHandler.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import interviewRoutes from "./modules/interview/routes/interview.routes.js";
 import voiceRoutes from "./modules/voice/routes/voice.routes.js";
+import profileRoutes from "./modules/users/profile.routes.js";
 
 const app = express();
 
@@ -38,6 +39,8 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/interviews", interviewRoutes);
 app.use("/api/voice", voiceRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/candidates", profileRoutes); // For /api/candidates/:candidateId/resume
 
 // Global Error Handler
 app.use(errorHandler);

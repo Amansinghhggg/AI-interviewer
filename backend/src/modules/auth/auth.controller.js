@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 import User from "../users/user.model.js";
 import { signupSchema, loginSchema } from "./auth.validator.js";
+import StorageService from "../../shared/services/StorageService.js";
+
+
 
 // Helper: generate JWT and set cookie
 const sendTokenResponse = (user, statusCode, res) => {
@@ -42,13 +45,47 @@ const signup = async (req, res, next) => {
       });
     }
 
+    // Candidate specific validation before user creation
+    if (validated.role === "candidate") {
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: "Resume upload is required for candidates" });
+      }
+      if (req.file.mimetype !== "application/pdf" || !StorageService.validateResume(req.file.buffer)) {
+        return res.status(400).json({ success: false, message: "Only valid PDF files are supported" });
+      }
+    }
+
     // Create user
-    const user = await User.create({
+    let user = await User.create({
       name: validated.name,
       email: validated.email,
       password: validated.password,
       role: validated.role,
     });
+
+    // Handle Cloudinary upload if candidate
+    if (validated.role === "candidate" && req.file) {
+      try {
+        const result = await StorageService.uploadResume(req.file.buffer, {
+          folder: `intervu/resumes/${user._id}`,
+        });
+
+        user.resume = {
+          publicId: result.public_id,
+          url: result.secure_url,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+          mimeType: req.file.mimetype,
+          uploadedAt: new Date(),
+        };
+
+        await user.save();
+      } catch (uploadError) {
+        console.error("Resume upload failed, rolling back user creation", uploadError);
+        await User.findByIdAndDelete(user._id);
+        return res.status(500).json({ success: false, message: "Failed to upload resume. Please try again." });
+      }
+    }
 
     sendTokenResponse(user, 201, res);
   } catch (error) {

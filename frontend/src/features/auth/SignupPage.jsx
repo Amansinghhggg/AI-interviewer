@@ -15,8 +15,10 @@ import {
   User,
   Building2,
   UserRound,
-  ArrowRight
+  ArrowRight,
+  FileText
 } from "lucide-react";
+import UploadProgress from "../shared/components/UploadProgress";
 
 const signupSchema = z
   .object({
@@ -41,6 +43,8 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null);
 
   const {
     register,
@@ -57,15 +61,43 @@ const SignupPage = () => {
   const selectedRole = watch("role");
 
   const onSubmit = async (formData) => {
+    if (selectedRole === "candidate" && !resumeFile) {
+      return toast.error("Resume is required for candidates");
+    }
+
     setIsLoading(true);
+    setUploadProgress(0);
+    
+    // Simulate gradual progress up to 90%
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, 500);
+
     try {
-      const data = await signup(
-        formData.name,
-        formData.email,
-        formData.password,
-        formData.confirmPassword,
-        formData.role
-      );
+      const dataToSubmit = new FormData();
+      dataToSubmit.append("name", formData.name);
+      dataToSubmit.append("email", formData.email);
+      dataToSubmit.append("password", formData.password);
+      dataToSubmit.append("confirmPassword", formData.confirmPassword);
+      dataToSubmit.append("role", formData.role);
+      
+      if (selectedRole === "candidate" && resumeFile) {
+        dataToSubmit.append("resume", resumeFile);
+      }
+
+      const data = await signup(dataToSubmit, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
       toast.success("Account created successfully!");
       if (data.user.role === "employer") {
         navigate("/employer/dashboard");
@@ -73,11 +105,32 @@ const SignupPage = () => {
         navigate("/candidate/dashboard");
       }
     } catch (error) {
+      clearInterval(progressInterval);
       toast.error(
         error.response?.data?.message || "Signup failed. Please try again."
       );
+      setUploadProgress(null);
     } finally {
       setIsLoading(false);
+      // Keep at 100% briefly before hiding if success, but if error it's already null.
+      setTimeout(() => setUploadProgress(null), 1000);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== "application/pdf") {
+        toast.error("Only PDF files are supported");
+        e.target.value = "";
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Resume must be smaller than 5 MB");
+        e.target.value = "";
+        return;
+      }
+      setResumeFile(file);
     }
   };
 
@@ -307,6 +360,30 @@ const SignupPage = () => {
                 </p>
               )}
             </div>
+
+            {/* Resume Upload (Candidate Only) */}
+            {selectedRole === "candidate" && (
+              <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-[var(--color-on-surface-variant)]">
+                  Resume (PDF, Max 5MB)
+                </label>
+                <div className="relative group">
+                  <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-on-surface-variant)] group-focus-within:text-[var(--color-primary-md3)] transition-colors" />
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileChange}
+                    className={`${inputClasses} pl-12 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-wider file:bg-[var(--color-primary-md3)]/10 file:text-[var(--color-primary-md3)] hover:file:bg-[var(--color-primary-md3)]/20 cursor-pointer`}
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Upload Progress */}
+            {uploadProgress !== null && (
+              <UploadProgress progress={uploadProgress} fileName={resumeFile?.name} />
+            )}
 
             {/* Submit */}
             <button

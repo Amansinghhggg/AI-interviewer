@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["local", "google"],
       default: "local",
+    },
+    resume: {
+      publicId: String,
+      url: String,
+      fileName: String,
+      fileSize: Number,
+      mimeType: String,
+      uploadedAt: Date,
     }
   },
   {

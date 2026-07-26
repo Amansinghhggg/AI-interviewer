@@ -18,6 +18,7 @@ import {
   reEnrollCandidate
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
+import { getCandidateResume, downloadCandidateResume } from "../../users/profile.controller.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -32,6 +33,10 @@ router
 
 router.get("/:id/results/:resultId", authorize("employer"), getInterviewResult);
 router.post("/:id/candidates/:candidateId/re-enroll", authorize("employer"), reEnrollCandidate);
+
+// Employer Resume endpoints
+router.get("/:interviewId/candidates/:candidateId/resume", protect, getCandidateResume);
+router.get("/:interviewId/candidates/:candidateId/resume/download", protect, downloadCandidateResume);
 
 // Candidate Routes
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);

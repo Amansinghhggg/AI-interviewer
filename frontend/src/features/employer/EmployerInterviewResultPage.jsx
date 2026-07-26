@@ -5,11 +5,14 @@ import api from "../../services/api";
 import { ArrowLeft, Loader2, AlertCircle, RefreshCw, Clock, FileQuestion } from "lucide-react";
 
 import { CandidateWorkspace } from "../../modules/candidate-workspace/index";
+import ResumeCard from "../shared/components/ResumeCard";
+import profileService from "../../services/profile.service";
 
 export default function EmployerInterviewResultPage() {
   const { id: interviewId, resultId } = useParams();
   const navigate = useNavigate();
   const [resultData, setResultData] = useState(null);
+  const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [errorStatus, setErrorStatus] = useState(null);
@@ -30,6 +33,15 @@ export default function EmployerInterviewResultPage() {
         `/interviews/${interviewId}/results/${resultId}`
       );
       setResultData(data.result);
+      
+      if (data.result?.candidate?.id) {
+        try {
+          const res = await profileService.getCandidateResume(interviewId, data.result.candidate.id);
+          setResume(res.data);
+        } catch (err) {
+          console.error("Failed to fetch candidate resume:", err);
+        }
+      }
     } catch (err) {
       const status = err.response?.status;
       setErrorStatus(status);
@@ -159,7 +171,20 @@ export default function EmployerInterviewResultPage() {
       )}
 
       {!loading && !error && resultData && resultData.evaluation.status === "COMPLETED" && (
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-8">
+           {resume && (
+             <div className="animate-fade-in-up">
+               <h3 className="text-lg font-black tracking-tight text-[var(--text-primary)] uppercase mb-4 pl-2 border-l-4 border-[var(--primary)]">
+                 Candidate Resume
+               </h3>
+               <ResumeCard 
+                 resume={resume} 
+                 readOnly={true} 
+                 onDownload={(filename) => profileService.downloadResume(`/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`, filename)}
+                 viewUrl={`/api/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`}
+               />
+             </div>
+           )}
            <CandidateWorkspace resultData={resultData} onReEnroll={() => setShowReEnrollModal(true)} />
         </div>
       )}

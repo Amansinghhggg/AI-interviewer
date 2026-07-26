@@ -49,14 +49,22 @@ export class InterviewConfig {
    * @returns {InterviewConfig}
    */
   static fromInterview(interviewDoc) {
+    const expLevel = interviewDoc.experienceLevel || "Fresher";
+    
+    let defaultDifficulty = "Medium";
+    if (expLevel === "Fresher") defaultDifficulty = "Easy";
+    else if (expLevel === "1-2 Years") defaultDifficulty = "Medium";
+    else if (expLevel === "3-5 Years") defaultDifficulty = "Medium";
+    else if (expLevel === "5+ Years") defaultDifficulty = "Hard";
+
     return new InterviewConfig({
       companyName: interviewDoc.title,
       jobRole: interviewDoc.jobRole,
       description: interviewDoc.description,
       instructions: interviewDoc.instructions,
       topics: interviewDoc.topics || [],
-      difficulty: interviewDoc.difficulty || "Medium",
-      experienceLevel: interviewDoc.experienceLevel || "Fresher",
+      difficulty: interviewDoc.difficulty || defaultDifficulty,
+      experienceLevel: expLevel,
       duration: interviewDoc.duration,
       language: interviewDoc.language || "English",
       interviewType: interviewDoc.interviewType || "gemini",

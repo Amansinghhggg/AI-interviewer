@@ -9,7 +9,8 @@ const generateInterviewCode = () => {
 
 class InterviewService {
   async createInterview(employerId, validatedData) {
-    const assignedCandidates = (validatedData.candidateEmails || []).map((email) => ({
+    const uniqueEmails = [...new Set((validatedData.candidateEmails || []).map(e => e.toLowerCase()))];
+    const assignedCandidates = uniqueEmails.map((email) => ({
       email,
       status: "Pending",
     }));
@@ -70,10 +71,12 @@ class InterviewService {
 
     // Merge new candidates if provided
     if (validatedData.candidateEmails) {
-      const existingEmails = interview.assignedCandidates.map(c => c.email);
-      const newCandidates = validatedData.candidateEmails
-        .filter(email => !existingEmails.includes(email.toLowerCase()))
-        .map(email => ({ email: email.toLowerCase(), status: "Pending" }));
+      const existingEmails = interview.assignedCandidates.map(c => c.email.toLowerCase());
+      const uniqueNewEmails = [...new Set(validatedData.candidateEmails.map(e => e.toLowerCase()))];
+      
+      const newCandidates = uniqueNewEmails
+        .filter(email => !existingEmails.includes(email))
+        .map(email => ({ email, status: "Pending" }));
       
       interview.assignedCandidates.push(...newCandidates);
       delete validatedData.candidateEmails;
@@ -91,7 +94,7 @@ class InterviewService {
     // Add single candidate if provided
     if (validatedData.addCandidateEmail) {
       const emailToAdd = validatedData.addCandidateEmail.toLowerCase();
-      const existingEmails = interview.assignedCandidates.map(c => c.email);
+      const existingEmails = interview.assignedCandidates.map(c => c.email.toLowerCase());
       if (!existingEmails.includes(emailToAdd)) {
         interview.assignedCandidates.push({ email: emailToAdd, status: "Pending" });
       }
@@ -141,7 +144,7 @@ class InterviewService {
     }
 
     const isAssigned = interview.assignedCandidates.some(
-      (c) => c.email === candidateEmail
+      (c) => c.email.toLowerCase() === candidateEmail.toLowerCase()
     );
 
     if (!isAssigned) {
