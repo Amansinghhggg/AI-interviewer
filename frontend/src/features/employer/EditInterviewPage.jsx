@@ -57,9 +57,6 @@ const EditInterviewPage = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [topics, setTopics] = useState([]);
   const [topicInput, setTopicInput] = useState("");
-  const [newEmails, setNewEmails] = useState([]);
-  const [emailInput, setEmailInput] = useState("");
-  const [existingCandidates, setExistingCandidates] = useState([]);
 
   const {
     register,
@@ -84,7 +81,6 @@ const EditInterviewPage = () => {
           instructions: interview.instructions || "",
         });
         setTopics(interview.topics || []);
-        setExistingCandidates(interview.assignedCandidates || []);
       }
     } catch (error) {
       toast.error("Failed to load interview details");
@@ -117,37 +113,6 @@ const EditInterviewPage = () => {
     }
   };
 
-  const addEmail = () => {
-    const trimmed = emailInput.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    const isAlreadyAssigned = existingCandidates.some(c => c.email === trimmed);
-    const isAlreadyAdded = newEmails.includes(trimmed);
-
-    if (isAlreadyAssigned) {
-      toast.error("Candidate is already assigned to this interview");
-      return;
-    }
-
-    if (trimmed && emailRegex.test(trimmed) && !isAlreadyAdded) {
-      setNewEmails([...newEmails, trimmed]);
-      setEmailInput("");
-    } else if (trimmed && !emailRegex.test(trimmed)) {
-      toast.error("Please enter a valid email address");
-    }
-  };
-
-  const removeNewEmail = (emailToRemove) => {
-    setNewEmails(newEmails.filter((e) => e !== emailToRemove));
-  };
-
-  const handleEmailKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addEmail();
-    }
-  };
-
   const onSubmit = async (formData) => {
     setIsLoading(true);
     try {
@@ -155,10 +120,6 @@ const EditInterviewPage = () => {
         ...formData,
         topics,
       };
-
-      if (newEmails.length > 0) {
-        payload.candidateEmails = newEmails;
-      }
 
       const { data } = await api.patch(`/interviews/${id}`, payload);
       if (data.success) {
@@ -341,46 +302,7 @@ const EditInterviewPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card>
               <CardContent className="p-6 md:p-8 space-y-6">
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-1">
-                    <Users className="w-4 h-4 text-[var(--color-info)]" />
-                    Invite New Candidates
-                  </label>
-                  <p className="text-sm text-[var(--text-secondary)] mb-4">
-                    {existingCandidates.length} candidate(s) already assigned. Enter emails to assign more.
-                  </p>
 
-                  <div className="flex gap-3 mb-4">
-                    <Input
-                      type="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      onKeyDown={handleEmailKeyDown}
-                      placeholder="new.candidate@example.com"
-                      className="flex-1"
-                    />
-                    <Button type="button" variant="secondary" onClick={addEmail}>
-                      <Plus className="w-4 h-4 mr-2" /> Add
-                    </Button>
-                  </div>
-
-                  {newEmails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-4 border border-[var(--border)] rounded-md bg-[var(--background-secondary)]/50 min-h-[60px]">
-                      {newEmails.map((email) => (
-                        <Badge key={email} variant="outline" className="pl-3 pr-2 py-1.5 flex items-center gap-2 bg-[var(--background)]">
-                          {email}
-                          <button
-                            type="button"
-                            onClick={() => removeNewEmail(email)}
-                            className="text-[var(--text-secondary)] hover:text-[var(--color-danger)] transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
 
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">

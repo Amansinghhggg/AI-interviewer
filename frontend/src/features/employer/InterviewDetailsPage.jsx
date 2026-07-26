@@ -78,6 +78,20 @@ const InterviewDetailsPage = () => {
     }
   };
 
+  const completeInterview = async () => {
+    if (window.confirm("Are you sure you want to mark this interview as completed? It will no longer be available for candidates to take.")) {
+      try {
+        const { data } = await api.patch(`/interviews/${id}`, { status: "completed" });
+        if (data.success) {
+          toast.success("Interview marked as completed");
+          setInterview(data.interview);
+        }
+      } catch (error) {
+        toast.error("Failed to complete interview");
+      }
+    }
+  };
+
   const handleBulkSubmit = async (emailsArray) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const validEmails = emailsArray.filter(email => emailRegex.test(email));
@@ -185,6 +199,12 @@ const InterviewDetailsPage = () => {
                   </div>
                 </div>
                 <div className="flex gap-3">
+                  {interview.status !== "completed" && (
+                    <button onClick={completeInterview} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-success)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Complete Interview
+                    </button>
+                  )}
                   <button onClick={() => navigate(`/employer/interviews/${interview._id}/edit`)} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Details

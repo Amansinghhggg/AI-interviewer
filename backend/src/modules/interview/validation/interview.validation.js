@@ -29,8 +29,8 @@ export const createInterviewSchema = z.object({
     .optional(),
   candidateEmails: z
     .array(z.string().email("Invalid email format"))
-    .min(1, "At least one candidate email is required")
-    .refine((emails) => new Set(emails).size === emails.length, {
+    .optional()
+    .refine((emails) => (emails ? new Set(emails).size === emails.length : true), {
       message: "Duplicate candidate emails are not allowed",
     }),
 });
@@ -59,6 +59,7 @@ export const updateInterviewSchema = z.object({
     .min(1, "Duration must be at least 1 minute")
     .max(120, "Duration cannot exceed 120 minutes")
     .optional(),
+  status: z.enum(["draft", "active", "completed", "archived"]).optional(),
 
   instructions: z
     .string()

@@ -50,8 +50,6 @@ const CreateInterviewPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [topics, setTopics] = useState([]);
   const [topicInput, setTopicInput] = useState("");
-  const [emails, setEmails] = useState([]);
-  const [emailInput, setEmailInput] = useState("");
 
   const {
     register,
@@ -84,40 +82,14 @@ const CreateInterviewPage = () => {
     }
   };
 
-  const addEmail = () => {
-    const trimmed = emailInput.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (trimmed && emailRegex.test(trimmed) && !emails.includes(trimmed)) {
-      setEmails([...emails, trimmed]);
-      setEmailInput("");
-    } else if (trimmed && !emailRegex.test(trimmed)) {
-      toast.error("Please enter a valid email address");
-    }
-  };
-
-  const removeEmail = (emailToRemove) => {
-    setEmails(emails.filter((e) => e !== emailToRemove));
-  };
-
-  const handleEmailKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addEmail();
-    }
-  };
 
   const onSubmit = async (formData) => {
-    if (emails.length === 0) {
-      toast.error("Please add at least one candidate email");
-      return;
-    }
 
     setIsLoading(true);
     try {
       const { data } = await api.post("/interviews", {
         ...formData,
         topics,
-        candidateEmails: emails,
       });
       if (data.success) {
         toast.success("Campaign created successfully!");
@@ -300,45 +272,6 @@ const CreateInterviewPage = () => {
               <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-secondary)]/5 rounded-full blur-[60px] pointer-events-none"></div>
 
               <div className="space-y-8 relative z-10">
-                <div>
-                  <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-1">
-                    <Users className="w-4 h-4 text-[var(--color-secondary)]" />
-                    Invite Candidates <span className="text-[var(--color-error)]">*</span>
-                  </label>
-                  <p className="text-[10px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-4">Add the email addresses of candidates you wish to evaluate.</p>
-
-                  <div className="flex gap-3 mb-4">
-                    <input
-                      type="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      onKeyDown={handleEmailKeyDown}
-                      placeholder="candidate@example.com"
-                      className={inputClasses}
-                    />
-                    <button type="button" onClick={addEmail} className="px-6 py-3 bg-[var(--color-surface-container-highest)] hover:bg-[var(--color-secondary)]/20 text-[var(--color-on-surface)] hover:text-[var(--color-secondary)] border border-[var(--color-outline-variant)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shrink-0">
-                      <Plus className="w-4 h-4 mr-2" /> Add
-                    </button>
-                  </div>
-
-                  {emails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-4 border border-[var(--color-outline-variant)]/30 rounded-xl bg-[var(--color-surface-container-highest)]/20 min-h-[60px]">
-                      {emails.map((email) => (
-                        <div key={email} className="px-3 py-1.5 bg-[var(--color-surface-variant)]/80 border border-[var(--color-outline-variant)]/30 rounded-lg flex items-center gap-2 text-xs font-bold text-[var(--color-on-surface)]">
-                          {email}
-                          <button
-                            type="button"
-                            onClick={() => removeEmail(email)}
-                            className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 <div>
                   <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
                     <AlignLeft className="w-4 h-4 text-[var(--color-secondary)]" />

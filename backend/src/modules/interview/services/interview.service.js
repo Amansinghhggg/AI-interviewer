@@ -9,7 +9,7 @@ const generateInterviewCode = () => {
 
 class InterviewService {
   async createInterview(employerId, validatedData) {
-    const assignedCandidates = validatedData.candidateEmails.map((email) => ({
+    const assignedCandidates = (validatedData.candidateEmails || []).map((email) => ({
       email,
       status: "Pending",
     }));
@@ -114,7 +114,7 @@ class InterviewService {
   async getAssignedInterviews(candidateEmail) {
     const interviews = await Interview.find({
       "assignedCandidates.email": candidateEmail,
-      status: "active",
+      status: { $in: ["active", "completed"] },
     })
       .populate("employer", "name")
       .sort({ createdAt: -1 })
@@ -145,7 +145,12 @@ class InterviewService {
     );
 
     if (!isAssigned) {
-      throw new Error("unauthorized");
+      // Auto-enroll candidate if they have the code
+      interview.assignedCandidates.push({
+        email: candidateEmail,
+        status: "Pending",
+      });
+      await interview.save();
     }
 
     const interviewData = interview.toObject();

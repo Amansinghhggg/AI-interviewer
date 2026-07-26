@@ -26,7 +26,7 @@ const CandidateDashboard = () => {
       const { data } = await api.get("/interviews/candidate/assigned");
       if (data.success) {
         setInterviews(data.interviews);
-        
+
         const inProgress = data.interviews.filter(interview => {
           return interview.candidateStatus?.toLowerCase() === "in progress" || interview.candidateStatus?.toLowerCase() === "in-progress";
         });
@@ -64,16 +64,22 @@ const CandidateDashboard = () => {
   };
 
   const assignedInterviews = interviews.filter(interview => {
-    return interview.candidateStatus === "Pending";
+    return interview.candidateStatus === "Pending" && interview.status !== "completed";
   });
-  
+
   const inProgressInterviews = interviews.filter(interview => {
-    return interview.candidateStatus?.toLowerCase() === "in progress" || interview.candidateStatus?.toLowerCase() === "in-progress";
+    const status = interview.candidateStatus?.toLowerCase();
+    return (status === "in progress" || status === "in-progress") && interview.status !== "completed";
   });
-  
+
   const completedInterviews = interviews.filter(interview => {
     const status = interview.candidateStatus?.toLowerCase();
-    return status !== "pending" && status !== "in progress" && status !== "in-progress";
+    return status === "completed";
+  });
+
+  const missedInterviews = interviews.filter(interview => {
+    const status = interview.candidateStatus?.toLowerCase();
+    return interview.status === "completed" && status !== "completed";
   });
 
   const handleStartInterview = (interviewId) => {
@@ -87,9 +93,9 @@ const CandidateDashboard = () => {
   return (
     <div className="bg-transparent w-full font-['Inter']">
       <div className="w-full max-w-[1440px] mx-auto p-4 md:p-8 space-y-8">
-        
+
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8"
@@ -110,7 +116,7 @@ const CandidateDashboard = () => {
           </div>
         ) : (
           <div className="space-y-12">
-            
+
             {/* In-Progress Interviews */}
             {inProgressInterviews.length > 0 && (
               <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -123,7 +129,7 @@ const CandidateDashboard = () => {
                     <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-bold tracking-wider">You have an interview in progress.</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 gap-6">
                   {inProgressInterviews.map((interview) => (
                     <div key={interview._id} className="bg-[var(--color-surface-container-low)] border border-[var(--color-warning)]/50 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
@@ -144,7 +150,7 @@ const CandidateDashboard = () => {
                             )}
                           </div>
                         </div>
-                        <button 
+                        <button
                           onClick={() => navigate(`/candidate/interviews/${interview._id}/live`)}
                           className="px-6 py-4 bg-[var(--color-warning)] text-black rounded-xl text-sm font-black uppercase tracking-widest hover:bg-[var(--color-warning)]/90 transition-colors shadow-lg shadow-[var(--color-warning)]/30 flex items-center whitespace-nowrap w-full md:w-auto justify-center"
                         >
@@ -170,7 +176,7 @@ const CandidateDashboard = () => {
                 {assignedInterviews.length === 0 ? (
                   <div className="text-center py-24 px-4">
                     <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-variant)] flex items-center justify-center mx-auto mb-6">
-                        <FileText className="w-8 h-8 text-[var(--color-on-surface-variant)]" />
+                      <FileText className="w-8 h-8 text-[var(--color-on-surface-variant)]" />
                     </div>
                     <h3 className="text-lg font-black text-[var(--color-on-surface)] uppercase tracking-wider mb-2">No assigned interviews</h3>
                     <p className="text-[var(--color-on-surface-variant)] mb-8 max-w-md mx-auto text-sm">You are all caught up! Wait for your employer to assign new interviews.</p>
@@ -214,7 +220,7 @@ const CandidateDashboard = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6 text-right">
-                              <button 
+                              <button
                                 onClick={() => handleStartInterview(interview._id)}
                                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-colors ${inProgressInterviews.length > 0 ? 'bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)] opacity-50 cursor-not-allowed' : 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)] hover:text-white border border-[var(--color-primary-md3)]/20'}`}
                               >
@@ -293,6 +299,57 @@ const CandidateDashboard = () => {
             </motion.section>
 
           </div>
+        )}
+
+        {/* Missed Interviews */}
+        {!loading && missedInterviews.length > 0 && (
+          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl shadow-xl overflow-hidden mt-12">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/20">
+                <div>
+                  <h2 className="text-xl font-black tracking-tight text-[var(--color-error)] uppercase flex items-center gap-2">
+                    <AlertCircle className="w-6 h-6 text-[var(--color-error)]" /> Missed
+                  </h2>
+                  <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-bold tracking-wider">You Missed These Interviews </p>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
+                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Interview Title</th>
+                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
+                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {missedInterviews.map((interview) => (
+                      <tr key={interview._id} className="border-b border-[var(--color-outline-variant)]/20 hover:bg-[var(--color-surface-container-highest)]/10 transition-colors">
+                        <td className="py-4 px-6">
+                          <div className="font-bold text-sm text-[var(--color-on-surface)] mb-1">{interview.title}</div>
+                          {interview.employer && (
+                            <div className="text-[10px] font-black tracking-widest text-[var(--color-on-surface-variant)] uppercase">{interview.employer.name}</div>
+                          )}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="flex items-center gap-2 text-sm text-[var(--color-on-surface-variant)] font-semibold">
+                            <Briefcase className="w-4 h-4" />
+                            {interview.jobRole}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest bg-[var(--color-error)]/10 text-[var(--color-error)] border border-[var(--color-error)]/20">
+                            Missed
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.section>
         )}
 
       </div>
