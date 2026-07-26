@@ -51,6 +51,28 @@ class CloudinaryService {
   uploadStream(fileBuffer, originalFilename, folder = "ai-interviews") {
     return this.uploadRecording(fileBuffer, originalFilename, { folder });
   }
+
+  /**
+   * Deletes a recording from Cloudinary using its public ID.
+   *
+   * @param {string} publicId - The Cloudinary public ID of the video
+   * @returns {Promise<Object>} Cloudinary deletion result
+   */
+  deleteRecording(publicId) {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(
+        publicId,
+        { resource_type: "video" },
+        (error, result) => {
+          if (error) {
+            console.error("[CloudinaryService] Deletion failed:", error);
+            return reject(error);
+          }
+          resolve(result);
+        }
+      );
+    });
+  }
 }
 
 export default new CloudinaryService();

@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { VideoOff } from 'lucide-react';
 import { useReplay } from '../hooks/useReplay.js';
 import { REPLAY_STATES } from '../config/constants.js';
 
@@ -37,7 +38,22 @@ export const ReplayPlayer = () => {
     };
 
     if (!recording || !recording.url) {
-        return <div className="replay-player-placeholder">No recording available</div>;
+        return (
+            <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center p-8 text-center bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/30 rounded-2xl">
+                <div className="w-16 h-16 rounded-full bg-[var(--color-error)]/10 flex items-center justify-center mb-4">
+                    <VideoOff className="w-8 h-8 text-[var(--color-error)]" />
+                </div>
+                <h3 className="text-sm font-black text-[var(--color-on-surface)] uppercase tracking-widest mb-2">No Recording Available</h3>
+                <p className="text-xs font-medium text-[var(--color-on-surface-variant)] max-w-md mx-auto leading-relaxed">
+                    A video recording could not be found for this session. This usually happens if the candidate denied camera access, encountered a technical issue.
+                </p>
+                <div className="mt-6 px-5 py-3 bg-[var(--color-surface-container)] rounded-xl border border-[var(--color-outline-variant)]/50">
+                    <p className="text-[10px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">
+                        Tip: You can re-enroll this candidate to have them take the interview again.
+                    </p>
+                </div>
+            </div>
+        );
     }
 
     return (

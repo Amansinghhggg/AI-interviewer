@@ -38,18 +38,30 @@ export const InterviewRuntimeProvider = ({ children, sessionId, candidateId }) =
   const finalizeInterviewSession = (conversation, finalizedRecordingSession, backendSession) => {
     sessionBuilder.attachRecording(finalizedRecordingSession || recordingRuntime.session);
 
-    // Prefer the backend session's questions (which carry real askedAt/answeredAt timestamps)
-    // over the frontend-only questions array. Fall back to frontend conversation if unavailable.
+    // Prefer the backend session's questions but normalize their timestamps to the frontend timeline
+    // This eliminates clock drift between the candidate's machine and the server.
+    const backendStart = backendSession?.startedAt ? new Date(backendSession.startedAt).getTime() : 0;
+    const frontendStart = sessionBuilder.sessionData.startedAt; // Now anchored to recording
+
     const questionsWithTimestamps = backendSession?.questions?.length
-      ? backendSession.questions.map((q) => ({
-          question: q.question,
-          answer: q.answer || null,
-          startedAt: q.askedAt || null,
-          endedAt: q.answeredAt || null,
-          topic: q.topic,
-          difficulty: q.difficulty,
-          type: q.type,
-        }))
+      ? backendSession.questions.map((q) => {
+          // Calculate relative time from backend start, and apply to frontend start
+          const normalizeTime = (backendTime) => {
+            if (!backendTime || !backendStart) return null;
+            const offset = new Date(backendTime).getTime() - backendStart;
+            return Math.max(frontendStart, frontendStart + offset);
+          };
+
+          return {
+            question: q.question,
+            answer: q.answer || null,
+            startedAt: normalizeTime(q.askedAt) || null,
+            endedAt: normalizeTime(q.answeredAt) || null,
+            topic: q.topic,
+            difficulty: q.difficulty,
+            type: q.type,
+          };
+        })
       : conversation.questions || [];
 
     sessionBuilder.attachConversation({

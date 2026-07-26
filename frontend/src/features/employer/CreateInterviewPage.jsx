@@ -126,7 +126,7 @@ const CreateInterviewPage = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Failed to create campaign. Please try again."
+        "Failed to create campaign. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -138,7 +138,7 @@ const CreateInterviewPage = () => {
   return (
     <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] pt-12 pb-24 font-['Inter']">
       <div className="max-w-[800px] mx-auto px-4 md:px-6">
-        
+
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <button
             onClick={() => navigate(-1)}
@@ -164,14 +164,14 @@ const CreateInterviewPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary-md3)]/5 rounded-full blur-[60px] pointer-events-none"></div>
-              
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary-md3)]/5 rounded-full blur-[60px] pointer-events-none"></div>
+
               <div className="space-y-8 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
                       <FileText className="w-4 h-4 text-[var(--color-primary-md3)]" />
-                      Campaign Title
+                      Organization
                     </label>
                     <input
                       {...register("title")}
@@ -298,7 +298,7 @@ const CreateInterviewPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-secondary)]/5 rounded-full blur-[60px] pointer-events-none"></div>
-              
+
               <div className="space-y-8 relative z-10">
                 <div>
                   <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-1">
@@ -306,7 +306,7 @@ const CreateInterviewPage = () => {
                     Invite Candidates <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <p className="text-[10px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-wider mb-4">Add the email addresses of candidates you wish to evaluate.</p>
-                  
+
                   <div className="flex gap-3 mb-4">
                     <input
                       type="email"
@@ -320,7 +320,7 @@ const CreateInterviewPage = () => {
                       <Plus className="w-4 h-4 mr-2" /> Add
                     </button>
                   </div>
-                  
+
                   {emails.length > 0 && (
                     <div className="flex flex-wrap gap-2 p-4 border border-[var(--color-outline-variant)]/30 rounded-xl bg-[var(--color-surface-container-highest)]/20 min-h-[60px]">
                       {emails.map((email) => (
@@ -362,16 +362,16 @@ const CreateInterviewPage = () => {
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <div className="flex justify-end gap-4 pt-6">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => navigate(-1)}
                 className="px-8 py-4 bg-transparent hover:bg-[var(--color-surface-variant)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors"
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
-                disabled={isLoading} 
+              <button
+                type="submit"
+                disabled={isLoading}
                 className="px-8 py-4 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-[var(--color-primary-md3)]/30 flex items-center justify-center min-w-[220px]"
               >
                 {isLoading ? (

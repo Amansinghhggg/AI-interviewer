@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Key, HelpCircle, LogOut, PlayCircle, CreditCard } from 'lucide-react';
+import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -46,17 +46,22 @@ export default function CandidateLayout() {
                     </button>
 
                     <button onClick={() => navigate('/candidate/mock-interview')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/mock-interview' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <PlayCircle className="w-6 h-6 shrink-0" />
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Practice Session</span>
+                        <Bot className="w-6 h-6 shrink-0" />
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Give A Mock Interview</span>
                     </button>
 
                     <button onClick={() => navigate('/candidate/subscriptions')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/subscriptions' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
                         <CreditCard className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Manage Subscriptions</span>
                     </button>
+
                 </nav>
 
                 <div className="p-4 border-t border-[var(--color-surface-variant,var(--border))] space-y-2 min-w-[288px]">
+                    <button onClick={() => navigate('/candidate/profile')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/profile' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
+                        <User className="w-6 h-6 shrink-0" />
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
+                    </button>
                     <button className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)] rounded-xl transition-all">
                         <HelpCircle className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Help & Support</span>

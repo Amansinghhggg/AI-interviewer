@@ -31,6 +31,13 @@ export class InterviewSessionBuilder {
   attachRecording(recordingSession) {
     this._ensureNotFinalized();
     this.sessionData.recording = recordingSession;
+    
+    // Anchor the session start time to the actual video recording start time
+    // This eliminates timeline desyncs where the video starts slightly after the session initializes
+    if (recordingSession && recordingSession.startedAt) {
+      this.sessionData.startedAt = new Date(recordingSession.startedAt).getTime();
+    }
+    
     return this;
   }
 

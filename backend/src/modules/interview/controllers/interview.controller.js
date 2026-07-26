@@ -476,6 +476,76 @@ const uploadRecording = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Employer re-enrolls a candidate, deleting their current result and session
+// @route   POST /api/interviews/:id/candidates/:candidateId/re-enroll
+// @access  Employer only
+const reEnrollCandidate = async (req, res, next) => {
+  try {
+    const { id: interviewId, candidateId } = req.params;
+    const employerId = req.user._id;
+
+    const Interview = (await import("../models/interview.model.js")).default;
+    const InterviewSession = (await import("../models/InterviewSession.js")).default;
+    const InterviewResult = (await import("../models/InterviewResult.js")).default;
+    const CloudinaryService = (await import("../services/CloudinaryService.js")).default;
+
+    // 1. Verify employer owns the interview
+    const interview = await Interview.findOne({ _id: interviewId, employer: employerId });
+    if (!interview) {
+      return res.status(404).json({ success: false, message: "Interview not found or unauthorized" });
+    }
+
+    // 2. Delete InterviewSession & Cloudinary Recording
+    const session = await InterviewSession.findOne({ interviewId, candidateId });
+    if (session) {
+      if (session.recording && session.recording.publicId) {
+        try {
+          await CloudinaryService.deleteRecording(session.recording.publicId);
+        } catch (err) {
+          console.error("Failed to delete Cloudinary recording:", err);
+          // Proceed anyway to ensure re-enrollment isn't blocked
+        }
+      }
+      await InterviewSession.deleteOne({ _id: session._id });
+    }
+
+    // 3. Delete InterviewResult
+    await InterviewResult.deleteMany({ interviewId, candidateId });
+
+    // 3.5 Fetch Candidate to get email for matching in assignedCandidates
+    const User = (await import("../../users/user.model.js")).default;
+    const candidateUser = await User.findById(candidateId);
+    if (!candidateUser) {
+      return res.status(404).json({ success: false, message: "Candidate User not found" });
+    }
+    const candidateEmail = candidateUser.email;
+
+    // 4. Update the candidate subdocument to reset their state
+    const candidateIndex = interview.assignedCandidates.findIndex(
+      (c) => c.email.toLowerCase() === candidateEmail.toLowerCase()
+    );
+
+    if (candidateIndex === -1) {
+      // In case candidateId is passed but it doesn't match ID, let's try by email if that's what was passed.
+      // But we expect candidateId to be the _id.
+      return res.status(404).json({ success: false, message: "Candidate not found in this interview" });
+    }
+
+    interview.assignedCandidates[candidateIndex].status = "Pending";
+    interview.assignedCandidates[candidateIndex].joinedAt = null;
+    interview.assignedCandidates[candidateIndex].submittedAt = null;
+    interview.assignedCandidates[candidateIndex].resultId = null;
+    
+    await interview.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Candidate has been successfully re-enrolled.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export {
   createInterview,
@@ -491,5 +561,6 @@ export {
   getInterviewSession,
   submitAnswer,
   getInterviewResult,
-  uploadRecording
+  uploadRecording,
+  reEnrollCandidate
 };

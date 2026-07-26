@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, FileText, CreditCard, HelpCircle, LogOut } from 'lucide-react';
+import { Home, FileText, CreditCard, HelpCircle, LogOut, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -52,6 +52,10 @@ export default function EmployerLayout() {
                 </nav>
 
                 <div className="p-4 border-t border-[var(--color-surface-variant,var(--border))] space-y-2 min-w-[288px]">
+                    <button onClick={() => navigate('/employer/profile')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/employer/profile' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
+                        <User className="w-6 h-6 shrink-0" />
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
+                    </button>
                     <button className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)] rounded-xl transition-all">
                         <HelpCircle className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Contact Us</span>

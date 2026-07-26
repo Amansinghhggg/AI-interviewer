@@ -8,10 +8,10 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip,
 import { 
     Mail, Briefcase, Building2, Calendar, Info, ThumbsUp, AlertCircle, 
     Play, ChevronDown, ShieldCheck, Sparkles, Home, Users, BookOpen, 
-    Settings, HelpCircle, LogOut 
+    Settings, HelpCircle, LogOut, RotateCcw
 } from 'lucide-react';
 
-export const CandidateWorkspace = ({ resultData }) => {
+export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
     const { state, actions } = useCandidateReview();
     const { currentTime, controls, timeline, activeEntries } = useReplay(); // Hook into replay for session details timestamps
     const [activeTab, setActiveTab] = useState('evaluation'); // 'evaluation' | 'session-details'
@@ -104,8 +104,21 @@ export const CandidateWorkspace = ({ resultData }) => {
                             </div>
                         </div>
 
+                        {/* Absolute right-bottom Re-Enroll Button */}
+                        {onReEnroll && (
+                            <div className="absolute bottom-6 right-6 z-20">
+                                <button 
+                                    onClick={onReEnroll}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-error)]/10 hover:bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider group"
+                                >
+                                    <RotateCcw className="w-4 h-4 group-hover:-rotate-90 transition-transform duration-300" />
+                                    Re-Enroll Candidate
+                                </button>
+                            </div>
+                        )}
+
                         {/* Score removed from here */}
-                        <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[var(--color-primary-md3)]/10 to-transparent opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                        <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[var(--color-primary-md3)]/10 to-transparent opacity-50 pointer-events-none transition-opacity"></div>
                     </header>
 
                     {/* Navigation Tabs */}

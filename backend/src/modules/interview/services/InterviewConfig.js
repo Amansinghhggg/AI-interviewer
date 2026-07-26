@@ -21,6 +21,7 @@ export class InterviewConfig {
     companyName,
     jobRole,
     description,
+    instructions,
     topics = [],
     difficulty = "Medium",
     experienceLevel = "Fresher",
@@ -31,6 +32,7 @@ export class InterviewConfig {
     this.companyName = companyName;
     this.jobRole = jobRole;
     this.description = description;
+    this.instructions = instructions;
     this.topics = topics;
     this.difficulty = difficulty;
     this.experienceLevel = experienceLevel;
@@ -51,6 +53,7 @@ export class InterviewConfig {
       companyName: interviewDoc.title,
       jobRole: interviewDoc.jobRole,
       description: interviewDoc.description,
+      instructions: interviewDoc.instructions,
       topics: interviewDoc.topics || [],
       difficulty: interviewDoc.difficulty || "Medium",
       experienceLevel: interviewDoc.experienceLevel || "Fresher",

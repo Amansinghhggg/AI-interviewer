@@ -14,7 +14,8 @@ import {
   getInterviewSession,
   submitAnswer,
   getInterviewResult,
-  uploadRecording
+  uploadRecording,
+  reEnrollCandidate
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
 
@@ -30,6 +31,7 @@ router
   .get(authorize("employer"), getInterviews);
 
 router.get("/:id/results/:resultId", authorize("employer"), getInterviewResult);
+router.post("/:id/candidates/:candidateId/re-enroll", authorize("employer"), reEnrollCandidate);
 
 // Candidate Routes
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);

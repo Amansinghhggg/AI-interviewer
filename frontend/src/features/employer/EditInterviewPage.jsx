@@ -120,7 +120,7 @@ const EditInterviewPage = () => {
   const addEmail = () => {
     const trimmed = emailInput.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     const isAlreadyAssigned = existingCandidates.some(c => c.email === trimmed);
     const isAlreadyAdded = newEmails.includes(trimmed);
 
@@ -155,7 +155,7 @@ const EditInterviewPage = () => {
         ...formData,
         topics,
       };
-      
+
       if (newEmails.length > 0) {
         payload.candidateEmails = newEmails;
       }
@@ -168,7 +168,7 @@ const EditInterviewPage = () => {
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
-          "Failed to update interview. Please try again."
+        "Failed to update interview. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -186,7 +186,7 @@ const EditInterviewPage = () => {
   return (
     <div className="min-h-screen bg-[var(--background)] pt-24 pb-12">
       <div className="max-w-[800px] mx-auto px-6">
-        
+
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <button
             onClick={() => navigate(-1)}
@@ -213,12 +213,12 @@ const EditInterviewPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card>
               <CardContent className="p-6 md:p-8 space-y-6">
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)] mb-2">
                       <FileText className="w-4 h-4 text-[var(--text-secondary)]" />
-                      Campaign Title
+                      Organization
                     </label>
                     <Input
                       {...register("title")}
@@ -349,7 +349,7 @@ const EditInterviewPage = () => {
                   <p className="text-sm text-[var(--text-secondary)] mb-4">
                     {existingCandidates.length} candidate(s) already assigned. Enter emails to assign more.
                   </p>
-                  
+
                   <div className="flex gap-3 mb-4">
                     <Input
                       type="email"
@@ -363,7 +363,7 @@ const EditInterviewPage = () => {
                       <Plus className="w-4 h-4 mr-2" /> Add
                     </Button>
                   </div>
-                  
+
                   {newEmails.length > 0 && (
                     <div className="flex flex-wrap gap-2 p-4 border border-[var(--border)] rounded-md bg-[var(--background-secondary)]/50 min-h-[60px]">
                       {newEmails.map((email) => (

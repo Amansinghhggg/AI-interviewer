@@ -64,12 +64,12 @@ const EmployerDashboard = () => {
 
   return (
     <div className="bg-[var(--color-background-md3,var(--background))] min-h-screen text-[var(--color-on-background)] font-['Inter']">
-      
+
       {/* Main Content Area */}
       <div className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 space-y-8">
-        
+
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8"
@@ -86,53 +86,53 @@ const EmployerDashboard = () => {
 
         {/* Core Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {/* Metric 1 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary-md3)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-primary-md3)]/20"></div>
-                <div className="relative z-10 flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-[var(--color-primary-md3)]" />
-                    </div>
-                </div>
-                <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Total Campaigns</p>
-                <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{totalCampaigns}</h3>
-            </motion.div>
+          {/* Metric 1 */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary-md3)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-primary-md3)]/20"></div>
+            <div className="relative z-10 flex justify-between items-start mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[var(--color-primary-md3)]" />
+              </div>
+            </div>
+            <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Total Campaigns</p>
+            <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{totalCampaigns}</h3>
+          </motion.div>
 
-            {/* Metric 2 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-success)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-success)]/20"></div>
-                <div className="relative z-10 flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
-                        <Activity className="w-5 h-5 text-[var(--color-success)]" />
-                    </div>
-                </div>
-                <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Active Campaigns</p>
-                <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{activeCampaigns}</h3>
-            </motion.div>
+          {/* Metric 2 */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-success)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-success)]/20"></div>
+            <div className="relative z-10 flex justify-between items-start mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
+                <Activity className="w-5 h-5 text-[var(--color-success)]" />
+              </div>
+            </div>
+            <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Active Campaigns</p>
+            <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{activeCampaigns}</h3>
+          </motion.div>
 
-            {/* Metric 3 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-tertiary)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-tertiary)]/20"></div>
-                <div className="relative z-10 flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-tertiary)]/10 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-[var(--color-tertiary)]" />
-                    </div>
-                </div>
-                <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Total Candidates</p>
-                <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{totalCandidates}</h3>
-            </motion.div>
+          {/* Metric 3 */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-tertiary)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-tertiary)]/20"></div>
+            <div className="relative z-10 flex justify-between items-start mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-tertiary)]/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-[var(--color-tertiary)]" />
+              </div>
+            </div>
+            <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Total Candidates</p>
+            <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{totalCandidates}</h3>
+          </motion.div>
 
-            {/* Metric 4 */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-warning)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-warning)]/20"></div>
-                <div className="relative z-10 flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-warning)]/10 flex items-center justify-center">
-                        <Eye className="w-5 h-5 text-[var(--color-warning)]" />
-                    </div>
-                </div>
-                <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Active Candidates</p>
-                <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{activeCandidates}</h3>
-            </motion.div>
+          {/* Metric 4 */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-warning)]/10 rounded-full blur-[40px] pointer-events-none transition-all group-hover:bg-[var(--color-warning)]/20"></div>
+            <div className="relative z-10 flex justify-between items-start mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-warning)]/10 flex items-center justify-center">
+                <Eye className="w-5 h-5 text-[var(--color-warning)]" />
+              </div>
+            </div>
+            <p className="text-[11px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-1">Active Candidates</p>
+            <h3 className="text-4xl font-black text-[var(--color-on-surface)]">{activeCandidates}</h3>
+          </motion.div>
         </div>
 
         {/* Campaigns List */}
@@ -158,7 +158,7 @@ const EmployerDashboard = () => {
             ) : interviews.length === 0 ? (
               <div className="text-center py-24 px-4">
                 <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-variant)] flex items-center justify-center mx-auto mb-6">
-                    <FileText className="w-8 h-8 text-[var(--color-on-surface-variant)]" />
+                  <FileText className="w-8 h-8 text-[var(--color-on-surface-variant)]" />
                 </div>
                 <h3 className="text-lg font-black text-[var(--color-on-surface)] uppercase tracking-wider mb-2">No campaigns yet</h3>
                 <p className="text-[var(--color-on-surface-variant)] mb-8 max-w-md mx-auto text-sm">Create your first AI-driven interview campaign to start evaluating candidates smartly.</p>
@@ -173,7 +173,7 @@ const EmployerDashboard = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
-                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Campaign Title</th>
+                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
                       <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
                       <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Experience</th>
                       <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Status</th>
