@@ -95,7 +95,7 @@ const InterviewDetailsPage = () => {
   const handleBulkSubmit = async (emailsArray) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const validEmails = emailsArray.filter(email => emailRegex.test(email));
-    
+
     if (validEmails.length === 0) {
       toast.error("No valid emails found.");
       return;
@@ -282,7 +282,7 @@ const InterviewDetailsPage = () => {
                     <div>
                       <h3 className="text-xs font-black text-[var(--color-on-surface)] mb-3 uppercase tracking-widest flex items-center gap-2">
                         <Tag className="w-4 h-4 text-[var(--color-primary-md3)]" />
-                        Covered Topics
+                        Topics
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {interview.topics.map(t => (

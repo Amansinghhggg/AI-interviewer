@@ -140,7 +140,7 @@ const EmployerDashboard = () => {
           <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl shadow-xl overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/20">
               <div>
-                <h2 className="text-xl font-black tracking-tight text-[var(--color-on-surface)] uppercase">Recent Campaigns</h2>
+                <h2 className="text-xl font-black tracking-tight text-[var(--color-on-surface)] uppercase">Your Campaigns</h2>
                 <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-bold tracking-wider">Manage your active and past interview campaigns.</p>
               </div>
               <div className="mt-4 sm:mt-0 flex gap-3">
