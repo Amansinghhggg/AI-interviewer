@@ -26,8 +26,13 @@ import { VOICE_STATES } from '../../../../hooks/useQuestionVoice';
  */
 export const useConversationState = ({ isGenerating, voiceState, isInterviewFinished, submitting, isTranscribing }) => {
   const conversationState = useMemo(() => {
+    // Transcribing voice to text
+    if (isTranscribing) {
+      return CONVERSATION_STATES.ANALYZING;
+    }
+
     // Any backend processing is seen as "THINKING" to the user
-    if (submitting || isGenerating || isTranscribing || voiceState === VOICE_STATES.GENERATING) {
+    if (submitting || isGenerating || voiceState === VOICE_STATES.GENERATING) {
       return CONVERSATION_STATES.THINKING;
     }
 
@@ -55,6 +60,7 @@ export const useConversationState = ({ isGenerating, voiceState, isInterviewFini
     switch (conversationState) {
       case CONVERSATION_STATES.LISTENING:
         return TRANSCRIPT_STATES.LISTENING;
+      case CONVERSATION_STATES.ANALYZING:
       case CONVERSATION_STATES.THINKING:
         return TRANSCRIPT_STATES.PROCESSING;
       case CONVERSATION_STATES.SPEAKING:

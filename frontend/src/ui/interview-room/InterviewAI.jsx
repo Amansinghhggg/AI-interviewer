@@ -1,7 +1,7 @@
 import { CONVERSATION_STATES } from '../../modules/interview/conversation/index';
 import AIAvatar from '../../features/interview/components/AIAvatar/AIAvatar';
 import { AvatarState } from '../../features/interview/components/AIAvatar/types';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Loader2 } from 'lucide-react';
 
 const InterviewAI = ({ 
   currentQuestion,
@@ -19,7 +19,7 @@ const InterviewAI = ({
 
   const getAvatarState = () => {
     if (conversationState === CONVERSATION_STATES.SPEAKING) return AvatarState.SPEAKING;
-    if (conversationState === CONVERSATION_STATES.THINKING) return AvatarState.THINKING;
+    if (conversationState === CONVERSATION_STATES.THINKING || conversationState === CONVERSATION_STATES.ANALYZING) return AvatarState.THINKING;
     if (conversationState === CONVERSATION_STATES.LISTENING) return AvatarState.LISTENING;
     return AvatarState.IDLE;
   };
@@ -46,6 +46,7 @@ const InterviewAI = ({
           'bg-[#000000] text-[var(--text-secondary)] border-[var(--border)]'
         }`}>
           {isSpeaking && <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)]" />}
+          {(conversationState === CONVERSATION_STATES.ANALYZING || conversationState === CONVERSATION_STATES.THINKING) && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--text-secondary)]" />}
           {statusMessage}
         </div>
       </div>

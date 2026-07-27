@@ -238,10 +238,11 @@ const LiveInterviewPage = () => {
     };
   }, [isInterviewFinished]);
 
-  // Also clear cache if interview completes
+  // Also clear cache if interview completes and ensure fullscreen alert is closed
   useEffect(() => {
     if (isInterviewFinished) {
       questionVoiceService.clearCache();
+      setIsFullscreenAlertOpen(false);
     }
   }, [isInterviewFinished]);
 

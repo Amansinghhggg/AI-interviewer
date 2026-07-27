@@ -7,11 +7,11 @@ import { getVoiceErrorMessage } from "../../utils/voiceErrors";
 
 import { VoiceControls } from "./VoiceControls";
 
-export const VoiceRecorder = ({ 
-  isListening, 
-  isAutomaticMode, 
-  isTranscribing, 
-  onRecordingComplete 
+export const VoiceRecorder = ({
+  isListening,
+  isAutomaticMode,
+  isTranscribing,
+  onRecordingComplete
 }) => {
   const {
     recordingState,
@@ -77,8 +77,8 @@ export const VoiceRecorder = ({
   };
 
   // Determine active error
-  const activeError = recorderError 
-    ? getVoiceErrorMessage(recorderError) 
+  const activeError = recorderError
+    ? getVoiceErrorMessage(recorderError)
     : null;
 
   // Formatting for the REC indicator
@@ -90,7 +90,7 @@ export const VoiceRecorder = ({
   };
 
   return (
-    <div 
+    <div
       className="w-full flex flex-col focus:outline-none"
       ref={containerRef}
       tabIndex={-1}
@@ -104,7 +104,7 @@ export const VoiceRecorder = ({
         {isSilenceWarning ? "Warning: No speech detected. Recording will stop soon." : ""}
         {activeError ? `Error: ${activeError}` : ""}
       </div>
-      
+
       {activeError && (
         <div className="mb-3 p-3 bg-[rgba(244,63,94,0.1)] border border-[rgba(244,63,94,0.2)] rounded-xl flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-[var(--color-accent-red)] shrink-0 mt-0.5" aria-hidden="true" />
@@ -134,8 +134,8 @@ export const VoiceRecorder = ({
           }}
           className="mt-2 w-full py-3 px-4 bg-[rgba(79,142,247,0.15)] hover:bg-[rgba(79,142,247,0.25)] text-[var(--color-accent-blue)] border border-[rgba(79,142,247,0.3)] rounded-xl font-bold uppercase tracking-wider text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-[var(--color-accent-blue-glow)] hover:shadow-lg"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          Submit Early
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+          Done Answering
         </button>
       )}
     </div>

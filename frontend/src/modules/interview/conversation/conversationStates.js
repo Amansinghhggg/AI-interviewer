@@ -22,6 +22,9 @@ export const CONVERSATION_STATES = {
   /** Candidate's turn to respond */
   LISTENING: 'LISTENING',
 
+  /** Analyzing candidate's response */
+  ANALYZING: 'ANALYZING',
+
   /** Initial load / waiting for start */
   WAITING: 'WAITING',
 
@@ -36,6 +39,7 @@ export const CONVERSATION_STATUS_MESSAGES = {
   [CONVERSATION_STATES.THINKING]: 'Thinking...',
   [CONVERSATION_STATES.SPEAKING]: 'Speaking...',
   [CONVERSATION_STATES.LISTENING]: 'Listening...',
+  [CONVERSATION_STATES.ANALYZING]: 'Analyzing...',
   [CONVERSATION_STATES.WAITING]: 'Getting ready...',
   [CONVERSATION_STATES.ERROR]: 'Connection issue',
 };

@@ -94,9 +94,6 @@ export const useVoiceRecorder = () => {
       }
 
       mediaRecorderRef.current.stop();
-      if (isAutoStop) {
-        toast("Recording auto-stopped due to inactivity.", { icon: "⏸️" });
-      }
     }
   }, [cleanup]);
 

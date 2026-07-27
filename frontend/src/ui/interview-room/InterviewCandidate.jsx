@@ -117,11 +117,9 @@ const InterviewCandidate = ({
       </div>
 
       {/* Transcript (YOUR RESPONSE) */}
-      <div className="mt-auto w-full max-w-3xl mx-auto">
+      <div className="mt-auto w-full max-w-3xl mx-auto h-24">
         <CandidateTranscript
-          transcript={candidateTranscript}
           transcriptState={transcriptState}
-          onClearAnswer={onClearAnswer}
         />
       </div>
     </div>
