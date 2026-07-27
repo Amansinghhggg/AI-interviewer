@@ -5,7 +5,7 @@ import api from "../../services/api";
 import { ArrowLeft, Loader2, AlertCircle, RefreshCw, Clock, FileQuestion } from "lucide-react";
 
 import { CandidateWorkspace } from "../../modules/candidate-workspace/index";
-import ResumeCard from "../shared/components/ResumeCard";
+import PDFPreviewModal from "../shared/components/PDFPreviewModal";
 import profileService from "../../services/profile.service";
 
 export default function EmployerInterviewResultPage() {
@@ -16,9 +16,10 @@ export default function EmployerInterviewResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [errorStatus, setErrorStatus] = useState(null);
-  
+
   const [showReEnrollModal, setShowReEnrollModal] = useState(false);
   const [isReEnrolling, setIsReEnrolling] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     fetchResult();
@@ -33,7 +34,7 @@ export default function EmployerInterviewResultPage() {
         `/interviews/${interviewId}/results/${resultId}`
       );
       setResultData(data.result);
-      
+
       if (data.result?.candidate?.id) {
         try {
           const res = await profileService.getCandidateResume(interviewId, data.result.candidate.id);
@@ -60,7 +61,7 @@ export default function EmployerInterviewResultPage() {
     try {
       const candidateId = resultData?.candidate?.id;
       if (!candidateId) throw new Error("Candidate ID not found");
-      
+
       await api.post(`/interviews/${interviewId}/candidates/${candidateId}/re-enroll`);
       toast.success("Candidate re-enrolled successfully");
       setShowReEnrollModal(false);
@@ -73,12 +74,12 @@ export default function EmployerInterviewResultPage() {
   };
 
   return (
-    <div className="bg-[var(--background)] relative">
+    <div className="bg-[var(--background)] relative min-h-screen w-full">
       {/* Background Noise */}
       <div className="absolute inset-0 noise pointer-events-none z-0"></div>
 
       {loading && (
-        <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4 relative z-10">
+        <div className="min-h-[100vh] flex flex-col items-center justify-center gap-4 relative z-10">
           <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
           <p className="text-[var(--text-secondary)] font-medium animate-pulse">Loading evaluation dashboard...</p>
         </div>
@@ -124,10 +125,10 @@ export default function EmployerInterviewResultPage() {
               Back to Interview
             </Link>
           </div>
-          
+
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-12 flex flex-col items-center text-center shadow-lg relative overflow-hidden">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[var(--primary)]/10 rounded-full blur-[100px] opacity-30"></div>
-            
+
             <div className="relative z-10 flex flex-col items-center">
               {resultData.evaluation.status === "PENDING" && (
                 <>
@@ -172,20 +173,11 @@ export default function EmployerInterviewResultPage() {
 
       {!loading && !error && resultData && resultData.evaluation.status === "COMPLETED" && (
         <div className="relative z-10 flex flex-col gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-8">
-           {resume && (
-             <div className="animate-fade-in-up">
-               <h3 className="text-lg font-black tracking-tight text-[var(--text-primary)] uppercase mb-4 pl-2 border-l-4 border-[var(--primary)]">
-                 Candidate Resume
-               </h3>
-               <ResumeCard 
-                 resume={resume} 
-                 readOnly={true} 
-                 onDownload={(filename) => profileService.downloadResume(`/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`, filename)}
-                 viewUrl={`/api/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`}
-               />
-             </div>
-           )}
-           <CandidateWorkspace resultData={resultData} onReEnroll={() => setShowReEnrollModal(true)} />
+          <CandidateWorkspace
+            resultData={resultData}
+            onReEnroll={() => setShowReEnrollModal(true)}
+            onViewResume={resume ? () => setIsPreviewOpen(true) : null}
+          />
         </div>
       )}
 
@@ -202,11 +194,11 @@ export default function EmployerInterviewResultPage() {
                 <p className="text-sm text-[var(--color-danger)]">This action is irreversible.</p>
               </div>
             </div>
-            
+
             <p className="text-sm text-[var(--text-secondary)] mb-6 leading-relaxed">
               Are you sure you want to re-enroll this candidate? This will result in permanent deletion of the current evaluation results and video recording. The candidate's status will be reset to Pending.
             </p>
-            
+
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowReEnrollModal(false)}
@@ -232,6 +224,16 @@ export default function EmployerInterviewResultPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {resume && resultData && (
+        <PDFPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          resumeUrl={`/api/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`}
+          fileName={resume.fileName}
+          onDownload={() => profileService.downloadResume(`/interviews/${interviewId}/candidates/${resultData.candidate.id}/resume/download`, resume.fileName)}
+        />
       )}
     </div>
   );

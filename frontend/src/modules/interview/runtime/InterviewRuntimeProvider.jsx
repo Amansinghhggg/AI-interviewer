@@ -41,7 +41,9 @@ export const InterviewRuntimeProvider = ({ children, sessionId, candidateId }) =
     // Prefer the backend session's questions but normalize their timestamps to the frontend timeline
     // This eliminates clock drift between the candidate's machine and the server.
     const backendStart = backendSession?.startedAt ? new Date(backendSession.startedAt).getTime() : 0;
-    const frontendStart = sessionBuilder.sessionData.startedAt; // Now anchored to recording
+    const recSession = finalizedRecordingSession || recordingRuntime.session;
+    const frontendStart = (recSession && recSession.startedAt) ? new Date(recSession.startedAt).getTime() : Date.now();
+
 
     const questionsWithTimestamps = backendSession?.questions?.length
       ? backendSession.questions.map((q) => {

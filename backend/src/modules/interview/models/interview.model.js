@@ -31,7 +31,7 @@ const interviewSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Interview title is required"],
+      required: [true, "Organization is required"],
       trim: true,
       maxlength: [100, "Title cannot exceed 100 characters"],
     },

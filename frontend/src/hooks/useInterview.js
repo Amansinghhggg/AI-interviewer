@@ -82,7 +82,8 @@ export const useInterview = (id, navigate, user) => {
 
           // Merge with any local draft they might have been typing
           const restored = restoreInterview(id);
-          if (restored && restored.answers) {
+          // Only restore if it matches the current session ID to prevent cross-session state bleed
+          if (restored && restored.answers && (restored.sessionId === activeSession._id)) {
             setAnswers({ ...currentAnswers, ...restored.answers });
           } else {
             setAnswers(currentAnswers);
@@ -129,10 +130,9 @@ export const useInterview = (id, navigate, user) => {
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if (prev <= -60) {
           clearInterval(timer);
-          // Just freeze at 0. Do NOT auto-submit.
-          return 0;
+          return -60;
         }
         return prev - 1;
       });
@@ -141,15 +141,28 @@ export const useInterview = (id, navigate, user) => {
     return () => clearInterval(timer);
   }, [loading]);
 
+  // Grace Period and Auto-Submit
+  useEffect(() => {
+    if (loading || isInterviewFinished) return;
+    
+    if (timeLeft === 0) {
+      toast.error("Interview time is over! You have 1 minute to finish your final answer, or it will auto-submit.", { duration: 6000 });
+    } else if (timeLeft === -60) {
+      toast.error("Time is up! Auto-submitting interview...");
+      handleSubmit(true);
+    }
+  }, [timeLeft, loading, isInterviewFinished]);
+
   // LocalStorage Sync (only for draft UI states now, backend is truth for AI)
   useEffect(() => {
-    if (loading) return;
+    if (loading || isInterviewFinished) return;
     saveInterview(id, {
+      sessionId: session?._id,
       currentIndex,
       answers, // stores draft text if they refresh before hitting next
       timeLeft
     });
-  }, [id, currentIndex, answers, timeLeft, loading]);
+  }, [id, currentIndex, answers, timeLeft, loading, isInterviewFinished, session]);
 
   const handleNext = async (overrideAnswer) => {
     const currentQ = questions[currentIndex];
@@ -238,7 +251,7 @@ export const useInterview = (id, navigate, user) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   }, []);
 
-  const handleSubmit = async (force = false) => {
+  const handleSubmit = useCallback(async (force = false) => {
     if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;
 
     setSubmitting(true);
@@ -252,13 +265,14 @@ export const useInterview = (id, navigate, user) => {
           document.exitFullscreen().catch(err => console.warn(err));
         }
 
-        navigate("/candidate/dashboard");
+        // Set finished so the view layer can take over, process video, and show upload screen
+        setIsInterviewFinished(true);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to submit interview");
       setSubmitting(false);
     }
-  };
+  }, [id]);
 
   return {
     loading,

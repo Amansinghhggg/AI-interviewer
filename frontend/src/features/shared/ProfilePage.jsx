@@ -141,7 +141,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="w-full font-['Inter'] pb-24">
+    <div className="w-full min-h-screen bg-[var(--background)] font-['Inter'] pb-24">
       <div className="w-full max-w-[1600px] mx-auto p-4 md:p-10 space-y-8">
         
         {/* User Profile Hero Section */}

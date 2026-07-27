@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -59,9 +59,12 @@ const LiveInterviewAIContent = ({
     }
   }, [runtime.state, actions]);
 
+  const hasFinalizedRef = useRef(false);
+
   // Stop recording and finalize session when interview finishes
   useEffect(() => {
-    if (isInterviewFinished && runtime.state === INTERVIEW_RUNTIME_STATES.ACTIVE) {
+    if (isInterviewFinished && !hasFinalizedRef.current) {
+      hasFinalizedRef.current = true;
       actions.stop().then(recordingSession => {
         // Assemble all pieces into the canonical InterviewSession.
         // Pass the backend `session` as the third argument so real question
@@ -74,14 +77,18 @@ const LiveInterviewAIContent = ({
         );
         console.log("[LiveInterviewPage] Finalized Interview Session:", interviewSession);
         
-        // Trigger the background upload pipeline immediately
+        // Trigger the background upload pipeline
         save(interviewSession, recordingSession?.blob);
+      }).catch(err => {
+        console.error("[LiveInterviewPage] Finalization failed:", err);
       });
     }
   }, [isInterviewFinished, runtime.state, actions, questions, answers, session, save]);
 
   // If there's an active upload state, take over the screen
   if (uploadState) {
+    // If it hits COMPLETED, navigate out automatically or allow the user to click.
+    // UploadScreen usually says "Upload Complete" and provides a Continue button.
     return (
       <UploadScreen
         uploadState={uploadState}
@@ -110,12 +117,14 @@ const LiveInterviewAIContent = ({
         </div>
         
         <div className="flex items-center gap-6">
-          <div className="text-[var(--color-warning)] font-bold text-lg tabular-nums">
-             {formatDisplayTime(timeLeft)}
+          <div className={`font-bold text-lg tabular-nums ${timeLeft <= 0 ? 'text-[var(--color-danger)] animate-pulse' : 'text-[var(--color-warning)]'}`}>
+             {timeLeft <= 0 ? `GRACE: 00:${(60 - Math.abs(timeLeft)).toString().padStart(2, '0')}` : formatDisplayTime(timeLeft)}
           </div>
-          <Button variant="outline" className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors h-9 px-4" onClick={() => handleSubmit(false)}>
-            End interview
-          </Button>
+          {timeLeft > 0 && (
+            <Button variant="outline" className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors h-9 px-4" onClick={() => handleSubmit(false)}>
+              End interview
+            </Button>
+          )}
         </div>
       </div>
 

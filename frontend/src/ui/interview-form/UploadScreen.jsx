@@ -62,7 +62,7 @@ const UploadScreen = ({ uploadState, retries, error, onRetry, onContinue }) => {
               <span className="font-semibold text-[var(--color-warning)] mt-2 block">
                 Please do not close or refresh this tab.
               </span>
-              This usually takes less than a minute.
+              This usually takes 1-2 minutes Based On Your Internet Connection Speed.
             </p>
           </>
         );
@@ -94,7 +94,7 @@ const UploadScreen = ({ uploadState, retries, error, onRetry, onContinue }) => {
               ✅ Interview Submitted Successfully
             </h2>
             <p className="text-[var(--text-secondary)] text-center max-w-md mb-8">
-              Your interview recording has been uploaded securely.<br/>
+              Your interview recording has been uploaded securely.<br />
               Thank you for completing your interview.
             </p>
             <button

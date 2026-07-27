@@ -91,7 +91,7 @@ const CandidateDashboard = () => {
   };
 
   return (
-    <div className="bg-transparent w-full font-['Inter']">
+    <div className="min-h-screen bg-[var(--background)] w-full font-['Inter'] pb-12">
       <div className="w-full max-w-[1440px] mx-auto p-4 md:p-8 space-y-8">
 
         {/* Header */}
@@ -186,7 +186,7 @@ const CandidateDashboard = () => {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
-                          <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Interview Title</th>
+                          <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Experience</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Duration</th>
@@ -199,7 +199,7 @@ const CandidateDashboard = () => {
                             <td className="py-4 px-6">
                               <div className="font-bold text-sm text-[var(--color-on-surface)] mb-1">{interview.title}</div>
                               {interview.employer && (
-                                <div className="text-[10px] font-black tracking-widest text-[var(--color-on-surface-variant)] uppercase">{interview.employer.name}</div>
+                                <div className="text-[10px] font-black tracking-widest text-[var(--color-on-surface-variant)] ">Shared By:{interview.employer.name}</div>
                               )}
                             </td>
                             <td className="py-4 px-6">
@@ -258,7 +258,7 @@ const CandidateDashboard = () => {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
-                          <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Interview Title</th>
+                          <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Status</th>
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-right">Actions</th>
@@ -318,7 +318,7 @@ const CandidateDashboard = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
-                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Interview Title</th>
+                      <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
                       <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
                       <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-right">Status</th>
                     </tr>

@@ -5,13 +5,13 @@ import { TIMELINE_EVENT_TYPES } from '../../replay/config/constants.js';
 import { useReplay } from '../../replay/hooks/useReplay.js';
 import { ReplayPlayer } from '../../replay/components/ReplayPlayer.jsx';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, ResponsiveContainer } from 'recharts';
-import { 
-    Mail, Briefcase, Building2, Calendar, Info, ThumbsUp, AlertCircle, 
-    Play, ChevronDown, ShieldCheck, Sparkles, Home, Users, BookOpen, 
-    Settings, HelpCircle, LogOut, RotateCcw
+import {
+    Mail, Briefcase, Building2, Calendar, Info, ThumbsUp, AlertCircle,
+    Play, ChevronDown, ShieldCheck, Sparkles, Home, Users, BookOpen,
+    Settings, HelpCircle, LogOut, RotateCcw, FileText
 } from 'lucide-react';
 
-export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
+export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => {
     const { state, actions } = useCandidateReview();
     const { currentTime, controls, timeline, activeEntries } = useReplay(); // Hook into replay for session details timestamps
     const [activeTab, setActiveTab] = useState('evaluation'); // 'evaluation' | 'session-details'
@@ -43,7 +43,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
 
     const { candidate, interview, summary, evaluation, charts, questionBreakdown } = resultData;
 
-    const formattedDate = interview?.createdAt 
+    const formattedDate = interview?.createdAt
         ? new Date(interview.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
         : 'Unknown Date';
 
@@ -61,7 +61,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
 
     // Extract actual question timestamps from Replay Timeline
     const questionsTimeline = timeline?.filter(t => t.type === TIMELINE_EVENT_TYPES.QUESTION) || [];
-    
+
     // Find active question based on useReplay activeEntries
     const activeQuestionId = activeEntries?.find(e => e.type === TIMELINE_EVENT_TYPES.QUESTION)?.id;
 
@@ -71,86 +71,93 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
             <div className="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-8 pb-4">
                 {/* Header: Candidate Info */}
                 <header className="shrink-0 bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden group shadow-lg">
-                        <div className="flex items-center gap-8 relative z-10">
-                            <div className="w-24 h-24 rounded-2xl bg-[var(--color-surface-variant)] flex items-center justify-center text-4xl font-bold text-[var(--color-primary-md3)] shadow-2xl border border-[var(--color-outline-variant)]/30">
-                                {candidate?.name ? candidate.name.charAt(0).toUpperCase() : 'C'}
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <h2 className="text-4xl font-black text-[var(--color-on-surface)] tracking-tight mb-1">
-                                        {candidate?.name || 'Candidate'}
-                                    </h2>
-                                    <div className="flex items-center gap-2 text-[var(--color-on-surface-variant)]">
-                                        <Mail className="w-4 h-4" />
-                                        <span className="text-base font-medium">{candidate?.email || 'N/A'}</span>
-                                    </div>
+                    <div className="flex items-center gap-8 relative z-10">
+                        <div className="w-24 h-24 rounded-2xl bg-[var(--color-surface-variant)] flex items-center justify-center text-4xl font-bold text-[var(--color-primary-md3)] shadow-2xl border border-[var(--color-outline-variant)]/30">
+                            {candidate?.name ? candidate.name.charAt(0).toUpperCase() : 'C'}
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <h2 className="text-4xl font-black text-[var(--color-on-surface)] tracking-tight mb-1">
+                                    {candidate?.name || 'Candidate'}
+                                </h2>
+                                <div className="flex items-center gap-2 text-[var(--color-on-surface-variant)]">
+                                    <Mail className="w-4 h-4" />
+                                    <span className="text-base font-medium">{candidate?.email || 'N/A'}</span>
+                                    {onViewResume && (
+                                        <button
+                                            onClick={onViewResume}
+                                            className="ml-4 px-3 py-1 bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/20 border border-[var(--color-primary-md3)]/30 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" />
+                                            View Resume
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="flex flex-wrap gap-3">
-                                    <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30">
-                                        <Briefcase className="w-4 h-4 text-[var(--color-primary-md3)]" />
-                                        <span className="text-[11px] font-black uppercase tracking-wider">
-                                            {interview?.jobRole || 'Applicant'}
-                                        </span>
-                                    </div>
-                                    <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
-                                        <Building2 className="w-4 h-4" />
-                                        <span className="text-[11px] font-black uppercase tracking-wider">Intervu AI</span>
-                                    </div>
-                                    <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
-                                        <Calendar className="w-4 h-4" />
-                                        <span className="text-[11px] font-black uppercase tracking-wider">{formattedDate}</span>
-                                    </div>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30">
+                                    <Briefcase className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                                    <span className="text-[11px] font-black uppercase tracking-wider">
+                                        {interview?.jobRole || 'Applicant'}
+                                    </span>
+                                </div>
+                                <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
+                                    <Building2 className="w-4 h-4" />
+                                    <span className="text-[11px] font-black uppercase tracking-wider">Intervu AI</span>
+                                </div>
+                                <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
+                                    <Calendar className="w-4 h-4" />
+                                    <span className="text-[11px] font-black uppercase tracking-wider">{formattedDate}</span>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Absolute right-bottom Re-Enroll Button */}
-                        {onReEnroll && (
-                            <div className="absolute bottom-6 right-6 z-20">
-                                <button 
-                                    onClick={onReEnroll}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-error)]/10 hover:bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider group"
-                                >
-                                    <RotateCcw className="w-4 h-4 group-hover:-rotate-90 transition-transform duration-300" />
-                                    Re-Enroll Candidate
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Score removed from here */}
-                        <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[var(--color-primary-md3)]/10 to-transparent opacity-50 pointer-events-none transition-opacity"></div>
-                    </header>
-
-                    {/* Navigation Tabs */}
-                    <div className="shrink-0 flex gap-4 border-b border-[var(--color-outline-variant)]/30 mb-8 overflow-x-auto pb-1 hide-scrollbar">
-                        <button 
-                            onClick={() => setActiveTab('evaluation')}
-                            className={`px-2 py-4 text-[12px] font-black uppercase tracking-[0.15em] border-b-2 transition-all whitespace-nowrap ${
-                                activeTab === 'evaluation' 
-                                ? 'border-[var(--color-primary-md3)] text-[var(--color-primary-md3)]' 
-                                : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)]'
-                            }`}
-                        >
-                            Evaluation
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab('session-details')}
-                            className={`px-2 py-4 text-[12px] font-black uppercase tracking-[0.15em] border-b-2 transition-all whitespace-nowrap ${
-                                activeTab === 'session-details' 
-                                ? 'border-[var(--color-primary-md3)] text-[var(--color-primary-md3)]' 
-                                : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)]'
-                            }`}
-                        >
-                            Session Details
-                        </button>
                     </div>
 
-                    {/* MAIN CONTENT */}
-                    <div className="w-full">
-                        {/* Tab Content: Evaluation */}
-                        {activeTab === 'evaluation' && (
-                            <div className="animate-fade-in-up">
-                            
+                    {/* Absolute right-bottom Re-Enroll Button */}
+                    {onReEnroll && (
+                        <div className="absolute bottom-6 right-6 z-20">
+                            <button
+                                onClick={onReEnroll}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-error)]/10 hover:bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider group"
+                            >
+                                <RotateCcw className="w-4 h-4 group-hover:-rotate-90 transition-transform duration-300" />
+                                Re-Enroll Candidate
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Score removed from here */}
+                    <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[var(--color-primary-md3)]/10 to-transparent opacity-50 pointer-events-none transition-opacity"></div>
+                </header>
+
+                {/* Navigation Tabs */}
+                <div className="shrink-0 flex gap-4 border-b border-[var(--color-outline-variant)]/30 mb-8 overflow-x-auto pb-1 hide-scrollbar">
+                    <button
+                        onClick={() => setActiveTab('evaluation')}
+                        className={`px-2 py-4 text-[12px] font-black uppercase tracking-[0.15em] border-b-2 transition-all whitespace-nowrap ${activeTab === 'evaluation'
+                            ? 'border-[var(--color-primary-md3)] text-[var(--color-primary-md3)]'
+                            : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)]'
+                            }`}
+                    >
+                        Evaluation
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('session-details')}
+                        className={`px-2 py-4 text-[12px] font-black uppercase tracking-[0.15em] border-b-2 transition-all whitespace-nowrap ${activeTab === 'session-details'
+                            ? 'border-[var(--color-primary-md3)] text-[var(--color-primary-md3)]'
+                            : 'border-transparent text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)]'
+                            }`}
+                    >
+                        Session Details
+                    </button>
+                </div>
+
+                {/* MAIN CONTENT */}
+                <div className="w-full">
+                    {/* Tab Content: Evaluation */}
+                    {activeTab === 'evaluation' && (
+                        <div className="animate-fade-in-up">
+
                             {/* Unified Top Row: AI Summary + Performance */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-5 gap-8 mb-8">
                                 {/* AI Summary */}
@@ -187,9 +194,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                 <section className="lg:col-span-1 xl:col-span-1 bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl p-6 flex flex-col">
                                     <div className="flex justify-between items-center mb-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[var(--color-primary-md3)]/10 flex items-center justify-center">
-                                                <AlertCircle className="w-4 h-4 text-[var(--color-primary-md3)]" />
-                                            </div>
+
                                             <h3 className="text-sm font-black tracking-tight text-[var(--color-on-surface)] uppercase">Performance Analytics</h3>
                                         </div>
                                     </div>
@@ -234,7 +239,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                                     </span>
                                                 </div>
                                                 <div className="h-1.5 w-full bg-[var(--color-surface-variant)] rounded-full overflow-hidden">
-                                                    <div 
+                                                    <div
                                                         className={`h-full rounded-full transition-all duration-1000 ${metric.score >= 7 ? 'bg-[var(--color-primary-md3)]' : metric.score >= 5 ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-error)]'}`}
                                                         style={{ width: `${(metric.score / 10) * 100}%` }}
                                                     ></div>
@@ -266,7 +271,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                         )}
                                     </ul>
                                 </div>
-                                
+
                                 <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl p-6 border-l-4 border-l-[var(--color-error)]">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-8 h-8 rounded-full bg-[var(--color-error)]/10 flex items-center justify-center text-[var(--color-error)]">
@@ -294,83 +299,84 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                     <div className="w-1.5 h-6 bg-[var(--color-primary-md3)] rounded-full"></div>
                                     <h3 className="text-xs font-black text-[var(--color-on-surface)] tracking-widest uppercase">Deep Dive: Question Breakdown</h3>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     {questionBreakdown?.map((q, idx) => {
                                         const qScore = q.scores?.overall || q.scores?.technical || q.score || 0;
                                         return (
-                                        <div key={idx} className="bg-[var(--color-surface-container-low)] rounded-2xl overflow-hidden border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 transition-all group">
-                                            <div 
-                                                className="p-6 flex items-center justify-between cursor-pointer"
-                                                onClick={() => setExpandedQuestion(expandedQuestion === idx ? null : idx)}
-                                            >
-                                                <div className="flex items-center gap-6">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all shadow-lg ${expandedQuestion === idx ? 'bg-[var(--color-primary-md3)] text-white' : 'bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)]'}`}>
-                                                        0{idx + 1}
-                                                    </div>
-                                                    <h4 className={`text-base font-bold transition-colors ${expandedQuestion === idx ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-on-surface)]'}`}>
-                                                        {q.question}
-                                                    </h4>
-                                                </div>
-                                                <div className="flex items-center gap-6">
-                                                    <div className="hidden md:flex gap-4">
-                                                        <div className="text-right">
-                                                            <p className={`text-sm font-black ${qScore >= 7 ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-error)]'}`}>{qScore}/10</p>
+                                            <div key={idx} className="bg-[var(--color-surface-container-low)] rounded-2xl overflow-hidden border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 transition-all group">
+                                                <div
+                                                    className="p-6 flex items-center justify-between cursor-pointer"
+                                                    onClick={() => setExpandedQuestion(expandedQuestion === idx ? null : idx)}
+                                                >
+                                                    <div className="flex items-center gap-6">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all shadow-lg ${expandedQuestion === idx ? 'bg-[var(--color-primary-md3)] text-white' : 'bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)]'}`}>
+                                                            0{idx + 1}
                                                         </div>
+                                                        <h4 className={`text-base font-bold transition-colors ${expandedQuestion === idx ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-on-surface)]'}`}>
+                                                            {q.question}
+                                                        </h4>
                                                     </div>
-                                                    <ChevronDown className={`w-5 h-5 text-[var(--color-on-surface-variant)] transition-all duration-300 transform ${expandedQuestion === idx ? 'rotate-180 text-[var(--color-primary-md3)]' : 'rotate-0'}`} />
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Accordion Content */}
-                                            <div className={`px-6 pb-6 ${expandedQuestion === idx ? 'block' : 'hidden'}`}>
-                                                <div className="pt-6 border-t border-[var(--color-outline-variant)]/30 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Topic</p>
-                                                        <p className="text-xs font-bold text-[var(--color-on-surface)]">{q.category || q.topic || 'General'}</p>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Complexity</p>
-                                                        <span className="px-2 py-0.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded text-[9px] font-black uppercase">{q.difficulty || 'Intermediate'}</span>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Tech Insight</p>
-                                                        <div className="flex items-baseline gap-1">
-                                                            <span className="text-xl font-black text-[var(--color-primary-md3)]">{qScore}</span>
-                                                            <span className="text-[10px] text-[var(--color-on-surface-variant)] font-bold">/10</span>
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="hidden md:flex gap-4">
+                                                            <div className="text-right">
+                                                                <p className={`text-sm font-black ${qScore >= 7 ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-error)]'}`}>{qScore}/10</p>
+                                                            </div>
                                                         </div>
+                                                        <ChevronDown className={`w-5 h-5 text-[var(--color-on-surface-variant)] transition-all duration-300 transform ${expandedQuestion === idx ? 'rotate-180 text-[var(--color-primary-md3)]' : 'rotate-0'}`} />
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Status</p>
-                                                        <span className="px-2 py-0.5 bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 rounded text-[9px] font-black uppercase">Evaluated</span>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="mb-4 p-4 bg-[var(--color-surface-container-lowest)] rounded-lg border border-[var(--color-outline-variant)]/30">
-                                                    <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2">Candidate Answer</p>
-                                                    <p className="text-xs text-[var(--color-on-surface)] leading-relaxed italic">
-                                                        "{q.answer || 'No answer recorded.'}"
-                                                    </p>
                                                 </div>
 
-                                                <div className="p-4 bg-[var(--color-surface-variant)]/30 rounded-lg border border-[var(--color-outline-variant)]/30">
-                                                    <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2">AI Summary</p>
-                                                    <p className="text-xs text-[var(--color-on-surface-variant)] leading-relaxed">
-                                                        {q.feedback}
-                                                    </p>
-                                                    
-                                                    {q.reasoning && (
-                                                        <div className="mt-4 pt-4 border-t border-[var(--color-outline-variant)]/30">
-                                                            <p className="text-[9px] font-black text-[var(--color-primary-md3)] uppercase tracking-widest mb-2">Evaluation Reasoning</p>
-                                                            <p className="text-xs text-[var(--color-on-surface)] leading-relaxed italic border-l-2 border-[var(--color-primary-md3)]/50 pl-3">
-                                                                {q.reasoning}
-                                                            </p>
+                                                {/* Accordion Content */}
+                                                <div className={`px-6 pb-6 ${expandedQuestion === idx ? 'block' : 'hidden'}`}>
+                                                    <div className="pt-6 border-t border-[var(--color-outline-variant)]/30 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Topic</p>
+                                                            <p className="text-xs font-bold text-[var(--color-on-surface)]">{q.category || q.topic || 'General'}</p>
                                                         </div>
-                                                    )}
+                                                        <div className="space-y-1">
+                                                            <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Complexity</p>
+                                                            <span className="px-2 py-0.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded text-[9px] font-black uppercase">{q.difficulty || 'Intermediate'}</span>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Tech Insight</p>
+                                                            <div className="flex items-baseline gap-1">
+                                                                <span className="text-xl font-black text-[var(--color-primary-md3)]">{qScore}</span>
+                                                                <span className="text-[10px] text-[var(--color-on-surface-variant)] font-bold">/10</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest">Status</p>
+                                                            <span className="px-2 py-0.5 bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 rounded text-[9px] font-black uppercase">Evaluated</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mb-4 p-4 bg-[var(--color-surface-container-lowest)] rounded-lg border border-[var(--color-outline-variant)]/30">
+                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2">Candidate Answer</p>
+                                                        <p className="text-xs text-[var(--color-on-surface)] leading-relaxed italic">
+                                                            "{q.answer || 'No answer recorded.'}"
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="p-4 bg-[var(--color-surface-variant)]/30 rounded-lg border border-[var(--color-outline-variant)]/30">
+                                                        <p className="text-[9px] font-black text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2">AI Summary</p>
+                                                        <p className="text-xs text-[var(--color-on-surface-variant)] leading-relaxed">
+                                                            {q.feedback}
+                                                        </p>
+
+                                                        {q.reasoning && (
+                                                            <div className="mt-4 pt-4 border-t border-[var(--color-outline-variant)]/30">
+                                                                <p className="text-[9px] font-black text-[var(--color-primary-md3)] uppercase tracking-widest mb-2">Evaluation Reasoning</p>
+                                                                <p className="text-xs text-[var(--color-on-surface)] leading-relaxed italic border-l-2 border-[var(--color-primary-md3)]/50 pl-3">
+                                                                    {q.reasoning}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )})}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         </div>
@@ -397,14 +403,14 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-5 min-h-[300px]">
                                     <div className="lg:col-span-3 bg-black border-r border-[var(--color-outline-variant)]/30 flex items-center justify-center p-4">
                                         <div className="w-full max-w-2xl h-full flex flex-col justify-center rounded-lg overflow-hidden">
                                             <ReplayPlayer />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="lg:col-span-2 bg-[var(--color-surface-container-lowest)] p-6 overflow-y-auto max-h-[500px] flex flex-col gap-3 hide-scrollbar">
                                         {questionsTimeline?.map((q, idx) => {
                                             const isActive = activeQuestionId === q.id;
@@ -412,7 +418,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                                             const s = Math.floor(q.startTime % 60);
                                             const timeString = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                                             return (
-                                                <div 
+                                                <div
                                                     key={idx}
                                                     onClick={() => controls.seek(q.startTime)}
                                                     className={`p-4 rounded-xl cursor-pointer transition-all border flex gap-4 ${isActive ? 'bg-[var(--color-primary-md3)]/10 border-[var(--color-primary-md3)]/30 shadow-md' : 'bg-[var(--color-surface-container-lowest)] border-transparent hover:border-[var(--color-outline-variant)]/30'}`}
@@ -431,8 +437,8 @@ export const CandidateWorkspace = ({ resultData, onReEnroll }) => {
                             </section>
                         </div>
                     )}
-                    </div>
                 </div>
             </div>
+        </div>
     );
 };

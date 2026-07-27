@@ -102,9 +102,16 @@ const InterviewCandidate = ({
           <Button 
             onClick={handleManualSubmit}
             disabled={recordingState !== RECORDING_STATES.RECORDING && (!candidateTranscript || candidateTranscript.length < 5) || isTranscribing}
-            className="bg-white hover:bg-gray-200 text-black px-12 py-6 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+            className="group relative px-10 py-5 rounded-2xl font-black text-lg uppercase tracking-widest overflow-hidden border border-white/10 shadow-[0_0_30px_rgba(139,92,246,0.2)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed bg-gradient-to-r from-[var(--color-primary-md3)] to-[var(--color-secondary)] text-white"
           >
-            Submit Answer
+            <span className="relative z-10 flex items-center gap-3">
+              {isTranscribing ? 'Processing...' : 'Submit Answer'}
+              {!isTranscribing && (
+                <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </span>
+              )}
+            </span>
           </Button>
         </div>
       </div>

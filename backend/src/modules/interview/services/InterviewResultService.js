@@ -89,16 +89,22 @@ class InterviewResultService {
         confidence: result.scores?.confidence || 0,
         topicCoverage: result.scores?.topicCoverage || 0,
       },
-      recording: result.sessionId.recording || null,
-      questionBreakdown: result.questionEvaluations.map(qe => ({
-        questionId: qe.questionId,
-        question: qe.question,
-        answer: qe.answer,
-        topic: qe.topic || "General",
-        difficulty: qe.difficulty || "Medium",
-        scores: qe.scores,
-        feedback: qe.feedback,
-      })),
+      recording: result.sessionId?.recording || null,
+      questionBreakdown: result.questionEvaluations.map(qe => {
+        // Try to find the original question from the populated session to get its metadata
+        const sessionQuestion = result.sessionId?.questions?.find(
+          sq => sq.id === qe.questionId || sq._id?.toString() === qe.questionId?.toString()
+        );
+        return {
+          questionId: qe.questionId,
+          question: qe.question,
+          answer: qe.answer,
+          topic: sessionQuestion?.topic || qe.topic || "General",
+          difficulty: sessionQuestion?.difficulty || qe.difficulty || "Medium",
+          scores: qe.scores,
+          feedback: qe.feedback,
+        };
+      }),
     };
   }
 }

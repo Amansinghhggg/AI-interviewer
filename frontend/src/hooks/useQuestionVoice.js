@@ -26,8 +26,10 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
     audioRef
   } = useAudioPlayer({
     onLoaded: () => {
-      if (isVoiceDisabled) return; // don't auto-play if disabled
-      setVoiceState(VOICE_STATES.READY);
+      if (isVoiceDisabled) {
+        setVoiceState(VOICE_STATES.READY);
+        return; // don't auto-play if disabled
+      }
       
       // Auto-play when ready
       try {
