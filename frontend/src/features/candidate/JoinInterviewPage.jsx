@@ -36,7 +36,7 @@ const JoinInterviewPage = () => {
   };
 
   return (
-    <div className="bg-transparent w-full font-['Inter'] h-[calc(100vh-2rem)] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-transparent w-full font-['Inter'] flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         
         <button

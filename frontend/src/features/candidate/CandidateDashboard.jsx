@@ -91,7 +91,7 @@ const CandidateDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] w-full font-['Inter'] pb-12">
+    <div className="min-h-screen bg-transparent w-full font-['Inter'] pb-12">
       <div className="w-full max-w-[1440px] mx-auto p-4 md:p-8 space-y-8">
 
         {/* Header */}

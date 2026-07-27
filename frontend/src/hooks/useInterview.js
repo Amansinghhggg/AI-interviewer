@@ -144,7 +144,7 @@ export const useInterview = (id, navigate, user) => {
   // Grace Period and Auto-Submit
   useEffect(() => {
     if (loading || isInterviewFinished) return;
-    
+
     if (timeLeft === 0) {
       toast.error("Interview time is over! You have 1 minute to finish your final answer, or it will auto-submit.", { duration: 6000 });
     } else if (timeLeft === -60) {
@@ -169,7 +169,7 @@ export const useInterview = (id, navigate, user) => {
 
     if (isAi && currentIndex === questions.length - 1) {
       // It's an AI interview and we are on the latest question.
-      
+
       // Prevent duplicate submissions
       if (isGenerating) {
         runtimeDiagnostics("RecoveryStarted", { context: "DUPLICATE_SUBMISSION_PREVENTED" });

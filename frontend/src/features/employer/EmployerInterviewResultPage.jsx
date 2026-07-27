@@ -74,12 +74,12 @@ export default function EmployerInterviewResultPage() {
   };
 
   return (
-    <div className="bg-[var(--background)] relative min-h-screen w-full">
+    <div className="min-h-screen bg-transparent relative">
       {/* Background Noise */}
       <div className="absolute inset-0 noise pointer-events-none z-0"></div>
 
       {loading && (
-        <div className="min-h-[100vh] flex flex-col items-center justify-center gap-4 relative z-10">
+        <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4 relative z-10">
           <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
           <p className="text-[var(--text-secondary)] font-medium animate-pulse">Loading evaluation dashboard...</p>
         </div>

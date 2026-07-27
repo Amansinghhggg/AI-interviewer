@@ -54,11 +54,18 @@ export function usePersistence() {
         }
     }, [activeJobId]);
 
-    const activeJob = jobs.find(j => j.id === activeJobId) || (jobs.length > 0 ? jobs[jobs.length - 1] : null);
+    const activeJob = jobs.find(j => j.id === activeJobId) || 
+                      jobs.find(j => ['QUEUED', 'UPLOADING', 'PROCESSING', 'RETRYING'].includes(j.state)) || 
+                      null;
+
+    const clear = useCallback(() => {
+        setActiveJobId(null);
+    }, []);
 
     return {
         save,
         retry,
+        clear,
         state: activeJob ? activeJob.state : null,
         progress: activeJob ? activeJob.progress : null,
         retries: activeJob ? activeJob.retries : 0,
