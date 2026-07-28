@@ -32,9 +32,9 @@ const QuestionScoresSchema = z.object({
 const QuestionEvaluationSchema = z
   .object({
     questionId: z.union([z.string(), z.number()]),
-    scores: QuestionScoresSchema,
-    feedback: z.string().min(1),
-    keyTakeaways: z.array(z.string().min(1)).min(1).max(4),
+    scores: QuestionScoresSchema.optional().default({ technical: 0, communication: 0 }),
+    feedback: z.string().optional().default("No response provided."),
+    keyTakeaways: z.array(z.string()).optional().default([]),
   })
   .strip(); // Remove unknown properties
 
@@ -47,6 +47,7 @@ const RecommendationEnum = z.enum([
   "BORDERLINE",
   "NEEDS_IMPROVEMENT",
   "REJECT",
+  "NOT_EVALUATED",
 ]);
 
 // ── Full Evaluation Response Schema ──────────────────────────────────────────
@@ -56,12 +57,19 @@ const RecommendationEnum = z.enum([
 
 const EvaluationResponseSchema = z
   .object({
-    scores: EvaluationScoresSchema,
-    recommendation: RecommendationEnum,
-    reasoning: z.string().min(1),
-    strengths: z.array(z.string().min(1)).min(1),
-    weaknesses: z.array(z.string().min(1)).min(1),
-    questionEvaluations: z.array(QuestionEvaluationSchema).min(1),
+    scores: EvaluationScoresSchema.optional().default({
+      overall: 0,
+      technical: 0,
+      communication: 0,
+      problemSolving: 0,
+      confidence: 0,
+      topicCoverage: 0,
+    }),
+    recommendation: RecommendationEnum.optional().default("NOT_EVALUATED"),
+    reasoning: z.string().optional().default("Unable to generate an evaluation due to insufficient interview responses."),
+    strengths: z.array(z.string()).optional().default([]),
+    weaknesses: z.array(z.string()).optional().default([]),
+    questionEvaluations: z.array(QuestionEvaluationSchema).optional().default([]),
   })
   .strip(); // Remove unknown properties
 
@@ -89,10 +97,10 @@ export class EvaluationResponseValidator {
     } catch (error) {
       console.error("[EvaluationValidator] Validation failed for data:", JSON.stringify(parsedData, null, 2));
       if (error instanceof z.ZodError) {
-        console.error("[EvaluationValidator] Zod Errors:", JSON.stringify(error.errors, null, 2));
+        console.error("[EvaluationValidator] Zod Errors:", JSON.stringify(error.issues || error.errors, null, 2));
         throw new ValidationError(
           "AI evaluation response failed schema validation.",
-          error.errors
+          error.issues || error.errors
         );
       }
       throw new ValidationError(

@@ -38,22 +38,37 @@ class InterviewService {
   }
 
   async getEmployerInterviews(employerId) {
-    return await Interview.find({ employer: employerId }).sort({
-      createdAt: -1,
-    });
+    const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+    return await InterviewRepository.findEmployerInterviews(employerId);
   }
 
   async getInterviewById(interviewId, userRole, userEmail, userId) {
-    let query = { _id: interviewId };
+    const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+    const interview = await InterviewRepository.findById(interviewId);
+
+    if (!interview) return null;
+
+    const emailLower = (userEmail || "").toLowerCase();
+    const userIdStr = userId ? userId.toString() : "";
 
     if (userRole === "employer") {
-      query.employer = userId;
+      const employerIdStr = interview.employer ? interview.employer.toString() : "";
+      if (employerIdStr && employerIdStr !== userIdStr) return null;
     } else if (userRole === "candidate") {
-      query["assignedCandidates.email"] = userEmail;
+      const candidateOwnerStr = interview.candidate ? interview.candidate.toString() : "";
+      const isAssigned = emailLower && interview.assignedCandidates?.some(
+        (c) => c.email && c.email.toLowerCase() === emailLower
+      );
+
+      const isOwner = candidateOwnerStr && candidateOwnerStr === userIdStr;
+      const isMockMode = interview.mode === "MOCK";
+
+      if (!isAssigned && !isOwner && !isMockMode) {
+        return null;
+      }
     }
 
-    const interview = await Interview.findOne(query);
-    if (interview && !interview.interviewType) {
+    if (!interview.interviewType) {
       interview.interviewType = process.env.QUESTION_PROVIDER || "gemini";
     }
     return interview;
@@ -167,84 +182,79 @@ class InterviewService {
   }
 
   async startInterview(interviewId, candidateEmail) {
-    const interview = await Interview.findOne({
-      _id: interviewId,
-      "assignedCandidates.email": candidateEmail,
-    });
+    const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+    const interview = await InterviewRepository.findById(interviewId);
 
     if (!interview) {
       throw new Error("not_found");
     }
 
+    const emailLower = (candidateEmail || "").toLowerCase();
+    interview.assignedCandidates = interview.assignedCandidates || [];
     const candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c.email === candidateEmail
+      (c) => c.email && c.email.toLowerCase() === emailLower
     );
+
+    if (candidateIndex === -1) {
+      if (emailLower) {
+        interview.assignedCandidates.push({ email: emailLower, status: "In Progress", joinedAt: new Date() });
+        await interview.save();
+      }
+      return true;
+    }
 
     if (interview.assignedCandidates[candidateIndex].status === "Completed") {
       throw new Error("already_completed");
     }
 
-    if (interview.assignedCandidates[candidateIndex].status === "Pending") {
-      interview.assignedCandidates[candidateIndex].status = "In Progress";
-      interview.assignedCandidates[candidateIndex].joinedAt = new Date();
+    interview.assignedCandidates[candidateIndex].status = "In Progress";
+    interview.assignedCandidates[candidateIndex].joinedAt = interview.assignedCandidates[candidateIndex].joinedAt || new Date();
+    await interview.save();
+
+    return true;
+  }
+
+  async submitInterview(interviewId, candidateEmail) {
+    const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+    const interview = await InterviewRepository.findById(interviewId);
+
+    if (!interview) {
+      throw new Error("not_found");
+    }
+
+    const emailLower = (candidateEmail || "").toLowerCase();
+    interview.assignedCandidates = interview.assignedCandidates || [];
+    const candidateIndex = interview.assignedCandidates.findIndex(
+      (c) => c.email && c.email.toLowerCase() === emailLower
+    );
+
+    if (candidateIndex !== -1) {
+      interview.assignedCandidates[candidateIndex].status = "Completed";
+      interview.assignedCandidates[candidateIndex].submittedAt = new Date();
       await interview.save();
     }
 
     return true;
   }
 
-  async submitInterview(interviewId, candidateEmail) {
-    const interview = await Interview.findOne({
-      _id: interviewId,
-      "assignedCandidates.email": candidateEmail,
-    });
-
-    if (!interview) {
-      throw new Error("not_found");
-    }
-
-    const candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c.email === candidateEmail
-    );
-
-    if (interview.assignedCandidates[candidateIndex].status === "Completed") {
-      throw new Error("already_completed");
-    }
-
-    if (interview.assignedCandidates[candidateIndex].status !== "In Progress") {
-      throw new Error("not_started");
-    }
-
-    interview.assignedCandidates[candidateIndex].status = "Completed";
-    interview.assignedCandidates[candidateIndex].submittedAt = new Date();
-    await interview.save();
-
-    return true;
-  }
-
   async getInterviewQuestions(interviewId, candidateEmail) {
-    const interview = await Interview.findOne({
-      _id: interviewId,
-      "assignedCandidates.email": candidateEmail,
-    });
+    const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+    const interview = await InterviewRepository.findById(interviewId);
 
     if (!interview) {
       throw new Error("not_found");
     }
 
-    const candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c.email === candidateEmail
-    );
+    const emailLower = candidateEmail.toLowerCase();
+    const isAssigned = interview.assignedCandidates?.some(
+      (c) => c.email.toLowerCase() === emailLower
+    ) || (interview.candidate && interview.candidate.toString());
 
-    if (interview.assignedCandidates[candidateIndex].status !== "In Progress") {
-      throw new Error("not_started");
+    if (!isAssigned) {
+      throw new Error("not_found");
     }
 
-    // Route through the Interview Engine orchestration layer
-    const config = InterviewConfig.fromInterview(interview);
-    const engine = createInterviewEngine(config.interviewType);
-    const questions = await engine.getQuestions(config);
-    return questions;
+    return interview.questions || [];
   }
 }
 

@@ -24,6 +24,11 @@ export const recommendationConfig = {
     icon: "🔴",
     label: "REJECT",
   },
+  NOT_EVALUATED: {
+    color: "bg-slate-500/20 text-slate-400 border-slate-500/50",
+    icon: "⚪",
+    label: "NOT EVALUATED",
+  },
   UNKNOWN: {
     color: "bg-gray-500/20 text-gray-400 border-gray-500/50",
     icon: "⚪",

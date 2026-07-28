@@ -3,20 +3,9 @@
  *
  * A clean, provider-friendly configuration object that decouples providers
  * from Mongoose documents. Providers receive this instead of raw DB documents.
- *
- * This ensures providers never depend on MongoDB or any persistence layer.
+ * Normalizes configuration from both Employer and Candidate Mock Interviews.
  */
 export class InterviewConfig {
-  /**
-   * @param {Object} params
-   * @param {string} params.jobRole - The job role being interviewed for.
-   * @param {string[]} [params.topics=[]] - Topics to cover in the interview.
-   * @param {string} [params.difficulty='Medium'] - Question difficulty level.
-   * @param {string} [params.experienceLevel='Fresher'] - Candidate experience level.
-   * @param {number} [params.duration=30] - Interview duration in minutes.
-   * @param {string} [params.language='English'] - Interview language.
-   * @param {string} [params.interviewType='static'] - Type of interview / provider to use.
-   */
   constructor({
     companyName,
     jobRole,
@@ -24,10 +13,11 @@ export class InterviewConfig {
     instructions,
     topics = [],
     difficulty = "Medium",
-    experienceLevel = "Fresher",
+    experienceLevel = "1-2 Years",
     duration = 30,
     language = "English",
     interviewType = "gemini",
+    mode = "EMPLOYER",
   }) {
     this.companyName = companyName;
     this.jobRole = jobRole;
@@ -39,18 +29,29 @@ export class InterviewConfig {
     this.duration = duration;
     this.language = language;
     this.interviewType = interviewType;
+    this.mode = mode;
   }
 
   /**
-   * Create an InterviewConfig from a Mongoose interview document.
-   * This is the single place where we translate DB shape → provider shape.
+   * Create an InterviewConfig from a Mongoose interview or mock document.
+   * Single normalization point so downstream services receive identical parameters.
    *
    * @param {Object} interviewDoc - A Mongoose interview document or plain object.
    * @returns {InterviewConfig}
    */
   static fromInterview(interviewDoc) {
-    const expLevel = interviewDoc.experienceLevel || "Fresher";
-    
+    if (!interviewDoc) return new InterviewConfig({ jobRole: "Software Engineer" });
+
+    // Handle nested configuration sub-document if present (e.g. MockInterview)
+    const config = interviewDoc.configuration || interviewDoc;
+
+    const jobRole = config.jobRole || interviewDoc.jobRole || "Software Engineer";
+    const topics = config.topics || interviewDoc.topics || [];
+    const expLevel = config.experienceLevel || interviewDoc.experienceLevel || "1-2 Years";
+    const duration = config.duration || interviewDoc.duration || 30;
+    const instructions = config.instructions || interviewDoc.instructions || "";
+    const mode = interviewDoc.mode || (interviewDoc.candidate ? "MOCK" : "EMPLOYER");
+
     let defaultDifficulty = "Medium";
     if (expLevel === "Fresher") defaultDifficulty = "Easy";
     else if (expLevel === "1-2 Years") defaultDifficulty = "Medium";
@@ -58,16 +59,21 @@ export class InterviewConfig {
     else if (expLevel === "5+ Years") defaultDifficulty = "Hard";
 
     return new InterviewConfig({
-      companyName: interviewDoc.title,
-      jobRole: interviewDoc.jobRole,
-      description: interviewDoc.description,
-      instructions: interviewDoc.instructions,
-      topics: interviewDoc.topics || [],
-      difficulty: interviewDoc.difficulty || defaultDifficulty,
+      companyName: interviewDoc.title || `Interview - ${jobRole}`,
+      jobRole,
+      description: interviewDoc.description || "",
+      instructions,
+      topics,
+      difficulty: config.difficulty || interviewDoc.difficulty || defaultDifficulty,
       experienceLevel: expLevel,
-      duration: interviewDoc.duration,
+      duration,
       language: interviewDoc.language || "English",
       interviewType: interviewDoc.interviewType || "gemini",
+      mode,
     });
+  }
+
+  static create(params) {
+    return new InterviewConfig(params);
   }
 }

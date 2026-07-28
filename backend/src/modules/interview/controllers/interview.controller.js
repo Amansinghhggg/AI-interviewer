@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import interviewService from "../services/interview.service.js";
 import {
   createInterviewSchema,
@@ -240,10 +241,10 @@ const startInterview = async (req, res, next) => {
       const firstQuestion = questions[0];
 
       session = await InterviewSessionService.startSession(session._id, firstQuestion, config.duration);
-      
+
       // Update candidate status to "In Progress" in the main interview document
       await interviewService.startInterview(req.params.id, req.user.email);
-      
+
       return res.status(200).json({
         success: true,
         message: "Intervu started.",
@@ -294,12 +295,12 @@ const submitAnswer = async (req, res, next) => {
     }
 
     const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
-    
+
     // 2. Setup AI Engine
     const { createInterviewEngine } = await import("../services/interviewEngine.js");
     const { InterviewConfig } = await import("../services/InterviewConfig.js");
     const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini");
-    
+
     // Map actual config from the database instead of dummy values
     const config = InterviewConfig.fromInterview(interviewData);
 
@@ -332,30 +333,42 @@ const submitInterview = async (req, res, next) => {
 
     await interviewService.submitInterview(req.params.id, req.user.email);
 
-    // Trigger AI evaluation (non-blocking for the submission response)
-    let evaluationStatus = "PENDING";
-    if (session && session.questions && session.questions.length > 0) {
-      const interviewDoc = await interviewService.getInterviewById(
-        req.params.id,
-        "candidate",
-        req.user.email,
-        req.user._id
-      );
-
-      if (interviewDoc) {
-        const evalResult = await InterviewSessionService.evaluateAndSaveResult(
-          session,
-          interviewDoc
-        );
-        evaluationStatus = evalResult.success ? "COMPLETED" : "FAILED";
-      }
-    }
-
+    // Trigger AI evaluation (truly non-blocking — fire and forget)
+    // Send the response FIRST so the frontend can navigate immediately.
     res.status(200).json({
       success: true,
       message: "Interview submitted successfully.",
-      evaluationStatus,
+      evaluationStatus: "PENDING",
     });
+
+    // Run evaluation in the background AFTER response is sent
+    if (session) {
+      try {
+        const InterviewSession = (await import("../models/InterviewSession.js")).default;
+        const freshSession = await InterviewSession.findById(session._id);
+
+        const interviewDoc = await interviewService.getInterviewById(
+          req.params.id,
+          "candidate",
+          req.user.email,
+          req.user._id
+        );
+
+        if (interviewDoc && freshSession && freshSession.questions?.length > 0) {
+          // Do NOT await — let this run in the background
+          InterviewSessionService.evaluateAndSaveResult(
+            freshSession,
+            interviewDoc
+          ).then(evalResult => {
+            console.log(`[Evaluation] Background evaluation ${evalResult.success ? "succeeded" : "failed"} for interview ${req.params.id}`);
+          }).catch(err => {
+            console.error(`[Evaluation] Background evaluation error for interview ${req.params.id}:`, err.message);
+          });
+        }
+      } catch (bgErr) {
+        console.error("[Evaluation] Could not start background evaluation:", bgErr.message);
+      }
+    }
   } catch (error) {
     if (error.message === "not_found") {
       return res.status(404).json({
@@ -412,7 +425,7 @@ const getInterviewQuestions = async (req, res, next) => {
 const getInterviewResult = async (req, res, next) => {
   try {
     const InterviewResultService = (await import("../services/InterviewResultService.js")).default;
-    
+
     const resultDTO = await InterviewResultService.getCandidateResult(
       req.params.id,
       req.params.resultId,
@@ -479,14 +492,170 @@ const uploadRecording = async (req, res, next) => {
 // @desc    Employer re-enrolls a candidate, deleting their current result and session
 // @route   POST /api/interviews/:id/candidates/:candidateId/re-enroll
 // @access  Employer only
+const isValidObjectId = (id) => id && typeof id === "string" && mongoose.Types.ObjectId.isValid(id);
+
+// Helper for re-enrolling a candidate cleanly
+const performCandidateReEnrollment = async (interview, targetCandidateId, targetResultId) => {
+  const InterviewSession = (await import("../models/InterviewSession.js")).default;
+  const InterviewResult = (await import("../models/InterviewResult.js")).default;
+  const CloudinaryService = (await import("../services/CloudinaryService.js")).default;
+  const User = (await import("../../users/user.model.js")).default;
+
+  let candidateEmail = null;
+  let candidateUser = null;
+
+  // Check if targetCandidateId is passed as an email address string
+  if (typeof targetCandidateId === "string" && targetCandidateId.includes("@")) {
+    candidateEmail = targetCandidateId.toLowerCase().trim();
+    candidateUser = await User.findOne({ email: candidateEmail }).catch(() => null);
+  }
+
+  const validResultId = isValidObjectId(targetResultId) ? targetResultId : null;
+  const validCandidateId = isValidObjectId(targetCandidateId) ? targetCandidateId : null;
+
+  // 1. Identify result document if validResultId is provided
+  let resultDoc = null;
+  if (validResultId) {
+    resultDoc = await InterviewResult.findById(validResultId).catch(() => null);
+    if (resultDoc && resultDoc.candidateId) {
+      const u = await User.findById(resultDoc.candidateId).catch(() => null);
+      if (u) {
+        candidateUser = u;
+        candidateEmail = u.email.toLowerCase().trim();
+      }
+    }
+  }
+
+  // 2. Identify candidate User and candidate Email by candidateId if not found yet
+  let candidateId = candidateUser ? candidateUser._id.toString() : (validCandidateId || (resultDoc ? resultDoc.candidateId?.toString() : null));
+
+  if (!candidateEmail && candidateId && isValidObjectId(candidateId)) {
+    candidateUser = await User.findById(candidateId).catch(() => null);
+    if (candidateUser) {
+      candidateEmail = candidateUser.email.toLowerCase().trim();
+    }
+  }
+
+  // 3. Search assignedCandidates in interview using resultId, email, or candidateId
+  let candidateIndex = -1;
+
+  if (candidateEmail) {
+    candidateIndex = interview.assignedCandidates.findIndex(
+      (c) => c.email && c.email.toLowerCase() === candidateEmail.toLowerCase()
+    );
+  }
+
+  if (candidateIndex === -1 && validResultId) {
+    candidateIndex = interview.assignedCandidates.findIndex(
+      (c) => c.resultId?.toString() === validResultId.toString()
+    );
+  }
+
+  if (candidateIndex === -1 && validCandidateId) {
+    candidateIndex = interview.assignedCandidates.findIndex(
+      (c) => c._id?.toString() === validCandidateId.toString()
+    );
+  }
+
+  if (candidateIndex === -1 && interview.assignedCandidates.length === 1) {
+    candidateIndex = 0;
+  }
+
+  if (candidateIndex !== -1) {
+    candidateEmail = interview.assignedCandidates[candidateIndex].email.toLowerCase().trim();
+    if (!candidateUser && candidateEmail) {
+      candidateUser = await User.findOne({ email: candidateEmail }).catch(() => null);
+      if (candidateUser) {
+        candidateId = candidateUser._id.toString();
+      }
+    }
+  }
+
+  // 4. Clean up InterviewSessions safely
+  const sessionFilter = { interviewId: interview._id };
+  const orConditions = [];
+  if (candidateId && isValidObjectId(candidateId)) orConditions.push({ candidateId: candidateId });
+  if (validResultId) orConditions.push({ _id: validResultId });
+
+  if (orConditions.length > 0) {
+    sessionFilter.$or = orConditions;
+    try {
+      const sessions = await InterviewSession.find(sessionFilter);
+      for (const session of sessions) {
+        if (session.recording && session.recording.publicId) {
+          try {
+            await CloudinaryService.deleteRecording(session.recording.publicId);
+          } catch (err) {
+            console.error("Failed to delete Cloudinary recording:", err);
+          }
+        }
+        await InterviewSession.deleteOne({ _id: session._id });
+      }
+    } catch (err) {
+      console.warn("Session cleanup warning:", err.message);
+    }
+  }
+
+  // Purge any remaining sessions or results for candidate / interview
+  if (candidateId && isValidObjectId(candidateId)) {
+    await InterviewSession.deleteMany({ interviewId: interview._id, candidateId: candidateId }).catch(() => null);
+    await InterviewResult.deleteMany({ interviewId: interview._id, candidateId: candidateId }).catch(() => null);
+  }
+
+  if (validResultId) {
+    await InterviewResult.deleteMany({ _id: validResultId }).catch(() => null);
+  }
+
+  // 5. Reset candidate subdocument status to "Pending" and clear dates / resultId
+  if (candidateIndex !== -1) {
+    interview.assignedCandidates[candidateIndex].status = "Pending";
+    interview.assignedCandidates[candidateIndex].joinedAt = null;
+    interview.assignedCandidates[candidateIndex].submittedAt = null;
+    interview.assignedCandidates[candidateIndex].resultId = null;
+    interview.markModified("assignedCandidates");
+    await interview.save();
+  }
+
+  return true;
+};
+
+// @desc    Employer re-enrolls a candidate, deleting their current result and session
+// @route   POST /api/interviews/:id/candidates/:candidateId/re-enroll
+// @access  Employer only
 const reEnrollCandidate = async (req, res, next) => {
   try {
     const { id: interviewId, candidateId } = req.params;
     const employerId = req.user._id;
 
     const Interview = (await import("../models/interview.model.js")).default;
+    const interview = await Interview.findOne({ _id: interviewId, employer: employerId });
+    if (!interview) {
+      return res.status(404).json({ success: false, message: "Interview not found or unauthorized" });
+    }
+
+    await performCandidateReEnrollment(interview, candidateId, null);
+
+    res.status(200).json({
+      success: true,
+      message: "Candidate has been successfully re-enrolled.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Employer re-enrolls a candidate using resultId/sessionId directly from the result error page
+// @route   POST /api/interviews/:id/results/:resultId/re-enroll
+// @access  Employer only
+const reEnrollByResultId = async (req, res, next) => {
+  try {
+    const { id: interviewId, resultId } = req.params;
+    const employerId = req.user._id;
+
+    const Interview = (await import("../models/interview.model.js")).default;
     const InterviewSession = (await import("../models/InterviewSession.js")).default;
     const InterviewResult = (await import("../models/InterviewResult.js")).default;
+    const User = (await import("../../users/user.model.js")).default;
     const CloudinaryService = (await import("../services/CloudinaryService.js")).default;
 
     // 1. Verify employer owns the interview
@@ -495,48 +664,86 @@ const reEnrollCandidate = async (req, res, next) => {
       return res.status(404).json({ success: false, message: "Interview not found or unauthorized" });
     }
 
-    // 2. Delete InterviewSession & Cloudinary Recording
-    const session = await InterviewSession.findOne({ interviewId, candidateId });
+    // 2. Find InterviewSession using interviewId and resultId (which may be session _id, candidateId, or resultId)
+    let session = null;
+    if (isValidObjectId(resultId)) {
+      session = await InterviewSession.findOne({
+        interviewId,
+        $or: [{ _id: resultId }, { candidateId: resultId }]
+      });
+    }
+
+    // Fallback: If not found by ID, look up any active/completed session for this interview
+    if (!session) {
+      session = await InterviewSession.findOne({ interviewId });
+    }
+
+    let candidateEmail = null;
+    let candidateUserId = null;
+
     if (session) {
+      candidateUserId = session.candidateId;
+      const candidateUser = await User.findById(session.candidateId).catch(() => null);
+      if (candidateUser) {
+        candidateEmail = candidateUser.email.toLowerCase().trim();
+      }
+
+      // Delete Cloudinary recording if it exists
       if (session.recording && session.recording.publicId) {
         try {
           await CloudinaryService.deleteRecording(session.recording.publicId);
         } catch (err) {
-          console.error("Failed to delete Cloudinary recording:", err);
-          // Proceed anyway to ensure re-enrollment isn't blocked
+          console.error("Cloudinary delete error:", err);
         }
       }
+
+      // Delete the session
       await InterviewSession.deleteOne({ _id: session._id });
     }
 
-    // 3. Delete InterviewResult
-    await InterviewResult.deleteMany({ interviewId, candidateId });
-
-    // 3.5 Fetch Candidate to get email for matching in assignedCandidates
-    const User = (await import("../../users/user.model.js")).default;
-    const candidateUser = await User.findById(candidateId);
-    if (!candidateUser) {
-      return res.status(404).json({ success: false, message: "Candidate User not found" });
+    // Delete any remaining sessions for this interview & candidate
+    if (candidateUserId) {
+      await InterviewSession.deleteMany({ interviewId, candidateId: candidateUserId }).catch(() => null);
+    } else {
+      await InterviewSession.deleteMany({ interviewId }).catch(() => null);
     }
-    const candidateEmail = candidateUser.email;
 
-    // 4. Update the candidate subdocument to reset their state
-    const candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c.email.toLowerCase() === candidateEmail.toLowerCase()
-    );
+    // Delete any result document if one exists
+    if (isValidObjectId(resultId)) {
+      await InterviewResult.deleteMany({ _id: resultId }).catch(() => null);
+    }
+    if (candidateUserId) {
+      await InterviewResult.deleteMany({ interviewId, candidateId: candidateUserId }).catch(() => null);
+    }
 
+    // 3. Find and update the candidate in assignedCandidates using candidate email
+    let candidateIndex = -1;
+    if (candidateEmail) {
+      candidateIndex = interview.assignedCandidates.findIndex(
+        (c) => c.email && c.email.toLowerCase().trim() === candidateEmail
+      );
+    }
+
+    // If candidate email matching failed, try matching candidate with status "Completed" or "In Progress"
     if (candidateIndex === -1) {
-      // In case candidateId is passed but it doesn't match ID, let's try by email if that's what was passed.
-      // But we expect candidateId to be the _id.
-      return res.status(404).json({ success: false, message: "Candidate not found in this interview" });
+      candidateIndex = interview.assignedCandidates.findIndex(
+        (c) => c.status === "Completed" || c.status === "In Progress"
+      );
     }
 
-    interview.assignedCandidates[candidateIndex].status = "Pending";
-    interview.assignedCandidates[candidateIndex].joinedAt = null;
-    interview.assignedCandidates[candidateIndex].submittedAt = null;
-    interview.assignedCandidates[candidateIndex].resultId = null;
-    
-    await interview.save();
+    // Fallback: If single candidate in campaign
+    if (candidateIndex === -1 && interview.assignedCandidates.length === 1) {
+      candidateIndex = 0;
+    }
+
+    if (candidateIndex !== -1) {
+      interview.assignedCandidates[candidateIndex].status = "Pending";
+      interview.assignedCandidates[candidateIndex].joinedAt = null;
+      interview.assignedCandidates[candidateIndex].submittedAt = null;
+      interview.assignedCandidates[candidateIndex].resultId = null;
+      interview.markModified("assignedCandidates");
+      await interview.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -562,5 +769,6 @@ export {
   submitAnswer,
   getInterviewResult,
   uploadRecording,
-  reEnrollCandidate
+  reEnrollCandidate,
+  reEnrollByResultId
 };

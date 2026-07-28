@@ -71,16 +71,18 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
   useEffect(() => {
     if (isVoiceDisabled) {
       audioClear();
-      setVoiceState(VOICE_STATES.IDLE);
+      setVoiceState(prev => (prev !== VOICE_STATES.IDLE ? VOICE_STATES.IDLE : prev));
     }
   }, [isVoiceDisabled, audioClear]);
+
+  const questionKey = currentQuestion ? (currentQuestion.id || currentQuestion.question) : null;
 
   // Effect to load and play new question
   useEffect(() => {
     let isMounted = true;
 
     const loadQuestionAudio = async () => {
-      if (!currentQuestion || !sessionId || isVoiceDisabled) return;
+      if (!questionKey || !sessionId || isVoiceDisabled) return;
       
       // Always Stop and Clear Previous Playback
       audioClear();
@@ -105,7 +107,7 @@ export const useQuestionVoice = (currentQuestion, sessionId, onPlaybackComplete,
       isMounted = false;
       audioClear();
     };
-  }, [currentQuestion, sessionId, load, audioClear]);
+  }, [questionKey, sessionId, isVoiceDisabled]);
 
   // Derived controls
   const play = useCallback(() => {

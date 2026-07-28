@@ -73,6 +73,20 @@ export default function EmployerInterviewResultPage() {
     }
   };
 
+  const handleErrorReEnroll = async () => {
+    setIsReEnrolling(true);
+    try {
+      // Call the API endpoint that resolves candidate purely by resultId and clears their data
+      await api.post(`/interviews/${interviewId}/results/${resultId}/re-enroll`);
+      toast.success("Candidate re-enrolled successfully");
+      navigate(`/employer/interviews/${interviewId}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to re-enroll candidate");
+    } finally {
+      setIsReEnrolling(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-transparent relative">
       {/* Background Noise */}
@@ -107,7 +121,23 @@ export default function EmployerInterviewResultPage() {
               <>
                 <AlertCircle className="w-16 h-16 text-[var(--color-danger)] mb-6" />
                 <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2 tracking-tight">Error</h2>
-                <p className="text-[var(--color-danger)] max-w-md opacity-80">{error}</p>
+                <p className="text-[var(--color-danger)] max-w-md opacity-80 mb-6">{error}</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => fetchResult()}
+                    className="px-5 py-2.5 bg-[var(--background-secondary)] hover:bg-[var(--border)] text-[var(--text-primary)] border border-[var(--border)] font-semibold rounded-xl transition-all text-sm flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Try Again
+                  </button>
+                  <button
+                    onClick={handleErrorReEnroll}
+                    disabled={isReEnrolling}
+                    className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-all shadow-md text-sm flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isReEnrolling ? 'animate-spin' : ''}`} />
+                    {isReEnrolling ? "Re-enrolling..." : "Re-enroll Candidate"}
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -164,6 +194,12 @@ export default function EmployerInterviewResultPage() {
                   <p className="text-[var(--color-danger)] opacity-80 max-w-md mb-6">
                     We encountered an error while evaluating this interview.
                   </p>
+                  <button
+                    onClick={() => setShowReEnrollModal(true)}
+                    className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-all shadow-md text-sm flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Re-enroll Candidate
+                  </button>
                 </>
               )}
             </div>

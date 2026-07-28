@@ -103,6 +103,23 @@ const interviewResultSchema = new mongoose.Schema(
       required: [true, "sessionId is required"],
     },
 
+    // ── Interview Mode & Snapshot ──────────────────────────────────────
+    mode: {
+      type: String,
+      enum: ["EMPLOYER", "MOCK"],
+      default: "EMPLOYER",
+      index: true,
+    },
+    interviewSnapshot: {
+      title: { type: String },
+      jobRole: { type: String },
+      topics: [{ type: String }],
+      experienceLevel: { type: String },
+      duration: { type: Number },
+      instructions: { type: String },
+      mode: { type: String },
+    },
+
     // ── Evaluation Status ──────────────────────────────────────────────
     status: {
       type: String,
@@ -160,6 +177,7 @@ const interviewResultSchema = new mongoose.Schema(
           "BORDERLINE",
           "NEEDS_IMPROVEMENT",
           "REJECT",
+          "NOT_EVALUATED",
         ],
         message: "{VALUE} is not a valid recommendation",
       },

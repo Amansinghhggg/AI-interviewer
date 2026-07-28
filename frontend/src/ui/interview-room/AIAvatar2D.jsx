@@ -45,29 +45,36 @@ export default function AIAvatar2D({ state, className, audioRef }) {
     };
   }, [audioRef]);
 
-  const animate = () => {
-    if (state === "speaking" && analyserRef.current && dataArrayRef.current && mouthRef.current) {
-      analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-      let sum = 0;
-      for (let i = 0; i < 20; i++) sum += dataArrayRef.current[i];
-      let volume = sum / 20 / 255;
-      
-      // Amplify slightly
-      volume = Math.min(1.0, volume * 1.5);
-      
-      // Calculate mouth opening (min 1, max 10)
-      const mouthOpen = 1 + (volume * 12); 
-      mouthRef.current.setAttribute('ry', Math.min(12, mouthOpen));
-    } else if (mouthRef.current) {
-       // Idle mouth (closed)
-       mouthRef.current.setAttribute('ry', 1);
-    }
-    requestRef.current = requestAnimationFrame(animate);
-  };
-
   useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(requestRef.current);
+    let animationFrameId;
+
+    const animate = () => {
+      if (state === "speaking" && analyserRef.current && dataArrayRef.current && mouthRef.current) {
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+        let sum = 0;
+        for (let i = 0; i < 20; i++) sum += dataArrayRef.current[i];
+        let volume = sum / 20 / 255;
+        
+        // Amplify slightly
+        volume = Math.min(1.0, volume * 1.5);
+        
+        // Calculate mouth opening (min 1, max 10)
+        const mouthOpen = 1 + (volume * 12); 
+        mouthRef.current.setAttribute('ry', Math.min(12, mouthOpen));
+      } else if (mouthRef.current) {
+        // Idle mouth (closed)
+        mouthRef.current.setAttribute('ry', 1);
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [state]);
 
   return (

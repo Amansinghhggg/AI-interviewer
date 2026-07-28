@@ -62,7 +62,7 @@ const interviewSessionSchema = new mongoose.Schema(
       duration: { type: Number, default: null },
       status: {
         type: String,
-        enum: ["UPLOADING", "READY", "FAILED"],
+        enum: ["UPLOADING", "READY", "FAILED", "SKIPPED"],
         default: "UPLOADING",
       },
       originalFilename: { type: String, default: null },

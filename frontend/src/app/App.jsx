@@ -17,6 +17,8 @@ import LiveInterviewPage from "../features/interview/LiveInterviewPage";
 import EmployerInterviewResultPage from "../features/employer/EmployerInterviewResultPage";
 import VoiceTestPage from "../features/interview/VoiceTestPage";
 import ProfilePage from "../features/shared/ProfilePage";
+import MockInterviewPage from "../features/candidate/MockInterviewPage";
+import MockPreInterviewPage from "../features/candidate/MockPreInterviewPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -90,6 +92,8 @@ function App() {
         <Route element={<ProtectedRoute role="candidate"><CandidateLayout /></ProtectedRoute>}>
           <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
           <Route path="/candidate/join" element={<JoinInterviewPage />} />
+          <Route path="/candidate/mock-interview" element={<MockInterviewPage />} />
+          <Route path="/candidate/mock-interview/:id/prepare" element={<MockPreInterviewPage />} />
           <Route path="/candidate/interviews/:id" element={<InterviewInstructionsPage />} />
           <Route path="/candidate/interviews/:id/start" element={<PreInterviewPage />} />
           <Route path="/candidate/profile" element={<ProfilePage />} />

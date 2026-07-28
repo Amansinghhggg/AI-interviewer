@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-hot-toast";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useInterview } from "../../hooks/useInterview";
 import { useQuestionVoice } from "../../hooks/useQuestionVoice";
@@ -42,6 +43,7 @@ const LiveInterviewAIContent = ({
   totalQuestions,
   handleNext,
   handleSubmit,
+  handleEndInterview,
   handlePrev,
   session,  // backend session — needed for real question timestamps
 }) => {
@@ -57,38 +59,49 @@ const LiveInterviewAIContent = ({
     if (runtime.state === INTERVIEW_RUNTIME_STATES.RECORDING_READY) {
       actions.start();
     }
-  }, [runtime.state, actions]);
+  }, [runtime.state]);
 
   const hasFinalizedRef = useRef(false);
+  const hasNavigatedRef = useRef(false);
+  const isMockMode = interview?.mode === "MOCK" || session?.mode === "MOCK" || interview?.description?.includes("practice interview") || interview?.title?.startsWith("Mock Interview");
 
   // Stop recording and finalize session when interview finishes
   useEffect(() => {
-    if (isInterviewFinished && !hasFinalizedRef.current) {
-      hasFinalizedRef.current = true;
-      actions.stop().then(recordingSession => {
-        // Assemble all pieces into the canonical InterviewSession.
-        // Pass the backend `session` as the third argument so real question
-        // timestamps (askedAt / answeredAt from MongoDB) are used instead of
-        // the frontend-only questions array.
-        const interviewSession = actions.finalizeInterviewSession(
-          { questions, answers },
-          recordingSession,
-          session  // backend session with real timestamps
-        );
-        console.log("[LiveInterviewPage] Finalized Interview Session:", interviewSession);
-        
-        // Trigger the background upload pipeline
-        save(interviewSession, recordingSession?.blob);
-      }).catch(err => {
-        console.error("[LiveInterviewPage] Finalization failed:", err);
-      });
-    }
-  }, [isInterviewFinished, runtime.state, actions, questions, answers, session, save]);
+    if (isInterviewFinished) {
+      if (isMockMode && !hasNavigatedRef.current) {
+        hasNavigatedRef.current = true;
+        toast.success("Mock Interview Completed! Opening reports...");
+        window.location.href = "/candidate/mock-interview?tab=history";
+        return;
+      }
 
-  // If there's an active upload state, take over the screen
-  if (uploadState) {
-    // If it hits COMPLETED, navigate out automatically or allow the user to click.
-    // UploadScreen usually says "Upload Complete" and provides a Continue button.
+      if (runtime.state !== INTERVIEW_RUNTIME_STATES.FINALIZED && !hasFinalizedRef.current) {
+        hasFinalizedRef.current = true;
+        actions.stop().then((recordingSession) => {
+          const interviewSession = actions.finalizeInterviewSession(
+            { questions, answers },
+            recordingSession,
+            session
+          );
+          save(interviewSession, recordingSession?.blob);
+        }).catch(err => {
+          console.error("[LiveInterviewPage] Finalization failed:", err);
+        });
+      }
+    }
+  }, [isInterviewFinished, isMockMode, navigate]);
+
+  if (isInterviewFinished && isMockMode) {
+    return (
+      <div className="h-screen w-full bg-[#0b1326] flex flex-col items-center justify-center space-y-4 text-white font-['Inter']">
+        <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary-md3,#8b5cf6)]" />
+        <h2 className="text-xl font-black uppercase tracking-wider">Redirecting...</h2>
+      </div>
+    );
+  }
+
+  // If there's an active upload state (for employer interviews), take over the screen
+  if (uploadState && !isMockMode) {
     return (
       <UploadScreen
         uploadState={uploadState}
@@ -121,7 +134,7 @@ const LiveInterviewAIContent = ({
              {timeLeft <= 0 ? `GRACE: 00:${(60 - Math.abs(timeLeft)).toString().padStart(2, '0')}` : formatDisplayTime(timeLeft)}
           </div>
           {timeLeft > 0 && (
-            <Button variant="outline" className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors h-9 px-4" onClick={() => handleSubmit(false)}>
+            <Button variant="outline" className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors h-9 px-4" onClick={handleEndInterview}>
               End interview
             </Button>
           )}
@@ -207,6 +220,16 @@ const LiveInterviewPage = () => {
     handleSubmit
   } = useInterview(id, navigate, user);
 
+  const isEndingRef = useRef(false);
+
+  const handleEndInterview = useCallback(async () => {
+    isEndingRef.current = true;
+    const submitted = await handleSubmit(false);
+    if (!submitted) {
+      isEndingRef.current = false;
+    }
+  }, [handleSubmit]);
+
   const handlePlaybackComplete = useCallback(() => {
     // For legacy mode, focus the textarea.
     // For AI conversational mode, playback complete is handled by ConversationController.
@@ -241,14 +264,15 @@ const LiveInterviewPage = () => {
   // Also clear cache if interview completes and ensure fullscreen alert is closed
   useEffect(() => {
     if (isInterviewFinished) {
+      isEndingRef.current = true;
       questionVoiceService.clearCache();
-      setIsFullscreenAlertOpen(false);
+      setIsFullscreenAlertOpen(prev => (prev ? false : prev));
     }
   }, [isInterviewFinished]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && !isInterviewFinished) {
+      if (!document.fullscreenElement && !isInterviewFinished && !isEndingRef.current) {
         setIsFullscreenAlertOpen(true);
       }
     };
@@ -285,7 +309,7 @@ const LiveInterviewPage = () => {
             <Button onClick={handleReturnToFullscreen} className="w-full bg-[var(--color-primary-md3,var(--primary))] text-white py-6 font-black text-sm uppercase tracking-widest shadow-lg shadow-[var(--color-primary-md3)]/30 hover:bg-[var(--color-primary-md3)]/90">
               Return to Full Screen
             </Button>
-            <Button variant="outline" onClick={() => handleSubmit(false)} className="w-full py-6 font-black text-sm uppercase tracking-widest border-[var(--color-error)] text-[var(--color-error)] hover:bg-[var(--color-error)]/10">
+            <Button variant="outline" onClick={handleEndInterview} className="w-full py-6 font-black text-sm uppercase tracking-widest border-[var(--color-error)] text-[var(--color-error)] hover:bg-[var(--color-error)]/10">
               End Interview
             </Button>
           </div>
@@ -324,6 +348,7 @@ const LiveInterviewPage = () => {
           handleNext={handleNext}
           handlePrev={handlePrev}
           handleSubmit={handleSubmit}
+          handleEndInterview={handleEndInterview}
           session={session}
         />
         {renderFullscreenAlert()}

@@ -19,8 +19,8 @@ export const createInterviewSchema = z.object({
   experienceLevel: z.enum(["Fresher", "1-2 Years", "3-5 Years", "5+ Years"]).default("Fresher"),
   duration: z.coerce
     .number({ required_error: "Duration is required" })
-    .min(1, "Duration must be at least 1 minute")
-    .max(120, "Duration cannot exceed 120 minutes"),
+    .min(5, "Duration must be at least 5 minutes")
+    .max(30, "Duration cannot exceed 30 minutes"),
 
   instructions: z
     .string()
@@ -56,8 +56,8 @@ export const updateInterviewSchema = z.object({
   experienceLevel: z.enum(["Fresher", "1-2 Years", "3-5 Years", "5+ Years"]).optional(),
   duration: z.coerce
     .number()
-    .min(1, "Duration must be at least 1 minute")
-    .max(120, "Duration cannot exceed 120 minutes")
+    .min(5, "Duration must be at least 5 minutes")
+    .max(30, "Duration cannot exceed 30 minutes")
     .optional(),
   status: z.enum(["draft", "active", "completed", "archived"]).optional(),
 

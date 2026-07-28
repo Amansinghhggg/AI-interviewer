@@ -15,7 +15,8 @@ import {
   submitAnswer,
   getInterviewResult,
   uploadRecording,
-  reEnrollCandidate
+  reEnrollCandidate,
+  reEnrollByResultId
 } from "../controllers/interview.controller.js";
 import { protect, authorize } from "../../auth/auth.middleware.js";
 import { getCandidateResume, downloadCandidateResume } from "../../users/profile.controller.js";
@@ -32,6 +33,7 @@ router
   .get(authorize("employer"), getInterviews);
 
 router.get("/:id/results/:resultId", authorize("employer"), getInterviewResult);
+router.post("/:id/results/:resultId/re-enroll", authorize("employer"), reEnrollByResultId);
 router.post("/:id/candidates/:candidateId/re-enroll", authorize("employer"), reEnrollCandidate);
 
 // Employer Resume endpoints

@@ -252,7 +252,7 @@ export const useInterview = (id, navigate, user) => {
   }, []);
 
   const handleSubmit = useCallback(async (force = false) => {
-    if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return;
+    if (!force && !window.confirm("Are you sure you want to submit your interview? You cannot undo this action.")) return false;
 
     setSubmitting(true);
     try {
@@ -267,10 +267,13 @@ export const useInterview = (id, navigate, user) => {
 
         // Set finished so the view layer can take over, process video, and show upload screen
         setIsInterviewFinished(true);
+        return true;
       }
+      return false;
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to submit interview");
       setSubmitting(false);
+      return false;
     }
   }, [id]);
 

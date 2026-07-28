@@ -89,6 +89,11 @@ const interviewSchema = new mongoose.Schema(
       enum: ["static", "gemini", "groq"],
       default: "gemini",
     },
+    mode: {
+      type: String,
+      enum: ["REGULAR", "MOCK"],
+      default: "REGULAR",
+    },
   },
   {
     timestamps: true,

@@ -243,7 +243,6 @@ class InterviewSessionService {
 
   /**
    * Marks the session as completed.
-   * 
    * @param {string} sessionId 
    */
   async completeSession(sessionId) {
@@ -256,16 +255,6 @@ class InterviewSessionService {
 
   /**
    * Evaluates a completed interview and updates the result in MongoDB.
-   *
-   * Flow:
-   *   1. Create InterviewResult immediately in PENDING state
-   *   2. Update state to PROCESSING
-   *   3. Build EvaluationContext and delegate to InterviewEngine
-   *   4. Update InterviewResult to COMPLETED with AI data
-   *   5. Link InterviewResult to Candidate in Interview Document
-   *
-   * If evaluation fails, the error is caught and logged, setting status to FAILED.
-   *
    * @param {Object} session - The completed InterviewSession document.
    * @param {Object} interviewDoc - The Interview document.
    * @returns {Promise<{ success: boolean, result?: Object, error?: string }>}
@@ -279,37 +268,52 @@ class InterviewSessionService {
     let interviewResult = null;
 
     try {
-      // 0. Prevent concurrent/duplicate evaluation triggers
-      const existingResult = await InterviewResult.findOne({ sessionId: session._id });
-      if (existingResult) {
-        console.log(`[Evaluation] Skipped: Evaluation already exists for session ${session._id} (Status: ${existingResult.status})`);
-        return { success: true, result: existingResult };
-      }
+      const config = InterviewConfig.fromInterview(interviewDoc);
+      const mode = config.mode || "EMPLOYER";
 
-      // 1. Create InterviewResult immediately in PENDING state
-      interviewResult = new InterviewResult({
+      // 1. Check for existing result or initialize PENDING result
+      interviewResult = await InterviewResult.findOne({
         interviewId: session.interviewId,
         candidateId: session.candidateId,
         sessionId: session._id,
-        status: "PENDING",
-        recommendation: "BORDERLINE", // Schema requires enum
-        aiMetadata: {
-          provider: AIConfig.provider || "groq",
-          model: AIConfig.groqModel || AIConfig.model || "unknown",
-          evaluatedAt: new Date(),
-          latencyMs: 0,
-        }
       });
-      await interviewResult.save();
 
-      // Link Result ID immediately for THIS candidate specifically
+      if (!interviewResult) {
+        interviewResult = new InterviewResult({
+          interviewId: session.interviewId,
+          candidateId: session.candidateId,
+          sessionId: session._id,
+          status: "PENDING",
+          mode,
+          interviewSnapshot: {
+            title: config.companyName || interviewDoc.title,
+            jobRole: config.jobRole,
+            topics: config.topics,
+            experienceLevel: config.experienceLevel,
+            duration: config.duration,
+            instructions: config.instructions,
+            mode,
+          },
+          scores: {},
+          recommendation: "NOT_EVALUATED",
+          reasoning: "Unable to generate an evaluation due to insufficient interview responses.",
+          strengths: [],
+          weaknesses: [],
+          questionEvaluations: [],
+          aiMetadata: {
+            provider: interviewDoc.interviewType || process.env.QUESTION_PROVIDER || "gemini",
+            model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+            latencyMs: 0,
+          }
+        });
+        await interviewResult.save();
+      }
+
+      // Link Result ID using InterviewRepository abstraction
       const candidateUser = await (await import("../../users/user.model.js")).default.findById(session.candidateId);
       if (candidateUser) {
-        await Interview.updateOne(
-          { _id: session.interviewId },
-          { $set: { "assignedCandidates.$[candidate].resultId": interviewResult._id } },
-          { arrayFilters: [{ "candidate.email": candidateUser.email }] }
-        );
+        const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+        await InterviewRepository.updateCandidateStatus(session.interviewId, candidateUser.email, "Completed", interviewResult._id);
       }
 
       // 2. Set PROCESSING state
@@ -317,11 +321,10 @@ class InterviewSessionService {
       await interviewResult.save();
 
       // 3. Build the EvaluationContext and evaluate
-      const config = InterviewConfig.fromInterview(interviewDoc);
       const evaluationContext = EvaluationContext.fromSessionAndConfig(config, session);
 
       const engine = createInterviewEngine(
-        interviewDoc.interviewType || process.env.QUESTION_PROVIDER || "groq"
+        interviewDoc.interviewType || process.env.QUESTION_PROVIDER || "gemini"
       );
       const evaluationResult = await engine.evaluateInterview(evaluationContext);
 
@@ -329,14 +332,14 @@ class InterviewSessionService {
 
       // 4. Update to COMPLETED state and map question text
       interviewResult.status = "COMPLETED";
-      interviewResult.scores = evaluationResult.scores;
-      interviewResult.recommendation = evaluationResult.recommendation;
-      interviewResult.reasoning = evaluationResult.reasoning;
-      interviewResult.strengths = evaluationResult.strengths;
-      interviewResult.weaknesses = evaluationResult.weaknesses;
+      interviewResult.scores = evaluationResult.scores || {};
+      interviewResult.recommendation = evaluationResult.recommendation || "NOT_EVALUATED";
+      interviewResult.reasoning = evaluationResult.reasoning || "Unable to generate an evaluation due to insufficient interview responses.";
+      interviewResult.strengths = evaluationResult.strengths || [];
+      interviewResult.weaknesses = evaluationResult.weaknesses || [];
 
       // Map question, answer, topic, and difficulty from session.questions
-      interviewResult.questionEvaluations = evaluationResult.questionEvaluations.map(qe => {
+      interviewResult.questionEvaluations = (evaluationResult.questionEvaluations || []).map(qe => {
         const sessionQ = session.questions.find(
           q => q.id === qe.questionId || q.id === parseInt(qe.questionId, 10)
         );
@@ -360,10 +363,11 @@ class InterviewSessionService {
       console.error("[Evaluation] Failed — interview submission unaffected");
       console.error(`  Error: ${error.name}: ${error.message}`);
 
-      // 5. Update to FAILED state
       if (interviewResult) {
         try {
           interviewResult.status = "FAILED";
+          interviewResult.recommendation = "NOT_EVALUATED";
+          interviewResult.reasoning = "Unable to generate an evaluation due to insufficient interview responses.";
           await interviewResult.save();
         } catch (saveError) {
           console.error("[Evaluation] Could not update to FAILED state", saveError);
@@ -378,8 +382,7 @@ class InterviewSessionService {
   }
 
   /**
-   * Uploads the recording to Cloudinary and saves metadata to InterviewSession.
-   * 
+   * Uploads the recording using InterviewRecordingService abstraction.
    * @param {string} sessionId 
    * @param {string} candidateId 
    * @param {Object} file - multer file object
@@ -391,65 +394,54 @@ class InterviewSessionService {
       throw new Error("not_found");
     }
 
-    // 3. Idempotent Upload Completion
-    if (session.recording?.status === "READY") {
-      console.log(`[UploadPipeline] Ignored redundant upload request for session ${sessionId}. Status is already READY.`);
+    if (session.recording?.status === "READY" || session.recording?.status === "SKIPPED") {
       return session;
     }
 
     try {
-      const cloudinaryServiceStore = await import("./CloudinaryService.js");
-      const CloudinaryService = cloudinaryServiceStore.default;
+      const InterviewRepository = (await import("../repositories/InterviewRepository.js")).default;
+      const InterviewRecordingService = (await import("./InterviewRecordingService.js")).default;
 
-      // Update status to UPLOADING initially if not already set (it's the default anyway)
-      session.recording = {
-        ...(session.recording || {}),
-        status: "UPLOADING",
-        uploadedAt: new Date()
-      };
-      await session.save();
-      
-      const result = await CloudinaryService.uploadRecording(file.buffer, file.originalname);
+      const interviewDoc = await InterviewRepository.findById(session.interviewId);
+      const config = InterviewConfig.fromInterview(interviewDoc);
 
-      // Save recording metadata to session
+      const recordingResponse = await InterviewRecordingService.processRecording(file, config.mode);
+
+      if (recordingResponse.status === "SKIPPED") {
+        session.recording = {
+          provider: "none",
+          status: "SKIPPED",
+          uploadedAt: new Date()
+p
+        };
+        await session.save();
+        return session;
+      }
+
       session.recording = {
-        url: result.secure_url,
-        publicId: result.public_id,
+        url: recordingResponse.recording.url,
+        publicId: recordingResponse.recording.publicId,
         provider: "cloudinary",
-        mimeType: file.mimetype,
-        size: result.bytes,
-        duration: result.duration || 0,
+        mimeType: file?.mimetype || "video/webm",
+        size: file?.size || 0,
+        duration: recordingResponse.recording.duration || 0,
         status: "READY",
-        originalFilename: file.originalname,
+        originalFilename: file?.originalname || "recording.webm",
         uploadedAt: new Date()
       };
 
       await session.save();
-
-      // 6. Internal Upload Logging
-      console.log(`[UploadPipeline] Recording saved to Cloudinary for session ${sessionId}`);
-      console.log(JSON.stringify({
-        event: "recording_uploaded",
-        sessionId: session._id,
-        candidateId: session.candidateId,
-        publicId: result.public_id,
-        duration: result.duration || 0,
-        sizeBytes: result.bytes,
-        uploadStrategy: "upload_stream"
-      }));
-      
       return session;
     } catch (error) {
-      console.error("[UploadPipeline] Cloudinary upload failed:", error);
-      
+      console.error("[UploadPipeline] Recording upload failed:", error);
+
       session.recording = {
         ...(session.recording || {}),
         status: "FAILED",
-        originalFilename: file.originalname,
         uploadedAt: new Date()
       };
       await session.save();
-      
+
       throw new Error(`Upload failed: ${error.message}`);
     }
   }

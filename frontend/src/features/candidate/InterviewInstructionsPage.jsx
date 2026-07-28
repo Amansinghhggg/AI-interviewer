@@ -51,8 +51,9 @@ const InterviewInstructionsPage = () => {
 
   if (!interview) return null;
 
-  const isInactive = interview.status !== "active";
-  const hasAttempted = interview.assignedCandidates?.find(c => c.email === user?.email)?.status !== "Pending";
+  const activeStatuses = ["active", "CREATED", "IN_PROGRESS", "draft"];
+  const isInactive = !activeStatuses.includes(interview.status);
+  const hasAttempted = interview.assignedCandidates?.find(c => c.email === user?.email)?.status === "Completed";
 
   return (
     <div className="bg-[var(--background)] h-screen w-full font-['Inter'] flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
@@ -145,12 +146,6 @@ const InterviewInstructionsPage = () => {
                       <span className="w-1 h-1 rounded-full bg-[var(--color-warning)] mt-1.5 flex-shrink-0"></span>
                       <p className="leading-snug">You cannot pause or restart the interview once it begins.</p>
                     </li>
-                    {interview.instructions && (
-                      <li className="flex items-start gap-2">
-                        <span className="w-1 h-1 rounded-full bg-[var(--color-warning)] mt-1.5 flex-shrink-0"></span>
-                        <p className="leading-snug text-[var(--color-on-surface)] line-clamp-2">{interview.instructions}</p>
-                      </li>
-                    )}
                   </ul>
                 </div>
               </div>
