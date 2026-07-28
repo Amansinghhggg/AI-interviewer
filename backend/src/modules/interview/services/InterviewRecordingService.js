@@ -51,8 +51,13 @@ class InterviewRecordingService {
         message: "Recording uploaded successfully.",
       };
     } catch (error) {
-      console.error("[InterviewRecordingService] Upload failed:", error);
-      throw error;
+      console.error("[InterviewRecordingService] Upload failed after retries:", error.message || error);
+      return {
+        success: false,
+        status: "FAILED",
+        recording: null,
+        message: `Recording upload failed: ${error.message || "Network connection reset"}`,
+      };
     }
   }
 

@@ -106,7 +106,7 @@ const interviewResultSchema = new mongoose.Schema(
     // ── Interview Mode & Snapshot ──────────────────────────────────────
     mode: {
       type: String,
-      enum: ["EMPLOYER", "MOCK"],
+      enum: ["EMPLOYER", "MOCK", "REGULAR"],
       default: "EMPLOYER",
       index: true,
     },

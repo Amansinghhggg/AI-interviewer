@@ -27,7 +27,6 @@ const mockInterviewSchema = new mongoose.Schema(
 
 // Indexes for query performance
 mockInterviewSchema.index({ candidate: 1, status: 1, createdAt: -1 });
-mockInterviewSchema.index({ interviewCode: 1 }, { unique: true });
 
 const MockInterview = mongoose.model("MockInterview", mockInterviewSchema, "mock-interviews");
 export default MockInterview;

@@ -547,13 +547,13 @@ const performCandidateReEnrollment = async (interview, targetCandidateId, target
 
   if (candidateIndex === -1 && validResultId) {
     candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c.resultId?.toString() === validResultId.toString()
+      (c) => c.resultId?.toString() === validResultId?.toString()
     );
   }
 
   if (candidateIndex === -1 && validCandidateId) {
     candidateIndex = interview.assignedCandidates.findIndex(
-      (c) => c._id?.toString() === validCandidateId.toString()
+      (c) => c._id?.toString() === validCandidateId?.toString()
     );
   }
 

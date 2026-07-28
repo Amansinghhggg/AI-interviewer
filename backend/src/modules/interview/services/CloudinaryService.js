@@ -18,11 +18,51 @@ class CloudinaryService {
    * @param {Object} options - Additional upload options
    * @returns {Promise<Object>} Cloudinary upload result
    */
-  uploadRecording(fileBuffer, originalFilename, options = {}) {
+  /**
+   * Generalized method to upload an interview recording with automatic retries for transient network errors.
+   *
+   * @param {Buffer} fileBuffer - The file buffer
+   * @param {string} originalFilename - Original filename
+   * @param {Object} options - Additional upload options
+   * @returns {Promise<Object>} Cloudinary upload result
+   */
+  async uploadRecording(fileBuffer, originalFilename, options = {}) {
     const folder = options.folder || "ai-interviews";
-    // Configurable timeout via env, default to 10 minutes (600,000 ms)
     const timeout = parseInt(process.env.CLOUDINARY_UPLOAD_TIMEOUT, 10) || options.timeout || 600000;
+    const maxRetries = options.maxRetries || 3;
 
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.#executeUploadStream(fileBuffer, originalFilename, folder, timeout);
+        return result;
+      } catch (error) {
+        lastError = error;
+        const isNetworkError =
+          error.code === "ECONNRESET" ||
+          error.code === "ETIMEDOUT" ||
+          error.code === "ENOTFOUND" ||
+          error.code === "ESOCKETTIMEDOUT" ||
+          error.code === "EPIPE" ||
+          error.errno === -4077 ||
+          error.message?.includes("ECONNRESET");
+
+        if (isNetworkError && attempt < maxRetries) {
+          const delayMs = attempt * 1500;
+          console.warn(`[CloudinaryService] Transient network error (${error.code || error.message}). Retrying upload (${attempt}/${maxRetries}) in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } else {
+          break;
+        }
+      }
+    }
+
+    console.error("[CloudinaryService] Upload failed after retries:", lastError);
+    throw lastError;
+  }
+
+  #executeUploadStream(fileBuffer, originalFilename, folder, timeout) {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -33,14 +73,13 @@ class CloudinaryService {
         },
         (error, result) => {
           if (error) {
-            console.error("[CloudinaryService] Upload failed:", error);
             return reject(error);
           }
           resolve(result);
         }
       );
 
-      // Write the buffer to the stream and end it
+      uploadStream.on("error", (err) => reject(err));
       uploadStream.end(fileBuffer);
     });
   }

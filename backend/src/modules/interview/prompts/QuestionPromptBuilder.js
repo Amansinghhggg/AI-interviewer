@@ -215,48 +215,46 @@ export class QuestionPromptBuilder {
    */
   static #buildExperienceCalibration(config) {
     const bands = {
-      "Fresher": `Test fundamentals and conceptual clarity. Ask "what is X and why/when would you use it", simple applied scenarios from coursework, internships, or personal projects, and basic reasoning. Avoid large-scale architecture, org-wide trade-offs, or leadership questions.`,
-      "1-2 Years": `Test applied, hands-on understanding from real project work. Ask how they've actually used a concept, common pitfalls they've hit, how they chose between two straightforward approaches, and how they debugged or fixed something real. Keep trade-off discussion at the feature/module level, not system-wide.`,
-      "3-5 Years": `Test judgment and trade-offs. Ask them to justify design/approach decisions, discuss performance, scalability, and maintainability concerns, how they've reviewed or mentored others' work, and how they've handled ambiguous or conflicting requirements.`,
-      "5+ Years": `Test strategic and system-level thinking. Ask about architecture at scale, trade-offs across teams or services, build-vs-buy calls, leading through ambiguity or incidents, and how they've driven best practices or influenced technical direction org-wide.`,
+      "Fresher": `Focus heavily on core technical fundamentals, key concepts, and standard interview questions (e.g. "What is debouncing?", "Difference between let, const, and var", "How do Promises work?", "What is the Virtual DOM?"). Keep questions short, clear, and direct. Avoid long complex scenario setups.`,
+      "1-2 Years": `Combine core technical fundamentals with concise practical questions. Ask how they have implemented features, handled common errors, or chosen between two straightforward approaches in their codebase.`,
+      "3-5 Years": `Test technical judgment, code organization, and performance trade-offs. Ask about design patterns, state management trade-offs, query optimization, and maintainability.`,
+      "5+ Years": `Test strategic, system-level architecture and scaling trade-offs. Ask about high-concurrency design, microservices vs monolith, database partitioning, and technical leadership decisions.`,
     };
 
     const currentBand = bands[config.experienceLevel] || bands["1-2 Years"];
 
     return [
-      `=== EXPERIENCE-LEVEL CALIBRATION (this changes WHAT you ask, not just how hard it sounds) ===`,
-      `Reference — how depth generally progresses across levels:`,
+      `=== EXPERIENCE-LEVEL CALIBRATION ===`,
+      `Reference — how depth and focus progress across experience levels:`,
       `- Fresher: ${bands["Fresher"]}`,
       `- 1-2 Years: ${bands["1-2 Years"]}`,
       `- 3-5 Years: ${bands["3-5 Years"]}`,
       `- 5+ Years: ${bands["5+ Years"]}`,
       ``,
       `THIS candidate is at: ${config.experienceLevel}. Calibrate every question to that band specifically: ${currentBand}`,
-      `CRITICAL RULE: If the Experience Level is "Fresher" or Expected Baseline Difficulty is "Easy", every generated question MUST have a difficulty of "Easy". Do not drift to Medium.`,
-      `If the role is non-technical (e.g. Sales, Marketing, HR, Finance, Operations, Design, Product, Support), apply the same progression using domain-appropriate equivalents — e.g. a Fresher gets "what is a sales funnel and why does it matter", a 5+ Years candidate gets "how would you restructure a sales funnel that's leaking mid-pipeline, and how would you get buy-in from other teams".`,
+      `CRITICAL RULE FOR FRESHERS: Prioritize core fundamentals and fundamental concept explanations ("What is X?", "Difference between X and Y", "How does X work?").`,
       ``,
     ];
   }
 
   /**
    * Guidance so questions sound like a real interviewer asked them,
-   * not a static quiz bank ("Explain X" repeated ten times in a row).
+   * keeping them concise, punchy, and natural.
    */
   static #buildRealisticPhrasingGuidance() {
     return [
-      `=== SOUND LIKE A REAL INTERVIEWER ===`,
-      `Vary phrasing across questions — do not start every question with "Explain". Draw from natural interviewer patterns such as:`,
-      `- "Walk me through how you'd approach..."`,
-      `- "Tell me about a time you had to..."`,
-      `- "How would you decide between X and Y on a real project?"`,
-      `- "What would you do if [realistic scenario]?"`,
-      `- "In your experience, what's the trade-off between..."`,
-      `- "Suppose [realistic situation] — how would you handle it?"`,
-      `- "What's your take on..." / "Why would you choose... over...?"`,
-      `Ground questions in realistic, on-the-job scenarios wherever possible instead of abstract definitions, especially above Fresher level.`,
+      `=== SHORT, PUNCHY & DIRECT QUESTIONING (CRITICAL RULE) ===`,
+      `1. KEEP QUESTIONS CONCISE (MAX 15-20 WORDS):`,
+      `   - DO NOT write long-winded, wordy scenario paragraphs (e.g. AVOID: "How would you handle a situation where a user's session is expired, and they try to access a protected route in a web application using JavaScript?").`,
+      `   - INSTEAD, ask crisp, direct questions: "How do you handle protected routes when a user's session expires?" or "What is debouncing in JavaScript and when would you use it?".`,
       ``,
-      `=== COMMON & STANDARD QUESTIONS ===`,
-      `Prefer common, widely-recognized industry-standard interview questions over obscure, highly theoretical, or overly complex edge-cases. The goal is to accurately assess standard competency, not to trick the candidate.`,
+      `2. NATURAL MIX OF QUESTION TYPES:`,
+      `   - Fundamental Concepts: "What is [Concept/Tool]?", "How does [Mechanism] work under the hood?", "What is the difference between [X] and [Y]?"`,
+      `   - Practical Experience: "How do you handle [Task/State] in your applications?", "Walk me through how you implement [Feature]."`,
+      `   - Trade-offs: "What are the pros and cons of [Approach A] vs [Approach B]?"`,
+      ``,
+      `3. GROUND IN CANDIDATE SKILLS & ROLE:`,
+      `   - Match the question length and style to what real hiring managers ask out loud in spoken interviews.`,
       ``,
     ];
   }

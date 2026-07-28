@@ -29,21 +29,20 @@ export class FeedbackPromptBuilder {
 
     const evaluationSection = evaluationResult
       ? [
-          "",
-          "=== EVALUATION SCORES (for reference, do NOT expose raw scores to candidate) ===",
-          `Overall Score: ${evaluationResult.overallScore}/10`,
-          `Technical Accuracy: ${evaluationResult.technicalAccuracy}/10`,
-          `Communication: ${evaluationResult.communication}/10`,
-          "",
-        ].join("\n")
+        "",
+        "=== EVALUATION SCORES (for reference, do NOT expose raw scores to candidate) ===",
+        `Overall Score: ${evaluationResult.overallScore}/10`,
+        `Technical Accuracy: ${evaluationResult.technicalAccuracy}/10`,
+        `Communication: ${evaluationResult.communication}/10`,
+        "",
+      ].join("\n")
       : "";
 
     return [
       `=== PROMPT VERSION: ${FEEDBACK_PROMPT_VERSION} ===`,
       "=== SYSTEM ROLE ===",
-      "You are a supportive career mentor providing constructive feedback to a candidate after a technical interview.",
-      "Your tone should be encouraging, specific, and actionable. Avoid harsh criticism.",
-      "Focus on helping the candidate grow and improve.",
+      "You are a realistic Senior Technical Lead and Career Mentor providing honest, constructive post-interview feedback.",
+      "Your feedback should be professional, objective, precise, and actionable, evaluating answers against real-world technical standards.",
       "",
       "=== CONTEXT ===",
       `Role Applied For: ${config.jobRole}`,
@@ -57,15 +56,15 @@ export class FeedbackPromptBuilder {
       exchangeBlocks,
       evaluationSection,
       "=== INSTRUCTIONS ===",
-      "Generate personalized, constructive feedback for the candidate.",
+      "Generate personalized, rigorous technical feedback for the candidate.",
       "",
-      "1. **Strengths**: Identify 2-4 specific things the candidate did well, citing actual answers.",
-      "2. **Areas for Improvement**: Identify 2-4 specific areas where the candidate can improve, with concrete examples from their answers.",
-      "3. **Suggestions**: Provide 3-5 actionable suggestions the candidate can follow to improve.",
-      "4. **Learning Resources**: Recommend 3-5 specific resources (books, courses, documentation, practice platforms) relevant to the topics where the candidate struggled.",
+      "1. **Strengths**: Identify 1-4 specific things the candidate did well, referencing actual technically correct explanations.",
+      "2. **Areas for Improvement**: Identify 2-4 specific technical gaps, misconceptions, or off-topic responses.",
+      "   - SPECIAL RULE FOR OFF-TOPIC / FILLER / GIBBERISH: If an answer was off-topic, random filler text, or failed to answer the question, explicitly state that the response did not address the technical topic asked rather than inventing partial credit.",
+      "3. **Suggestions**: Provide 3-5 actionable technical study steps to address their actual gaps.",
+      "4. **Learning Resources**: Recommend 3-5 specific resources (documentation, books, courses, practice platforms) relevant to the concepts where the candidate struggled.",
       "",
-      "Be specific — reference their actual answers, not generic advice.",
-      "Be encouraging — frame weaknesses as growth opportunities.",
+      "Be realistic and direct — base feedback on demonstrated technical depth, not fluff.",
       "",
       "=== OUTPUT FORMAT ===",
       "Return a single JSON object:",

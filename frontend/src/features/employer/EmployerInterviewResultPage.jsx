@@ -124,12 +124,6 @@ export default function EmployerInterviewResultPage() {
                 <p className="text-[var(--color-danger)] max-w-md opacity-80 mb-6">{error}</p>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => fetchResult()}
-                    className="px-5 py-2.5 bg-[var(--background-secondary)] hover:bg-[var(--border)] text-[var(--text-primary)] border border-[var(--border)] font-semibold rounded-xl transition-all text-sm flex items-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" /> Try Again
-                  </button>
-                  <button
                     onClick={handleErrorReEnroll}
                     disabled={isReEnrolling}
                     className="px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white font-semibold rounded-xl transition-all shadow-md text-sm flex items-center gap-2 disabled:opacity-50"

@@ -15,6 +15,8 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { GlassCard } from "../../ui/primitives/GlassCard";
+import { StatusBadge } from "../../ui/primitives/StatusBadge";
 
 const PreInterviewPage = () => {
   const { id } = useParams();

@@ -81,15 +81,16 @@ export class EvaluationPromptBuilder {
   static #buildSystemRole() {
     return [
       "=== SYSTEM ROLE ===",
-      "You are an experienced Senior Technical Interviewer responsible for evaluating candidates fairly and objectively.",
-      "You must evaluate the candidate's knowledge, reasoning, communication, and problem-solving ability based on the complete interview transcript below.",
-      "Be strict but fair. Base every score and observation on concrete evidence from the transcript.",
+      "You are a fair, expert Senior Technical Interviewer and Engineering Manager evaluating candidate performance.",
+      "Evaluate the candidate's technical knowledge, reasoning, and clarity objectively based on the transcript below.",
       "",
-      "=== PROFESSIONAL TONE & RULES ===",
-      "- Evaluate ONLY demonstrated knowledge. Do not assume knowledge they did not explicitly state.",
-      "- Calibrate your expectations based on the configured Experience Level.",
-      "- Do NOT reward long answers over technically correct, concise answers. Precision matters.",
-      "- Avoid vague phrases (e.g., 'Good understanding', 'Decent answer'). Provide concrete, evidence-backed observations tied to the interview concepts.",
+      "=== CRITICAL EVALUATION RULES ===",
+      "- SPEECH-TO-TEXT TRANSCRIPT TOLERANCE: Interview answers are transcribed from live spoken audio. Spoken responses naturally contain verbal stutters (e.g. 'uh', 'like', 'for example for example'), repeated words, or informal phrasing.",
+      "  -> CRITICAL: Look PAST speech-to-text noise, stutters, and verbal fillers. Evaluate the UNDERLYING TECHNICAL CONCEPTS, terminology, and correctness stated by the candidate.",
+      "  -> NEVER mark an answer as 'off-topic' or 'filler text' if the candidate actually explained valid technical concepts (e.g. React components, SPA, Event Loop, GET vs POST, MongoDB collections).",
+      "- FAIR TECHNICAL CREDIT: If a candidate correctly explains the core technical concept and key mechanics, award a STRONG score (7-10/10). Do not downgrade valid technical explanations over speech disfluencies.",
+      "- ONLY SCORE ZERO FOR COMPLETE NON-ANSWERS: Give a 0 score ONLY if the candidate provided no answer, stated 'I don't know', or talked about a completely unrelated non-technical topic (e.g. cooking, sports).",
+      "- ACCURATE OBSERVATIONS: State concrete technical observations based on what the candidate got right or missed. Avoid generic or inaccurate summaries.",
     ].join("\n");
   }
 
@@ -173,16 +174,19 @@ export class EvaluationPromptBuilder {
 
   static #buildScoringGuide() {
     return [
-      "=== SCORING GUIDE ===",
+      "=== FAIR & REALISTIC SCORING GUIDE ===",
       "Use the following scale for ALL scores (overall, per-dimension, and per-question):",
       "",
-      "9-10: Exceptional — Accurate explanations with practical examples, no mistakes.",
-      "7-8:  Good — Solid understanding with only minor gaps or mistakes.",
-      "5-6:  Basic — Demonstrates fundamental knowledge but has noticeable gaps.",
-      "3-4:  Weak — Multiple misconceptions or inability to explain clearly.",
-      "0-2:  Insufficient — Unable to demonstrate the required knowledge.",
+      "8-10: Strong / Exceptional — Accurately explains core technical concepts, key mechanisms, and relevant tools/methods.",
+      "6-7:  Good / Solid — Demonstrates correct understanding of the core concept with minor gaps or small omissions.",
+      "4-5:  Basic / Partial — Understands parts of the topic but has noticeable confusion or missing key details.",
+      "1-3:  Weak / Incorrect — Major technical inaccuracies, incorrect explanations, or severe misunderstandings.",
+      "0:    No Answer / Irrelevant — Candidate said nothing, stated 'I don't know', or spoke about an unrelated topic.",
       "",
-      "Scores must be numeric values between 0 and 10 (decimals allowed, e.g. 7.5).",
+      "SCORING RULES:",
+      "- Evaluate the TECHNICAL CONCEPTS expressed in the transcript. Ignore spoken audio stutters, repeated words, or informal speech-to-text phrasing.",
+      "- If the candidate identified key terms and core mechanics (e.g., Event Loop, React SPA & Components, GET vs POST/PUT/PATCH, MongoDB collections), reward them with a 7-10 score appropriately.",
+      "- Scores must be numeric values between 0 and 10 (decimals allowed, e.g. 7.5).",
     ].join("\n");
   }
 
