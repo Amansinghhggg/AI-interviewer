@@ -14,12 +14,32 @@ import {
   AlignLeft,
   BookOpen,
   Plus,
-  X,
   Sparkles,
-  Users,
   Briefcase,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { PageHeader } from "../../ui/primitives/PageHeader";
+import { SectionHeader } from "../../ui/primitives/SectionHeader";
+import { GlassCard } from "../../ui/primitives/GlassCard";
+import { Chip } from "../../ui/primitives/Chip";
+
+const PRESET_ROLES = [
+  "Full Stack Engineer",
+  "Frontend Developer",
+  "Backend Engineer",
+  "Data Scientist",
+  "DevOps Engineer",
+  "System Architect"
+];
+
+const PRESET_TOPICS = [
+  "React & Web Fundamentals",
+  "Node.js & Express",
+  "System Design",
+  "Python & Data Structures",
+  "SQL & Databases",
+  "REST & GraphQL APIs"
+];
 
 const createInterviewSchema = z.object({
   title: z
@@ -54,6 +74,8 @@ const CreateInterviewPage = () => {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createInterviewSchema),
@@ -63,11 +85,13 @@ const CreateInterviewPage = () => {
     },
   });
 
-  const addTopic = () => {
-    const trimmed = topicInput.trim();
+  const selectedRole = watch("jobRole");
+
+  const addTopic = (topicToAdd) => {
+    const trimmed = (topicToAdd || topicInput).trim();
     if (trimmed && !topics.includes(trimmed)) {
       setTopics([...topics, trimmed]);
-      setTopicInput("");
+      if (!topicToAdd) setTopicInput("");
     }
   };
 
@@ -82,9 +106,7 @@ const CreateInterviewPage = () => {
     }
   };
 
-
   const onSubmit = async (formData) => {
-
     setIsLoading(true);
     try {
       const { data } = await api.post("/interviews", {
@@ -108,42 +130,60 @@ const CreateInterviewPage = () => {
   const inputClasses = "flex w-full rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 px-4 py-3 text-sm font-bold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-md3)]/50 focus:border-[var(--color-primary-md3)] transition-all duration-300";
 
   return (
-    <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] pt-12 pb-24 font-['Inter']">
-      <div className="max-w-[800px] mx-auto px-4 md:px-6">
+    <div className="min-h-screen bg-transparent pt-6 pb-24 font-['Inter'] text-[var(--color-on-surface,#dae2fd)]">
+      <div className="max-w-[900px] mx-auto px-4 md:px-6 space-y-8">
 
+        {/* Back Link */}
         <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)] transition-colors mb-8 text-[11px] font-black uppercase tracking-widest"
+            className="inline-flex items-center gap-2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary-md3)] transition-colors text-xs font-black uppercase tracking-widest"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <h1 className="text-4xl font-black text-[var(--color-on-surface)] flex items-center gap-4 tracking-tight uppercase">
-            <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] flex items-center justify-center border border-[var(--color-primary-md3)]/20 shadow-[0_0_20px_rgba(139,92,246,0.15)]">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            Create Campaign
-          </h1>
-          <p className="text-[var(--color-on-surface-variant)] mt-3 text-sm font-bold uppercase tracking-widest">
-            Set up an AI-driven interview campaign and invite candidates.
-          </p>
-        </motion.div>
+        {/* Page Header */}
+        <PageHeader
+          badgeIcon={Sparkles}
+          badgeText="Campaign Creator"
+          title="Create Interview Campaign"
+          description="Configure candidate requirements, preset technical topics, and AI evaluation criteria."
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary-md3)]/5 rounded-full blur-[60px] pointer-events-none"></div>
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <GlassCard padding="p-6 md:p-8" glowEffect>
+              <SectionHeader
+                icon={Briefcase}
+                title="Campaign Essentials"
+                subtitle="Specify target job role, campaign title, and description."
+              />
 
-              <div className="space-y-8 relative z-10">
+              <div className="space-y-6">
+                {/* Preset Role Quick Select */}
+                <div>
+                  <label className="text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)] mb-2 block">
+                    Quick Preset Roles
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {PRESET_ROLES.map((role) => (
+                      <Chip
+                        key={role}
+                        label={role}
+                        selected={selectedRole === role}
+                        onClick={() => setValue("jobRole", role, { shouldValidate: true })}
+                      />
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                      <FileText className="w-4 h-4 text-[var(--color-primary-md3)]" />
-                      Organization
+                    <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                      <FileText className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
+                      Campaign Title
                     </label>
                     <input
                       {...register("title")}
@@ -151,14 +191,14 @@ const CreateInterviewPage = () => {
                       className={inputClasses}
                     />
                     {errors.title && (
-                      <p className="mt-2 text-xs font-bold text-[var(--color-error)] flex items-center gap-1">
-                        <span>•</span> {errors.title.message}
+                      <p className="mt-2 text-xs font-bold text-rose-400">
+                        • {errors.title.message}
                       </p>
                     )}
                   </div>
                   <div>
-                    <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                      <Briefcase className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                    <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                      <Briefcase className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                       Job Role
                     </label>
                     <input
@@ -167,16 +207,16 @@ const CreateInterviewPage = () => {
                       className={inputClasses}
                     />
                     {errors.jobRole && (
-                      <p className="mt-2 text-xs font-bold text-[var(--color-error)] flex items-center gap-1">
-                        <span>•</span> {errors.jobRole.message}
+                      <p className="mt-2 text-xs font-bold text-rose-400">
+                        • {errors.jobRole.message}
                       </p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                    <AlignLeft className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                  <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                    <AlignLeft className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                     Description <span className="text-[var(--color-on-surface-variant)]/50">(optional)</span>
                   </label>
                   <textarea
@@ -186,43 +226,60 @@ const CreateInterviewPage = () => {
                     placeholder="Brief description of this interview campaign..."
                   />
                   {errors.description && (
-                    <p className="mt-2 text-xs font-bold text-[var(--color-error)] flex items-center gap-1">
-                      <span>•</span> {errors.description.message}
+                    <p className="mt-2 text-xs font-bold text-rose-400">
+                      • {errors.description.message}
                     </p>
                   )}
                 </div>
 
+                {/* Technical Topics Section */}
                 <div>
-                  <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                    <Tag className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                  <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                    <Tag className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                     Technical Topics
                   </label>
-                  <div className="flex gap-3 mb-4">
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {PRESET_TOPICS.map((preset) => (
+                      <Chip
+                        key={preset}
+                        label={preset}
+                        selected={topics.includes(preset)}
+                        onClick={() => {
+                          if (topics.includes(preset)) removeTopic(preset);
+                          else addTopic(preset);
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3 mb-3">
                     <input
                       type="text"
                       value={topicInput}
                       onChange={(e) => setTopicInput(e.target.value)}
                       onKeyDown={handleTopicKeyDown}
-                      placeholder="e.g., React, System Design"
+                      placeholder="Add custom topic (e.g. Docker, GraphQL)"
                       className={inputClasses}
                     />
-                    <button type="button" onClick={addTopic} className="px-6 py-3 bg-[var(--color-surface-container-highest)] hover:bg-[var(--color-primary-md3)]/20 text-[var(--color-on-surface)] hover:text-[var(--color-primary-md3)] border border-[var(--color-outline-variant)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shrink-0">
-                      <Plus className="w-4 h-4 mr-2" /> Add
+                    <button
+                      type="button"
+                      onClick={() => addTopic()}
+                      className="px-5 py-2.5 bg-[var(--color-primary-md3)]/15 text-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)] hover:text-white border border-[var(--color-primary-md3)]/25 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center shrink-0"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" /> Add
                     </button>
                   </div>
+
                   {topics.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {topics.map((topic) => (
-                        <div key={topic} className="px-3 py-1.5 bg-[var(--color-surface-variant)]/50 border border-[var(--color-outline-variant)]/30 rounded-lg flex items-center gap-2 text-xs font-bold text-[var(--color-on-surface)]">
-                          {topic}
-                          <button
-                            type="button"
-                            onClick={() => removeTopic(topic)}
-                            className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <Chip
+                          key={topic}
+                          label={topic}
+                          selected
+                          onRemove={() => removeTopic(topic)}
+                        />
                       ))}
                     </div>
                   )}
@@ -230,8 +287,8 @@ const CreateInterviewPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                      <BookOpen className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                    <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                      <BookOpen className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                       Experience Level
                     </label>
                     <select
@@ -245,8 +302,8 @@ const CreateInterviewPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                      <Clock className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                    <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-2">
+                      <Clock className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                       Duration (Minutes)
                     </label>
                     <input
@@ -257,64 +314,62 @@ const CreateInterviewPage = () => {
                       className={inputClasses}
                     />
                     {errors.duration && (
-                      <p className="mt-2 text-xs font-bold text-[var(--color-error)] flex items-center gap-1">
-                        <span>•</span> {errors.duration.message}
+                      <p className="mt-2 text-xs font-bold text-rose-400">
+                        • {errors.duration.message}
                       </p>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-secondary)]/5 rounded-full blur-[60px] pointer-events-none"></div>
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <GlassCard padding="p-6 md:p-8">
+              <SectionHeader
+                icon={Sparkles}
+                title="AI System Instructions"
+                subtitle="Provide custom prompt focus areas for the AI interviewer engine."
+              />
 
-              <div className="space-y-8 relative z-10">
-                <div>
-                  <label className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface)] mb-3">
-                    <AlignLeft className="w-4 h-4 text-[var(--color-secondary)]" />
-                    AI System Instructions <span className="text-[var(--color-on-surface-variant)]/50">(optional)</span>
-                  </label>
-                  <textarea
-                    {...register("instructions")}
-                    rows={4}
-                    className={`${inputClasses} resize-none`}
-                    placeholder="Provide specific guidelines for the AI Interviewer (e.g., 'Focus heavily on React performance optimization...')"
-                  />
-                  {errors.instructions && (
-                    <p className="mt-2 text-xs font-bold text-[var(--color-error)] flex items-center gap-1">
-                      <span>•</span> {errors.instructions.message}
-                    </p>
-                  )}
-                </div>
+              <div>
+                <textarea
+                  {...register("instructions")}
+                  rows={4}
+                  className={`${inputClasses} resize-none`}
+                  placeholder="Provide specific guidelines for the AI Interviewer (e.g., 'Focus heavily on React performance optimization and custom hooks...')"
+                />
+                {errors.instructions && (
+                  <p className="mt-2 text-xs font-bold text-rose-400">
+                    • {errors.instructions.message}
+                  </p>
+                )}
               </div>
-            </div>
+            </GlassCard>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <div className="flex justify-end gap-4 pt-6">
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="flex justify-end gap-4 pt-4">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-8 py-4 bg-transparent hover:bg-[var(--color-surface-variant)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors"
+                className="px-6 py-3.5 bg-transparent hover:bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] border border-[var(--color-outline-variant)]/30 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-8 py-4 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-lg shadow-[var(--color-primary-md3)]/30 flex items-center justify-center min-w-[220px]"
+                className="px-8 py-3.5 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-[var(--color-primary-md3)]/25 flex items-center justify-center min-w-[200px]"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Creating...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5 mr-3" />
+                    <Sparkles className="w-4 h-4 mr-2" />
                     Create Campaign
                   </>
                 )}

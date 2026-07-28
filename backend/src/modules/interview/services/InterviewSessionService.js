@@ -412,7 +412,6 @@ class InterviewSessionService {
           provider: "none",
           status: "SKIPPED",
           uploadedAt: new Date()
-p
         };
         await session.save();
         return session;

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, User } from 'lucide-react';
+import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, Menu, X, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -8,6 +8,7 @@ export default function CandidateLayout() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -19,11 +20,87 @@ export default function CandidateLayout() {
         }
     };
 
+    const navItems = [
+        { label: "Dashboard", icon: Home, path: "/candidate/dashboard" },
+        { label: "Join via Code", icon: Key, path: "/candidate/join" },
+        { label: "Mock Interview Studio", icon: Bot, path: "/candidate/mock-interview" },
+        { label: "Manage Subscriptions", icon: CreditCard, path: "/candidate/subscriptions" },
+    ];
+
     return (
-        <div className="flex min-h-screen bg-[var(--color-background-md3,var(--background))] text-[var(--color-on-background,var(--text-primary))] font-['Inter']">
+        <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] text-[var(--color-on-background,var(--text-primary))] font-['Inter'] flex flex-col md:flex-row">
             
-            {/* Slidable Fixed Sidebar */}
-            <aside className="group w-20 hover:w-72 border-r border-[var(--color-surface-variant,var(--border))] bg-[var(--color-surface-container-lowest,var(--card))] flex flex-col fixed bottom-0 top-0 left-0 z-40 transition-all duration-300 overflow-hidden shadow-2xl">
+            {/* Mobile Header Bar (visible on < md screens) */}
+            <header className="md:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[var(--color-surface-container-lowest,var(--card))]/90 backdrop-blur-md border-b border-[var(--color-surface-variant,var(--border))]">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[var(--color-primary-md3)] flex items-center justify-center text-white font-bold text-xs shadow-md shadow-[var(--color-primary-md3)]/30">
+                        IA
+                    </div>
+                    <div>
+                        <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">Intervu AI</h1>
+                        <p className="text-[9px] text-[var(--color-on-surface-variant)] uppercase tracking-widest font-bold">Candidate</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="p-2 rounded-xl bg-[var(--color-surface-variant)]/50 text-[var(--color-on-surface)] hover:text-[var(--color-primary-md3)] transition-colors border border-[var(--color-outline-variant)]/30"
+                    aria-label="Toggle navigation menu"
+                >
+                    {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+            </header>
+
+            {/* Mobile Dropdown Navigation Drawer */}
+            {mobileMenuOpen && (
+                <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-black/60 backdrop-blur-sm flex flex-col justify-between p-4 animate-in fade-in duration-200">
+                    <nav className="space-y-2 bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] p-4 rounded-3xl shadow-2xl">
+                        {navItems.map((item) => (
+                            <button
+                                key={item.path}
+                                onClick={() => {
+                                    navigate(item.path);
+                                    setMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                                    location.pathname === item.path
+                                        ? 'bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30'
+                                        : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50 hover:text-[var(--color-on-surface)]'
+                                }`}
+                            >
+                                <item.icon className="w-4 h-4" />
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
+                    </nav>
+
+                    <div className="bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] p-4 rounded-3xl shadow-2xl space-y-2">
+                        <button
+                            onClick={() => {
+                                navigate('/candidate/profile');
+                                setMobileMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                                location.pathname === '/candidate/profile'
+                                    ? 'bg-[var(--color-primary-md3)] text-white'
+                                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50'
+                            }`}
+                        >
+                            <User className="w-4 h-4" />
+                            <span>Profile</span>
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Desktop Expandable Sidebar (hidden on < md screens) */}
+            <aside className="hidden md:flex group w-20 hover:w-72 border-r border-[var(--color-surface-variant,var(--border))] bg-[var(--color-surface-container-lowest,var(--card))] flex-col fixed bottom-0 top-0 left-0 z-40 transition-all duration-300 overflow-hidden shadow-2xl">
                 <div className="flex items-center gap-3 p-6 mb-4 min-w-[288px]">
                     <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--color-primary-md3)] flex items-center justify-center text-white font-bold shadow-lg shadow-[var(--color-primary-md3)]/30">
                         IA
@@ -35,30 +112,31 @@ export default function CandidateLayout() {
                 </div>
 
                 <nav className="flex-1 space-y-2 px-4 min-w-[288px]">
-                    <button onClick={() => navigate('/candidate/dashboard')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/dashboard' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <Home className="w-6 h-6 shrink-0" />
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Dashboard</span>
-                    </button>
-                    
-                    <button onClick={() => navigate('/candidate/join')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/join' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <Key className="w-6 h-6 shrink-0" />
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Join via Code</span>
-                    </button>
-
-                    <button onClick={() => navigate('/candidate/mock-interview')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/mock-interview' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <Bot className="w-6 h-6 shrink-0" />
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Give A Mock Interview</span>
-                    </button>
-
-                    <button onClick={() => navigate('/candidate/subscriptions')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/subscriptions' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
-                        <CreditCard className="w-6 h-6 shrink-0" />
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Manage Subscriptions</span>
-                    </button>
-
+                    {navItems.map((item) => (
+                        <button
+                            key={item.path}
+                            onClick={() => navigate(item.path)}
+                            className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
+                                location.pathname === item.path
+                                    ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                                    : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
+                            }`}
+                        >
+                            <item.icon className="w-6 h-6 shrink-0" />
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
+                        </button>
+                    ))}
                 </nav>
 
                 <div className="p-4 border-t border-[var(--color-surface-variant,var(--border))] space-y-2 min-w-[288px]">
-                    <button onClick={() => navigate('/candidate/profile')} className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/profile' ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]' : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'}`}>
+                    <button
+                        onClick={() => navigate('/candidate/profile')}
+                        className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
+                            location.pathname === '/candidate/profile'
+                                ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                                : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
+                        }`}
+                    >
                         {user?.profilePicture ? (
                             <img src={user.profilePicture} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
                         ) : (
@@ -80,7 +158,7 @@ export default function CandidateLayout() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 ml-20 transition-all duration-300 relative z-10">
+            <main className="flex-1 md:ml-20 transition-all duration-300 relative z-10 w-full overflow-x-hidden">
                 <Outlet />
             </main>
         </div>
