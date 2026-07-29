@@ -166,10 +166,10 @@ const ConversationController = ({
   // ─── Render ───────────────────────────────────────
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 h-full w-full">
-      {/* Intervu AI Section */}
+      {/* InterviewOS Section */}
       <section
         className="border-r border-[var(--border)] bg-[#0a0a0b] flex flex-col relative overflow-hidden h-full"
-        aria-label="Intervu AI"
+        aria-label="InterviewOS"
       >
         <InterviewAI
           currentQuestion={currentQuestion}

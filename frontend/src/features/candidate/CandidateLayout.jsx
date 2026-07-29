@@ -37,7 +37,7 @@ export default function CandidateLayout() {
                         IA
                     </div>
                     <div>
-                        <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">Intervu AI</h1>
+                        <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">InterviewOS</h1>
                         <p className="text-[9px] text-[var(--color-on-surface-variant)] uppercase tracking-widest font-bold">Candidate</p>
                     </div>
                 </div>
@@ -106,7 +106,7 @@ export default function CandidateLayout() {
                         IA
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                        <h1 className="text-sm font-black tracking-tight text-[var(--color-on-surface,var(--text-primary))]">Intervu AI</h1>
+                        <h1 className="text-sm font-black tracking-tight text-[var(--color-on-surface,var(--text-primary))]">InterviewOS</h1>
                         <p className="text-[10px] text-[var(--color-on-surface-variant,var(--text-secondary))] uppercase tracking-widest font-bold">Candidate Portal</p>
                     </div>
                 </div>

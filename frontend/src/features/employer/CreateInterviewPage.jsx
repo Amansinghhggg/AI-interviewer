@@ -337,7 +337,7 @@ const CreateInterviewPage = () => {
                   {...register("instructions")}
                   rows={4}
                   className={`${inputClasses} resize-none`}
-                  placeholder="Provide specific guidelines for the AI Interviewer (e.g., 'Focus heavily on React performance optimization and custom hooks...')"
+                  placeholder="Provide specific guidelines for the InterviewOS (e.g., 'Focus heavily on React performance optimization and custom hooks...')"
                 />
                 {errors.instructions && (
                   <p className="mt-2 text-xs font-bold text-rose-400">

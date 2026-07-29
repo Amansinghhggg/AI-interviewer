@@ -103,7 +103,7 @@ export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => 
                                 </div>
                                 <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
                                     <Building2 className="w-4 h-4" />
-                                    <span className="text-[11px] font-black uppercase tracking-wider">Intervu AI</span>
+                                    <span className="text-[11px] font-black uppercase tracking-wider">InterviewOS</span>
                                 </div>
                                 <div className="px-4 py-1.5 bg-[var(--color-surface-container-high)] rounded-full flex items-center gap-2 border border-[var(--color-outline-variant)]/30 text-[var(--color-on-surface-variant)]">
                                     <Calendar className="w-4 h-4" />

@@ -30,7 +30,7 @@ const InterviewAI = ({
       <div className="flex items-center gap-2 mb-4">
         <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
         <div className="text-[var(--text-secondary)] text-sm font-bold uppercase tracking-[0.2em]">
-          Intervu AI
+          InterviewOS
         </div>
       </div>
 

@@ -45,7 +45,7 @@ export default function AIAvatar({ state = "idle", className }) {
     >
       <motion.img
         src="/images/ai-avatar.png"
-        alt="AI Interviewer"
+        alt="InterviewOS"
         className="w-full h-full object-cover object-top"
         variants={imageVariants}
         animate={state}

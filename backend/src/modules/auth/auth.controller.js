@@ -67,7 +67,7 @@ const signup = async (req, res, next) => {
     if (validated.role === "candidate" && req.file) {
       try {
         const result = await StorageService.uploadResume(req.file.buffer, {
-          folder: `intervu/resumes/${user._id}`,
+          folder: `interviewos/resumes/${user._id}`,
         });
 
         user.resume = {
