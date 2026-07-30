@@ -85,7 +85,7 @@ export interface AvatarPlayerProps {
  * 2. Listening / Idle   -> idle.mp4
  * 3. Thinking / Processing -> still.jpg
  * 
- * Uses 200ms ease-in-out opacity transitions across all layers without unmounting.
+ * Uses smooth opacity transitions across all layers without unmounting.
  */
 export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
   isSpeaking = false,
@@ -128,10 +128,19 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
     }
   };
 
-  // Mount effect: Start and loop both videos continuously in background
+  // Mount & src change effect: Check ready states and ensure continuous video playback
   useEffect(() => {
-    playVideoSafely(idleVideoRef.current);
-    playVideoSafely(talkingVideoRef.current);
+    const idleEl = idleVideoRef.current;
+    const talkingEl = talkingVideoRef.current;
+
+    if (idleEl) {
+      if (idleEl.readyState >= 1) setIsIdleLoaded(true);
+      playVideoSafely(idleEl);
+    }
+    if (talkingEl) {
+      if (talkingEl.readyState >= 1) setIsTalkingLoaded(true);
+      playVideoSafely(talkingEl);
+    }
   }, [idleVideoSrc, talkingVideoSrc]);
 
   const handleIdleCanPlay = () => setIsIdleLoaded(true);
@@ -164,8 +173,16 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
     targetState = 'idle';
   }
 
-  // Bonus safeguard: If speaking requested but video not ready, fallback to idle
-  const activeState = (targetState === 'speaking' && !isTalkingLoaded) ? 'idle' : targetState;
+  const activeState = targetState;
+
+  // Whenever activeState changes, trigger playback on the target layer
+  useEffect(() => {
+    if (activeState === 'speaking') {
+      playVideoSafely(talkingVideoRef.current);
+    } else if (activeState === 'idle') {
+      playVideoSafely(idleVideoRef.current);
+    }
+  }, [activeState]);
 
   return (
     <div
@@ -186,6 +203,7 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
         disablePictureInPicture
         onCanPlay={handleIdleCanPlay}
         onLoadedData={handleIdleCanPlay}
+        onPlay={handleIdleCanPlay}
         onError={() => onError?.(new Error(`Failed to load idle video: ${idleVideoSrc}`))}
         onContextMenu={(e) => e.preventDefault()}
         aria-label="AI Interviewer Listening State"
@@ -207,6 +225,7 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
         disablePictureInPicture
         onCanPlay={handleTalkingCanPlay}
         onLoadedData={handleTalkingCanPlay}
+        onPlay={handleTalkingCanPlay}
         onError={() => onError?.(new Error(`Failed to load talking video: ${talkingVideoSrc}`))}
         onContextMenu={(e) => e.preventDefault()}
         aria-label="AI Interviewer Talking State"

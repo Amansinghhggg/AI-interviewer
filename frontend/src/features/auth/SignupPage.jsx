@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 import {
   Mail,
@@ -39,7 +40,7 @@ const signupSchema = z
   });
 
 const SignupPage = () => {
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +60,24 @@ const SignupPage = () => {
   });
 
   const selectedRole = watch("role");
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse.credential) return;
+    setIsLoading(true);
+    try {
+      const data = await googleLogin(credentialResponse.credential, selectedRole);
+      toast.success("Account created via Google!");
+      if (data.user.role === "employer") {
+        navigate("/employer/dashboard");
+      } else {
+        navigate("/candidate/mock-interview");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Google signup failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const onSubmit = async (formData) => {
     if (selectedRole === "candidate" && !resumeFile) {
@@ -404,6 +423,25 @@ const SignupPage = () => {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center justify-center gap-3 relative z-10">
+            <div className="h-px bg-[var(--color-outline-variant)]/30 flex-1" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)]">OR</span>
+            <div className="h-px bg-[var(--color-outline-variant)]/30 flex-1" />
+          </div>
+
+          {/* Google Signup Button */}
+          <div className="flex justify-center relative z-10">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error("Google Sign-Up failed or was closed")}
+              theme="filled_blue"
+              size="large"
+              shape="pill"
+              text="signup_with"
+            />
+          </div>
 
           {/* Sign in link */}
           <div className="mt-8 text-center pt-8 border-t border-[var(--color-outline-variant)]/30 relative z-10">

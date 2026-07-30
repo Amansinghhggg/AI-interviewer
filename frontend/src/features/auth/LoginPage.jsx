@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 import {
   Mail,
@@ -20,10 +21,28 @@ const loginSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse.credential) return;
+    setIsLoading(true);
+    try {
+      const data = await googleLogin(credentialResponse.credential);
+      toast.success(`Welcome back, ${data.user.name}!`);
+      if (data.user.role === "employer") {
+        navigate("/employer/dashboard");
+      } else {
+        navigate("/candidate/mock-interview");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Google login failed.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const {
     register,
@@ -62,7 +81,7 @@ const LoginPage = () => {
       <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-[var(--color-primary-md3)] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
       <div className="w-full max-w-[1000px] mx-4 z-10 grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
-        
+
         {/* Left side: Branding / Copy */}
         <div className="hidden md:flex flex-col pr-8 lg:pr-12">
           <div className="flex items-center gap-4 mb-12">
@@ -78,9 +97,9 @@ const LoginPage = () => {
               </span>
             </div>
           </div>
-          
+
           <h1 className="text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tight">
-            The future of <br/>
+            The future of <br />
             <span className="text-[var(--color-primary-md3)]">hiring is here.</span>
           </h1>
           <p className="text-[var(--color-on-surface-variant)] text-lg leading-relaxed mb-8 max-w-md">
@@ -187,6 +206,25 @@ const LoginPage = () => {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="my-6 flex items-center justify-center gap-3 relative z-10">
+            <div className="h-px bg-[var(--color-outline-variant)]/30 flex-1" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)]">OR</span>
+            <div className="h-px bg-[var(--color-outline-variant)]/30 flex-1" />
+          </div>
+
+          {/* Google Login Button */}
+          <div className="flex justify-center relative z-10">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => toast.error("Google Sign-In failed or was closed")}
+              theme="filled_blue"
+              size="large"
+              shape="pill"
+              text="continue_with"
+            />
+          </div>
 
           {/* Sign up link */}
           <div className="mt-8 text-center pt-8 border-t border-[var(--color-outline-variant)]/30 relative z-10">

@@ -2,6 +2,12 @@ import jwt from "jsonwebtoken";
 import User from "../users/user.model.js";
 import { signupSchema, loginSchema } from "./auth.validator.js";
 import StorageService from "../../shared/services/StorageService.js";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
 
 
 
@@ -248,4 +254,51 @@ const updatePassword = async (req, res, next) => {
   }
 };
 
-export { signup, login, logout, getMe, updateProfile, updatePassword };
+// @desc    Google OAuth login / signup
+// @route   POST /api/auth/google
+const googleAuth = async (req, res, next) => {
+  try {
+    const { token, role = "candidate" } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ success: false, message: "Google token is required" });
+    }
+
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+      });
+      payload = ticket.getPayload();
+    } catch (err) {
+      return res.status(400).json({ success: false, message: "Invalid Google token: " + err.message });
+    }
+
+    const { email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Google account does not provide email" });
+    }
+
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      const dummyPassword = Math.random().toString(36).slice(-12) + "G!1a";
+      user = await User.create({
+        name: name || "Google User",
+        email: email.toLowerCase(),
+        password: dummyPassword,
+        role: role === "employer" ? "employer" : "candidate",
+        profilePicture: picture || "",
+        authProvider: "google",
+        isVerified: false,
+      });
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { signup, login, logout, getMe, updateProfile, updatePassword, googleAuth };

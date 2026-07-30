@@ -45,7 +45,9 @@ export default function AIAvatar({ state = "idle", className }) {
       )}
     >
       <AvatarPlayer
+        mode={state}
         isSpeaking={state === "speaking"}
+        isThinking={state === "thinking"}
         aspectRatio="1 / 1"
         className="w-full h-full rounded-none"
       />
