@@ -1,5 +1,7 @@
 import MockInterviewService from "../services/MockInterviewService.js";
 import InterviewRepository from "../repositories/InterviewRepository.js";
+import User from "../../users/user.model.js";
+import Transaction from "../../payments/models/Transaction.js";
 
 /**
  * @desc    Create a candidate mock interview
@@ -16,6 +18,45 @@ export const createMockInterview = async (req, res, next) => {
       });
     }
 
+    const duration = Math.max(1, parseInt(req.body.duration, 10) || 15);
+    const requiredCredits = duration; // 1 Credit = 1 Minute
+
+    // Fetch fresh user from DB
+    const user = await User.findById(req.user._id);
+    const availableCredits = user?.credits?.availableCredits ?? 15;
+
+    if (availableCredits < requiredCredits) {
+      return res.status(402).json({
+        success: false,
+        code: "INSUFFICIENT_CREDITS",
+        message: `Insufficient credits. You have ${availableCredits} credits available, but a ${duration}-minute session requires ${requiredCredits} credits.`,
+        availableCredits,
+        requiredCredits,
+      });
+    }
+
+    // Upfront Atomic Deduction
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $inc: {
+          "credits.availableCredits": -requiredCredits,
+          "credits.totalUsedCredits": requiredCredits,
+        },
+      },
+      { new: true }
+    );
+
+    // Audit Log Transaction
+    await Transaction.create({
+      userId: req.user._id,
+      type: "USAGE",
+      credits: -requiredCredits,
+      amount: 0,
+      status: "paid",
+      description: `Mock Interview: ${jobRole.trim()} (${duration} Mins)`,
+    });
+
     const mockInterview = await MockInterviewService.createMockInterview(
       req.user._id,
       req.user.email,
@@ -25,6 +66,7 @@ export const createMockInterview = async (req, res, next) => {
     res.status(201).json({
       success: true,
       interview: mockInterview,
+      remainingCredits: updatedUser.credits.availableCredits,
     });
   } catch (error) {
     next(error);

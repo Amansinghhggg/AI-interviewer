@@ -54,7 +54,7 @@ const PRESET_TOPICS = [
 ];
 
 export default function MockInterviewPage() {
-  const { user } = useAuth();
+  const { user, checkAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.tab || "create"); // 'create' or 'history'
@@ -68,6 +68,10 @@ export default function MockInterviewPage() {
   const [duration, setDuration] = useState(15);
   const [instructions, setInstructions] = useState("");
   const [isLaunching, setIsLaunching] = useState(false);
+
+  // Insufficient Credits Modal State
+  const [showInsufficientCreditsModal, setShowInsufficientCreditsModal] = useState(false);
+  const [requiredCreditsNeeded, setRequiredCreditsNeeded] = useState(15);
 
   // History & Pagination State
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -157,8 +161,16 @@ export default function MockInterviewPage() {
       return;
     }
 
+    // Upfront Frontend Credit Check
+    const availableCredits = user?.credits?.availableCredits ?? 15;
+    if (availableCredits < duration) {
+      setRequiredCreditsNeeded(duration);
+      setShowInsufficientCreditsModal(true);
+      return;
+    }
+
     setIsLaunching(true);
-    const toastId = toast.loading("Initializing AI Mock Interview...");
+    const toastId = toast.loading("Deducting credits & initializing AI Mock Interview...");
 
     try {
       const data = await mockInterviewService.createMockInterview({
@@ -170,14 +182,20 @@ export default function MockInterviewPage() {
       });
 
       if (data.success && data.interview?._id) {
-        toast.success("Mock Interview ready! Launching...", { id: toastId });
-        // Navigate to mock-specific prepare page (combined details + system checks)
+        if (checkAuth) await checkAuth();
+        toast.success(`Deducted ${duration} Credits! Launching session...`, { id: toastId });
         navigate(`/candidate/mock-interview/${data.interview._id}/prepare`);
       } else {
         toast.error("Failed to create mock interview", { id: toastId });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error launching mock interview", { id: toastId });
+      toast.dismiss(toastId);
+      if (error.response?.status === 402 || error.response?.data?.code === "INSUFFICIENT_CREDITS") {
+        setRequiredCreditsNeeded(duration);
+        setShowInsufficientCreditsModal(true);
+      } else {
+        toast.error(error.response?.data?.message || "Error launching mock interview");
+      }
     } finally {
       setIsLaunching(false);
     }
@@ -1011,6 +1029,64 @@ export default function MockInterviewPage() {
                 </div>
               </div>
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Insufficient Credits Modal Popup */}
+      <AnimatePresence>
+        {showInsufficientCreditsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-[var(--color-surface-container-low)] border border-amber-500/40 p-6 md:p-8 rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden text-center space-y-6"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                <Coins className="w-8 h-8" />
+              </div>
+
+              <div>
+                <h3 className="text-xl font-black text-[var(--color-on-surface)] uppercase tracking-tight">
+                  Insufficient Practice Credits
+                </h3>
+                <p className="text-xs text-[var(--color-on-surface-variant)] mt-2">
+                  You need <strong className="text-amber-400">{requiredCreditsNeeded} Credits</strong> to start this {duration}-minute session, but your wallet balance is <strong className="text-indigo-400">{user?.credits?.availableCredits ?? 0} Credits</strong>.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-[var(--color-surface-container-lowest)] p-4 rounded-2xl border border-[var(--color-outline-variant)]/30 text-left">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-on-surface-variant)] block">Available</span>
+                  <span className="text-lg font-black text-indigo-400">{user?.credits?.availableCredits ?? 0} Credits</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-on-surface-variant)] block">Required</span>
+                  <span className="text-lg font-black text-amber-400">{requiredCreditsNeeded} Credits</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowInsufficientCreditsModal(false)}
+                  className="w-1/2 py-3 rounded-xl border border-[var(--color-outline-variant)]/40 text-[var(--color-on-surface-variant)] text-xs font-bold uppercase tracking-wider hover:bg-[var(--color-surface-container-high)] transition-all"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowInsufficientCreditsModal(false);
+                    navigate("/candidate/subscriptions");
+                  }}
+                  className="w-1/2 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25"
+                >
+                  <Coins className="w-4 h-4" />
+                  <span>Top-up Credits</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
