@@ -41,7 +41,7 @@ const LoginPage = () => {
       if (data.user.role === "employer") {
         navigate("/employer/dashboard");
       } else {
-        navigate("/candidate/dashboard");
+        navigate("/candidate/mock-interview");
       }
     } catch (error) {
       toast.error(

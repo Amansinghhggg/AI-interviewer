@@ -54,7 +54,7 @@ function App() {
                 to={
                   user.role === "employer"
                     ? "/employer/dashboard"
-                    : "/candidate/dashboard"
+                    : "/candidate/mock-interview"
                 }
                 replace
               />
@@ -71,7 +71,7 @@ function App() {
                 to={
                   user.role === "employer"
                     ? "/employer/dashboard"
-                    : "/candidate/dashboard"
+                    : "/candidate/mock-interview"
                 }
                 replace
               />
@@ -93,9 +93,10 @@ function App() {
 
         {/* Candidate Routes */}
         <Route element={<ProtectedRoute role="candidate"><CandidateLayout /></ProtectedRoute>}>
+          <Route path="/candidate" element={<Navigate to="/candidate/mock-interview" replace />} />
+          <Route path="/candidate/mock-interview" element={<MockInterviewPage />} />
           <Route path="/candidate/dashboard" element={<CandidateDashboard />} />
           <Route path="/candidate/join" element={<JoinInterviewPage />} />
-          <Route path="/candidate/mock-interview" element={<MockInterviewPage />} />
           <Route path="/candidate/mock-interview/:id/prepare" element={<MockPreInterviewPage />} />
           <Route path="/candidate/interviews/:id" element={<InterviewInstructionsPage />} />
           <Route path="/candidate/interviews/:id/start" element={<PreInterviewPage />} />
