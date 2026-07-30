@@ -17,6 +17,8 @@ import {
 import { motion } from "framer-motion";
 import { GlassCard } from "../../ui/primitives/GlassCard";
 import { StatusBadge } from "../../ui/primitives/StatusBadge";
+import { useAuth } from "../../context/AuthContext";
+import ResumeUploadModal from "./components/ResumeUploadModal";
 
 const PreInterviewPage = () => {
   const { id } = useParams();
@@ -92,8 +94,10 @@ const PreInterviewPage = () => {
   const allChecksPassed = Object.values(checks).every(check => check.status === "success");
   const canStart = allChecksPassed && agreed;
 
-  const handleStartInterview = async () => {
-    if (!canStart) return;
+  const { user } = useAuth();
+  const [showResumeModal, setShowResumeModal] = useState(false);
+
+  const startInterviewSession = async () => {
     setLoading(true);
 
     try {
@@ -115,6 +119,17 @@ const PreInterviewPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartInterview = async () => {
+    if (!canStart) return;
+
+    if (user?.role === "candidate" && !user?.resume?.url) {
+      setShowResumeModal(true);
+      return;
+    }
+
+    startInterviewSession();
   };
 
   const getStatusDisplay = (status, text) => {
@@ -274,6 +289,15 @@ const PreInterviewPage = () => {
             )}
           </GlassCard>
         </motion.div>
+
+        <ResumeUploadModal
+          isOpen={showResumeModal}
+          onSuccess={() => {
+            setShowResumeModal(false);
+            startInterviewSession();
+          }}
+          onClose={() => setShowResumeModal(false)}
+        />
       </div>
     </div>
   );

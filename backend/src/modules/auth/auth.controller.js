@@ -33,6 +33,8 @@ const sendTokenResponse = (user, statusCode, res) => {
       role: user.role,
       isVerified: user.isVerified ?? false,
       profilePicture: user.profilePicture,
+      authProvider: user.authProvider,
+      resume: user.resume || null,
       credits: user.credits || { availableCredits: 15, totalBonusCredits: 0, totalPurchasedCredits: 0, totalUsedCredits: 0 },
       subscription: user.subscription || { planId: "FREE", status: "none" },
     },
@@ -176,6 +178,7 @@ const getMe = async (req, res) => {
       isVerified: req.user.isVerified ?? false,
       profilePicture: req.user.profilePicture,
       authProvider: req.user.authProvider,
+      resume: req.user.resume || null,
       credits: req.user.credits || { availableCredits: 15, totalBonusCredits: 0, totalPurchasedCredits: 0, totalUsedCredits: 0 },
       subscription: req.user.subscription || { planId: "FREE", status: "none" },
     },
@@ -288,11 +291,25 @@ const googleAuth = async (req, res, next) => {
         name: name || "Google User",
         email: email.toLowerCase(),
         password: dummyPassword,
-        role: role === "employer" ? "employer" : "candidate",
+        role: null, // Role remains null until explicitly selected on /select-role
         profilePicture: picture || "",
         authProvider: "google",
         isVerified: false,
       });
+    } else {
+      // If existing user logs in with Google, ensure profilePicture and authProvider are updated
+      let isModified = false;
+      if (picture && (!user.profilePicture || user.profilePicture !== picture)) {
+        user.profilePicture = picture;
+        isModified = true;
+      }
+      if (user.authProvider !== "google") {
+        user.authProvider = "google";
+        isModified = true;
+      }
+      if (isModified) {
+        await user.save();
+      }
     }
 
     sendTokenResponse(user, 200, res);
@@ -301,4 +318,28 @@ const googleAuth = async (req, res, next) => {
   }
 };
 
-export { signup, login, logout, getMe, updateProfile, updatePassword, googleAuth };
+// @desc    Select account role (employer or candidate)
+// @route   POST /api/auth/select-role
+const selectRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+
+    if (!["employer", "candidate"].includes(role)) {
+      return res.status(400).json({ success: false, message: "Invalid role selected. Must be employer or candidate." });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.role = role;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { signup, login, logout, getMe, updateProfile, updatePassword, googleAuth, selectRole };

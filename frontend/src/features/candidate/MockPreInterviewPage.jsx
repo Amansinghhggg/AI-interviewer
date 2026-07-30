@@ -20,6 +20,8 @@ import {
   Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
+import ResumeUploadModal from "./components/ResumeUploadModal";
 
 const MockPreInterviewPage = () => {
   const { id } = useParams();
@@ -109,8 +111,10 @@ const MockPreInterviewPage = () => {
 
   const allChecksPassed = Object.values(checks).every(check => check.status === "success");
 
-  const handleStartInterview = async () => {
-    if (!allChecksPassed) return;
+  const { user } = useAuth();
+  const [showResumeModal, setShowResumeModal] = useState(false);
+
+  const startInterviewSession = async () => {
     setLoading(true);
 
     try {
@@ -131,6 +135,17 @@ const MockPreInterviewPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStartInterview = async () => {
+    if (!allChecksPassed) return;
+
+    if (user?.role === "candidate" && !user?.resume?.url) {
+      setShowResumeModal(true);
+      return;
+    }
+
+    startInterviewSession();
   };
 
   const getStatusIcon = (status) => {
@@ -290,6 +305,15 @@ const MockPreInterviewPage = () => {
             )}
           </div>
         </motion.div>
+
+        <ResumeUploadModal
+          isOpen={showResumeModal}
+          onSuccess={() => {
+            setShowResumeModal(false);
+            startInterviewSession();
+          }}
+          onClose={() => setShowResumeModal(false)}
+        />
       </div>
     </div>
   );

@@ -142,7 +142,7 @@ export default function EmployerLayout() {
                         }`}
                     >
                         {user?.profilePicture ? (
-                            <img src={user.profilePicture} alt="Profile" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                            <img src={user.profilePicture} alt="Profile" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover shrink-0" />
                         ) : (
                             <div className="w-6 h-6 shrink-0 rounded-full bg-[var(--color-primary-md3)]/20 text-[var(--color-primary-md3)] flex items-center justify-center text-[10px] font-black uppercase border border-[var(--color-primary-md3)]/30">
                                 {user?.name ? user.name.substring(0, 1) : "U"}

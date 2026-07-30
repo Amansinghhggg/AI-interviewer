@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import ProtectedRoute from "../ui/shared/ProtectedRoute";
 import LoginPage from "../features/auth/LoginPage";
 import SignupPage from "../features/auth/SignupPage";
+import SelectRolePage from "../features/auth/SelectRolePage";
 import EmployerDashboard from "../features/employer/EmployerDashboard";
 import EmployerVerificationPage from "../features/employer/EmployerVerificationPage";
 import EmployerLayout from "../features/employer/EmployerLayout";
@@ -53,7 +54,9 @@ function App() {
             user ? (
               <Navigate
                 to={
-                  user.role === "employer"
+                  !user.role
+                    ? "/select-role"
+                    : user.role === "employer"
                     ? "/employer/dashboard"
                     : "/candidate/mock-interview"
                 }
@@ -70,7 +73,9 @@ function App() {
             user ? (
               <Navigate
                 to={
-                  user.role === "employer"
+                  !user.role
+                    ? "/select-role"
+                    : user.role === "employer"
                     ? "/employer/dashboard"
                     : "/candidate/mock-interview"
                 }
@@ -81,6 +86,9 @@ function App() {
             )
           }
         />
+
+        {/* Compulsory Role Selection Route */}
+        <Route path="/select-role" element={<SelectRolePage />} />
 
         {/* Employer Routes */}
         <Route element={<ProtectedRoute role="employer"><EmployerLayout /></ProtectedRoute>}>

@@ -154,7 +154,7 @@ const ProfilePage = () => {
             <div className="w-32 h-32 rounded-full border-2 border-[var(--color-primary-md3)] p-1 bg-[var(--color-surface-container-lowest)] overflow-hidden">
               <div className="w-full h-full rounded-full bg-[var(--color-surface-container-high)] flex items-center justify-center text-[var(--color-primary-md3)] overflow-hidden">
                 {user?.profilePicture ? (
-                  <img src={user.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={user.profilePicture} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl font-black uppercase">
                     {getInitials(user?.name)}

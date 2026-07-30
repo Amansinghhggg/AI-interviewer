@@ -85,7 +85,7 @@ export interface AvatarPlayerProps {
  * 2. Listening / Idle   -> idle.mp4
  * 3. Thinking / Processing -> still.jpg
  * 
- * Uses smooth opacity transitions across all layers without unmounting.
+ * Uses 200ms ease-in-out opacity transitions across all layers without unmounting.
  */
 export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
   isSpeaking = false,
@@ -128,19 +128,10 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
     }
   };
 
-  // Mount & src change effect: Check ready states and ensure continuous video playback
+  // Mount effect: Start and loop both videos continuously in background
   useEffect(() => {
-    const idleEl = idleVideoRef.current;
-    const talkingEl = talkingVideoRef.current;
-
-    if (idleEl) {
-      if (idleEl.readyState >= 1) setIsIdleLoaded(true);
-      playVideoSafely(idleEl);
-    }
-    if (talkingEl) {
-      if (talkingEl.readyState >= 1) setIsTalkingLoaded(true);
-      playVideoSafely(talkingEl);
-    }
+    playVideoSafely(idleVideoRef.current);
+    playVideoSafely(talkingVideoRef.current);
   }, [idleVideoSrc, talkingVideoSrc]);
 
   const handleIdleCanPlay = () => setIsIdleLoaded(true);
@@ -173,16 +164,8 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
     targetState = 'idle';
   }
 
-  const activeState = targetState;
-
-  // Whenever activeState changes, trigger playback on the target layer
-  useEffect(() => {
-    if (activeState === 'speaking') {
-      playVideoSafely(talkingVideoRef.current);
-    } else if (activeState === 'idle') {
-      playVideoSafely(idleVideoRef.current);
-    }
-  }, [activeState]);
+  // Bonus safeguard: If speaking requested but video not ready, fallback to idle
+  const activeState = (targetState === 'speaking' && !isTalkingLoaded) ? 'idle' : targetState;
 
   return (
     <div
@@ -203,13 +186,11 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
         disablePictureInPicture
         onCanPlay={handleIdleCanPlay}
         onLoadedData={handleIdleCanPlay}
-        onPlay={handleIdleCanPlay}
         onError={() => onError?.(new Error(`Failed to load idle video: ${idleVideoSrc}`))}
         onContextMenu={(e) => e.preventDefault()}
         aria-label="AI Interviewer Listening State"
-        className={`avatar-player-layer avatar-player-video--idle ${
-          activeState === 'idle' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
-        }`}
+        className={`avatar-player-layer avatar-player-video--idle ${activeState === 'idle' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
+          }`}
       />
 
       {/* 2. Talking Video Layer (Audio ON / Speaking) */}
@@ -225,13 +206,11 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
         disablePictureInPicture
         onCanPlay={handleTalkingCanPlay}
         onLoadedData={handleTalkingCanPlay}
-        onPlay={handleTalkingCanPlay}
         onError={() => onError?.(new Error(`Failed to load talking video: ${talkingVideoSrc}`))}
         onContextMenu={(e) => e.preventDefault()}
         aria-label="AI Interviewer Talking State"
-        className={`avatar-player-layer avatar-player-video--talking ${
-          activeState === 'speaking' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
-        }`}
+        className={`avatar-player-layer avatar-player-video--talking ${activeState === 'speaking' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
+          }`}
       />
 
       {/* 3. Still Image Layer (Thinking / Processing) */}
@@ -240,23 +219,21 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
         alt="AI Interviewer Thinking State"
         loading="eager"
         onContextMenu={(e) => e.preventDefault()}
-        className={`avatar-player-layer avatar-player-image--still ${
-          activeState === 'thinking' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
-        }`}
+        className={`avatar-player-layer avatar-player-image--still ${activeState === 'thinking' ? 'avatar-player-layer--visible' : 'avatar-player-layer--hidden'
+          }`}
       />
 
       {/* Status Overlay Badge */}
       {showStatusBadge && (
         <div className="avatar-player-status-badge">
           <span
-            className={`avatar-player-status-dot ${
-              activeState === 'speaking' ? 'avatar-player-status-dot--speaking' :
+            className={`avatar-player-status-dot ${activeState === 'speaking' ? 'avatar-player-status-dot--speaking' :
               activeState === 'thinking' ? 'avatar-player-status-dot--thinking' : ''
-            }`}
+              }`}
           />
           <span>
             {activeState === 'speaking' ? 'AI Speaking' :
-             activeState === 'thinking' ? 'AI Thinking...' : 'AI Listening'}
+              activeState === 'thinking' ? 'AI Thinking...' : 'AI Listening'}
           </span>
         </div>
       )}

@@ -25,8 +25,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["employer", "candidate"],
-      required: [true, "Role is required"],
+      enum: ["employer", "candidate", null],
+      default: null,
     },
     profilePicture: {
       type: String,
