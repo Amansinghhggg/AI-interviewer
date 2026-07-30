@@ -131,7 +131,7 @@ async function runIntegrationTest() {
       throw new Error("InterviewResult document not found in MongoDB!");
     }
     console.log("   ✅ InterviewResult document found");
-    
+
     // Verify metadata
     if (!savedResult.aiMetadata || savedResult.aiMetadata.provider !== "groq") {
       throw new Error("InterviewResult aiMetadata is incorrect or missing!");

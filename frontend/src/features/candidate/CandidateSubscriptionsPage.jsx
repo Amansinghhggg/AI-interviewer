@@ -26,7 +26,7 @@ import { toast } from 'react-hot-toast';
 import api from '../../services/api';
 
 export default function CandidateSubscriptionsPage() {
-  const { user } = useAuth();
+  const { user, checkAuth } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -38,13 +38,13 @@ export default function CandidateSubscriptionsPage() {
   const customRate = parsedCustomCredits < 50 ? 2.5 : 1.8;
   const customTotalPrice = Math.round(parsedCustomCredits * customRate);
 
-  // User Credit Stats (fallback to defaults if not populated yet)
-  const availableCredits = user?.credits?.availableMinutes ?? user?.credits?.availableCredits ?? 15;
-  const totalPurchasedCredits = user?.credits?.totalPurchasedMinutes ?? user?.credits?.totalPurchasedCredits ?? 0;
-  const totalUsedCredits = user?.credits?.totalUsedMinutes ?? user?.credits?.totalUsedCredits ?? 0;
+  // User Credit Stats from backend user object
+  const availableCredits = user?.credits?.availableCredits ?? 15;
+  const totalPurchasedCredits = user?.credits?.totalPurchasedCredits ?? 0;
+  const totalBonusCredits = user?.credits?.totalBonusCredits ?? 0;
   const currentPlan = user?.subscription?.planId || 'FREE';
 
-  // Load transaction / credit history
+  // Load real transaction / credit history
   useEffect(() => {
     fetchCreditHistory();
   }, []);
@@ -52,36 +52,14 @@ export default function CandidateSubscriptionsPage() {
   const fetchCreditHistory = async () => {
     setLoadingHistory(true);
     try {
-      const { data } = await api.get('/candidate/credit-history');
-      if (data?.success && data?.history) {
+      const { data } = await api.get('/payments/history');
+      if (data?.success && Array.isArray(data?.history)) {
         setHistory(data.history);
       } else {
-        // Default demonstration history
-        setHistory([
-          {
-            id: 'tx_1',
-            type: 'CREDIT',
-            description: 'Welcome Bonus Credits',
-            credits: 15,
-            amount: 0,
-            date: '2026-07-28',
-            status: 'Completed'
-          }
-        ]);
+        setHistory([]);
       }
     } catch {
-      // Fallback demo data
-      setHistory([
-        {
-          id: 'tx_1',
-          type: 'CREDIT',
-          description: 'Welcome Free Bonus Credits',
-          credits: 15,
-          amount: 0,
-          date: '2026-07-28',
-          status: 'Completed'
-        }
-      ]);
+      setHistory([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -106,39 +84,33 @@ export default function CandidateSubscriptionsPage() {
     setLoadingPlan(plan.id);
     try {
       const sdkLoaded = await loadRazorpaySDK();
-
-      // Attempt backend order creation
-      let orderData = null;
-      try {
-        const { data } = await api.post('/payments/create-order', {
-          amount: plan.price,
-          credits: plan.credits,
-          planId: plan.id
-        });
-        if (data?.success) {
-          orderData = data;
-        }
-      } catch {
-        // Backend payment route not active yet - will simulate SDK flow or notify
-      }
-
-      if (!sdkLoaded || !orderData) {
-        // Simulated completion for testing UI when Razorpay keys are not set
-        setTimeout(() => {
-          toast.success(`Razorpay Payment Window triggered for ${plan.title} (₹${plan.price})!`);
-          setLoadingPlan(null);
-        }, 1000);
+      
+      if (!sdkLoaded) {
+        toast.error('Razorpay SDK failed to load. Please check your internet connection.');
+        setLoadingPlan(null);
         return;
       }
 
-      // Razorpay Checkout Modal Configuration
+      // 1. Create Order on Backend
+      const { data: orderData } = await api.post('/payments/create-order', {
+        credits: plan.credits,
+        amount: plan.price
+      });
+
+      if (!orderData?.success) {
+        toast.error(orderData?.message || 'Could not initiate payment order');
+        setLoadingPlan(null);
+        return;
+      }
+
+      // 2. Open Razorpay Checkout Modal Popup
       const options = {
-        key: orderData.key,
+        key: orderData.key || "rzp_test_1DP5mmOlF5G5ag",
         amount: orderData.amount,
         currency: orderData.currency || "INR",
         name: "InterviewOS AI",
-        description: `Purchase ${plan.credits} Credits (${plan.title})`,
-        order_id: orderData.orderId,
+        description: `Purchase ${plan.credits} Credits`,
+        order_id: orderData.demoMode ? undefined : orderData.orderId,
         prefill: {
           name: user?.name || '',
           email: user?.email || '',
@@ -147,13 +119,15 @@ export default function CandidateSubscriptionsPage() {
         handler: async function (response) {
           try {
             const verifyRes = await api.post('/payments/verify', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              razorpay_order_id: response.razorpay_order_id || orderData.orderId,
+              razorpay_payment_id: response.razorpay_payment_id || `pay_demo_${Date.now()}`,
+              razorpay_signature: response.razorpay_signature || 'demo_sig',
+              demoMode: orderData.demoMode,
             });
 
             if (verifyRes.data?.success) {
               toast.success(`Successfully added ${plan.credits} Credits!`);
+              if (checkAuth) await checkAuth();
               fetchCreditHistory();
             } else {
               toast.error(verifyRes.data?.message || 'Payment verification failed');
@@ -175,7 +149,7 @@ export default function CandidateSubscriptionsPage() {
       const razorpayInstance = new window.Razorpay(options);
       razorpayInstance.open();
     } catch (error) {
-      toast.error(error?.message || 'Could not initiate payment');
+      toast.error(error.response?.data?.message || error?.message || 'Could not initiate payment');
       setLoadingPlan(null);
     }
   };

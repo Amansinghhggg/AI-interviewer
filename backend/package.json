@@ -26,6 +26,7 @@
     "mongoose": "^9.7.4",
     "multer": "^2.2.0",
     "node-edge-tts": "^1.2.10",
+    "razorpay": "^2.9.8",
     "zod": "^4.4.3"
   },
   "devDependencies": {

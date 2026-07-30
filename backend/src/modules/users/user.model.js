@@ -44,7 +44,39 @@ const userSchema = new mongoose.Schema(
       fileSize: Number,
       mimeType: String,
       uploadedAt: Date,
-    }
+    },
+    credits: {
+      availableCredits: {
+        type: Number,
+        default: 15,
+      },
+      totalBonusCredits: {
+        type: Number,
+        default: 0,
+      },
+      totalPurchasedCredits: {
+        type: Number,
+        default: 0,
+      },
+      totalUsedCredits: {
+        type: Number,
+        default: 0,
+      },
+      lastTopUpAt: {
+        type: Date,
+      },
+    },
+    subscription: {
+      planId: {
+        type: String,
+        default: "FREE",
+      },
+      status: {
+        type: String,
+        enum: ["active", "none"],
+        default: "none",
+      },
+    },
   },
   {
     timestamps: true,

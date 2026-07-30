@@ -25,6 +25,9 @@ const sendTokenResponse = (user, statusCode, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      profilePicture: user.profilePicture,
+      credits: user.credits || { availableCredits: 15, totalBonusCredits: 0, totalPurchasedCredits: 0, totalUsedCredits: 0 },
+      subscription: user.subscription || { planId: "FREE", status: "none" },
     },
   });
 };
@@ -165,6 +168,8 @@ const getMe = async (req, res) => {
       role: req.user.role,
       profilePicture: req.user.profilePicture,
       authProvider: req.user.authProvider,
+      credits: req.user.credits || { availableCredits: 15, totalBonusCredits: 0, totalPurchasedCredits: 0, totalUsedCredits: 0 },
+      subscription: req.user.subscription || { planId: "FREE", status: "none" },
     },
   });
 };
@@ -195,6 +200,8 @@ const updateProfile = async (req, res, next) => {
         role: user.role,
         profilePicture: user.profilePicture,
         authProvider: user.authProvider,
+        credits: user.credits || { availableCredits: 15, totalBonusCredits: 0, totalPurchasedCredits: 0, totalUsedCredits: 0 },
+        subscription: user.subscription || { planId: "FREE", status: "none" },
       },
     });
   } catch (error) {
