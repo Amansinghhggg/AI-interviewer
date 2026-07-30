@@ -165,11 +165,11 @@ const ConversationController = ({
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 h-full w-full">
+    <div className="grid grid-cols-1 lg:grid-cols-2 h-full w-full bg-slate-950 divide-y lg:divide-y-0 lg:divide-x divide-slate-800/80 overflow-hidden">
       {/* InterviewOS Section */}
       <section
-        className="border-r border-[var(--border)] bg-[#0a0a0b] flex flex-col relative overflow-hidden h-full"
-        aria-label="InterviewOS"
+        className="bg-slate-950 flex flex-col relative overflow-hidden h-full"
+        aria-label="InterviewOS AI Section"
       >
         <InterviewAI
           currentQuestion={currentQuestion}
@@ -185,8 +185,8 @@ const ConversationController = ({
 
       {/* Candidate Section */}
       <section
-        className="bg-[#0a0a0b] flex flex-col relative overflow-hidden h-full"
-        aria-label="Candidate"
+        className="bg-slate-950 flex flex-col relative overflow-hidden h-full"
+        aria-label="Candidate Section"
       >
         <InterviewCandidate
           conversationState={conversationState}

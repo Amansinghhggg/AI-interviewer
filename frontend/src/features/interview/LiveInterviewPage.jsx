@@ -47,6 +47,7 @@ const LiveInterviewAIContent = ({
   handlePrev,
   session,  // backend session — needed for real question timestamps
 }) => {
+  const { user } = useAuth();
   const { runtime, actions } = useInterviewRuntime();
   const { save, retry, state: uploadState, retries, error } = usePersistence();
   const navigate = useNavigate();
@@ -114,47 +115,60 @@ const LiveInterviewAIContent = ({
   }
 
   return (
-    <div className="h-screen bg-[#0a0a0b] flex flex-col relative overflow-hidden font-sans">
-      <div className="absolute inset-0 noise pointer-events-none z-0 opacity-20"></div>
+    <div className="h-screen bg-slate-950 flex flex-col relative overflow-hidden font-sans text-slate-100 antialiased">
+      {/* Background ambient lighting */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0b] flex items-center justify-between px-6 z-50 shadow-sm border-b border-[var(--border)]">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-6 z-50 border-b border-slate-800/80 shadow-lg">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-[var(--color-danger)] tracking-[0.1em] uppercase">
-            <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-            REC
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold tracking-wider uppercase">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+            REC • HD 1080p
           </div>
-          <span className="text-sm font-semibold text-[var(--text-secondary)]">
-            {interview?.jobRole} • {session?.candidateId || "Candidate"}
+          <div className="h-4 w-px bg-slate-800" />
+          <span className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+            <span className="text-slate-400 font-normal">{interview?.jobRole || "AI Technical Interview"}</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-slate-200 font-medium">{user?.name || session?.candidateId || "Candidate"}</span>
           </span>
         </div>
         
-        <div className="flex items-center gap-6">
-          <div className={`font-bold text-lg tabular-nums ${timeLeft <= 0 ? 'text-[var(--color-danger)] animate-pulse' : 'text-[var(--color-warning)]'}`}>
+        <div className="flex items-center gap-5">
+          <div className={`px-4 py-1.5 rounded-xl border text-sm font-mono font-bold tracking-tight shadow-inner transition-colors ${
+            timeLeft <= 0 
+              ? 'bg-rose-950/40 border-rose-500/40 text-rose-400 animate-pulse' 
+              : timeLeft <= 300 
+                ? 'bg-amber-950/30 border-amber-500/30 text-amber-400' 
+                : 'bg-slate-900/80 border-slate-800 text-indigo-400'
+          }`}>
              {timeLeft <= 0 ? `GRACE: 00:${(60 - Math.abs(timeLeft)).toString().padStart(2, '0')}` : formatDisplayTime(timeLeft)}
           </div>
-          {timeLeft > 0 && (
-            <Button variant="outline" className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors h-9 px-4" onClick={handleEndInterview}>
-              End interview
-            </Button>
-          )}
+
+          <button
+            onClick={handleEndInterview}
+            className="px-4 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-rose-950/30 hover:border-rose-800/50 hover:text-rose-300 text-slate-300 text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm"
+          >
+            End Interview
+          </button>
         </div>
-      </div>
+      </header>
 
       {/* Time Warning */}
       {timeLeft === 0 && (
-        <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-12 mt-4 relative z-10">
-          <div className="p-4 rounded-xl bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] flex items-start gap-3 shadow-lg">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="text-sm font-medium">
-              Interview time has ended. You may finish answering the current question. No additional questions will be generated.
+        <div className="max-w-4xl w-full mx-auto px-6 mt-20 relative z-20">
+          <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-300 flex items-center gap-3 shadow-xl backdrop-blur-md">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-400" />
+            <p className="text-xs font-medium">
+              Interview time limit reached. Please finish submitting your answer for the current question.
             </p>
           </div>
         </div>
       )}
 
       {/* Main Conversation Area — orchestrated by ConversationController */}
-      <div className="flex-1 w-full mx-auto flex flex-col min-h-0 pt-16 relative z-10">
+      <div className="flex-1 w-full flex flex-col min-h-0 pt-16 relative z-10">
         <div className="flex-1 h-full overflow-hidden">
           <ConversationController
             currentQuestion={currentQuestion}

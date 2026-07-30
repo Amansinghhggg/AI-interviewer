@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../../utils/cn";
 import { Mic, Loader2, Sparkles } from "lucide-react";
+import AvatarPlayer from "../../../components/AvatarPlayer";
 
 export default function AIAvatar({ state = "idle", className }) {
   // states: idle, listening, speaking, thinking, finished
@@ -43,12 +44,10 @@ export default function AIAvatar({ state = "idle", className }) {
         className
       )}
     >
-      <motion.img
-        src="/images/ai-avatar.png"
-        alt="InterviewOS"
-        className="w-full h-full object-cover object-top"
-        variants={imageVariants}
-        animate={state}
+      <AvatarPlayer
+        isSpeaking={state === "speaking"}
+        aspectRatio="1 / 1"
+        className="w-full h-full rounded-none"
       />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />

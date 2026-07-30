@@ -19,6 +19,7 @@ import VoiceTestPage from "../features/interview/VoiceTestPage";
 import ProfilePage from "../features/shared/ProfilePage";
 import MockInterviewPage from "../features/candidate/MockInterviewPage";
 import MockPreInterviewPage from "../features/candidate/MockPreInterviewPage";
+import CandidateSubscriptionsPage from "../features/candidate/CandidateSubscriptionsPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
       <Routes>
         {/* Test Route */}
         <Route path="/test/voice" element={<VoiceTestPage />} />
+        <Route path="/test/avatar" element={<AvatarTestPage />} />
 
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />

@@ -3,7 +3,7 @@ import { useMotionValue } from 'framer-motion';
 import { AvatarState } from './types';
 import { useAudioEngine } from './useAudioEngine';
 import { useAnimationEngine } from './useAnimationEngine';
-import SVGRenderer from './renderers/SVGRenderer';
+import AvatarPlayer from '../../../../components/AvatarPlayer';
 import AvatarWaveform from './renderers/components/AvatarWaveform';
 import { cn } from "../../../../utils/cn";
 import { Mic, Loader2 } from "lucide-react";
@@ -25,6 +25,13 @@ export default function AIAvatar({
   useAudioEngine(audioElement, mouthOpen, state);
   useAnimationEngine(state, { eyeBlink, headRotation, breathScale, eyeLookX });
 
+  const getMode = () => {
+    if (state === AvatarState.SPEAKING || state === 'speaking') return 'speaking';
+    if (state === AvatarState.THINKING || state === 'thinking') return 'thinking';
+    if (state === AvatarState.LISTENING || state === 'listening') return 'listening';
+    return 'idle';
+  };
+
   return (
     <div
       className={cn(
@@ -34,17 +41,12 @@ export default function AIAvatar({
         className
       )}
     >
-      {/* 2D Vector Renderer (Decoupled Engine Client) */}
-      <div className="absolute inset-0 flex items-end justify-center pt-12">
-        <SVGRenderer 
-           mouthOpen={mouthOpen}
-           eyeBlink={eyeBlink}
-           headRotation={headRotation}
-           breathScale={breathScale}
-           eyeLookX={eyeLookX}
-           isThinking={state === AvatarState.THINKING}
-        />
-      </div>
+      {/* 3-State Avatar Player (talking.mp4 / idle.mp4 / still.jpg) */}
+      <AvatarPlayer 
+        mode={getMode()}
+        aspectRatio="1 / 1"
+        className="w-full h-full rounded-none"
+      />
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 z-20 pointer-events-none" />
 

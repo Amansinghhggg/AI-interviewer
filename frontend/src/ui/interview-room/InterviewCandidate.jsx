@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { CONVERSATION_STATES } from '../../modules/interview/conversation/index';
-import CandidateTranscript from './CandidateTranscript';
 import { InterviewCamera } from '../../modules/camera/index';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../ui/components/Button';
 import { useVoiceRecorder, RECORDING_STATES } from '../../hooks/useVoiceRecorder';
+import { Mic, ArrowRight, Loader2, Video, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 const InterviewCandidate = ({
   conversationState,
@@ -63,64 +62,91 @@ const InterviewCandidate = ({
     }
   };
 
-  return (
-    <div className="flex flex-col h-full relative z-10 p-8">
-      {/* Candidate Header */}
-      <div className="flex items-center gap-2 mb-auto">
-        <span className="w-2 h-2 rounded-full bg-[var(--color-success)]" />
-        <div className="text-[var(--text-secondary)] text-sm font-bold uppercase tracking-[0.2em]">
-          You
-        </div>
-      </div>
+  const isRecordingActive = recordingState === RECORDING_STATES.RECORDING || isListening;
+  const isSubmitDisabled = !isRecordingActive && (!candidateTranscript || candidateTranscript.length < 2) || isTranscribing;
 
-      <div className="flex flex-col flex-1 mt-6 items-center w-full justify-center gap-8">
-        {/* Camera Preview */}
-        <div className="w-full max-w-2xl aspect-video bg-[#131316] rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
-          <InterviewCamera
-            stream={cameraStream}
-            state={cameraState}
-            warnings={cameraWarnings}
-            error={cameraError}
-            isRecording={isListening}
-            deviceSnapshot={deviceSnapshot}
-            faceSnapshot={faceSnapshot}
-            browserStatus={browserStatus}
-            activeViolations={activeViolations}
-            setVideoElement={setVideoElement}
-          />
-          {/* Candidate Name Overlay */}
-          <div className="absolute bottom-6 left-6 bg-[#000000]/80 backdrop-blur-md px-4 py-2.5 rounded-full flex items-center gap-3 border border-white/10 shadow-lg">
-             <span className="w-2 h-2 rounded-full bg-[var(--color-danger)] animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-             <span className="text-white text-sm font-semibold tracking-wide">
-               {user?.name || "Candidate"}
-             </span>
+  return (
+    <div className="flex flex-col relative w-full h-full p-6 lg:p-8 justify-between gap-5">
+      {/* Candidate Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+          <div className="text-slate-300 text-xs font-bold uppercase tracking-[0.25em]">
+            You (Candidate) <span className="text-slate-600">•</span> Live Camera Feed
           </div>
         </div>
 
-        {/* Submit Answer Button */}
-        <div>
-          <Button 
-            onClick={handleManualSubmit}
-            disabled={recordingState !== RECORDING_STATES.RECORDING && (!candidateTranscript || candidateTranscript.length < 5) || isTranscribing}
-            className="group relative px-10 py-5 rounded-2xl font-black text-lg uppercase tracking-widest overflow-hidden border border-white/10 shadow-[0_0_30px_rgba(139,92,246,0.2)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:cursor-not-allowed bg-gradient-to-r from-[var(--color-primary-md3)] to-[var(--color-secondary)] text-white"
-          >
-            <span className="relative z-10 flex items-center gap-3">
-              {isTranscribing ? 'Processing...' : 'Submit Answer'}
-              {!isTranscribing && (
-                <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-transform duration-300">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                </span>
-              )}
-            </span>
-          </Button>
+        <div className="px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5 shadow-sm">
+          <Video className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Camera Connected</span>
         </div>
       </div>
 
-      {/* Transcript (YOUR RESPONSE) */}
-      <div className="mt-auto w-full max-w-3xl mx-auto h-24">
-        <CandidateTranscript
-          transcriptState={transcriptState}
+      {/* Large Camera Viewport */}
+      <div className="relative flex-1 w-full rounded-[32px] overflow-hidden border border-slate-700/80 ring-1 ring-white/10 bg-slate-900/90 shadow-[0_25px_60px_rgba(0,0,0,0.8)] flex items-center justify-center group">
+        <InterviewCamera
+          stream={cameraStream}
+          state={cameraState}
+          warnings={cameraWarnings}
+          error={cameraError}
+          isRecording={isListening}
+          deviceSnapshot={deviceSnapshot}
+          faceSnapshot={faceSnapshot}
+          browserStatus={browserStatus}
+          activeViolations={activeViolations}
+          setVideoElement={setVideoElement}
         />
+
+        {/* Ambient Top Vignette */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10" />
+
+        {/* Candidate Info Overlay */}
+        <div className="absolute bottom-4 left-4 right-4 bg-slate-950/85 backdrop-blur-xl p-3.5 rounded-2xl flex items-center justify-between border border-slate-800/90 shadow-2xl z-20">
+          <div className="flex items-center gap-3">
+            <div className="relative flex items-center justify-center w-3 h-3">
+              <span className="absolute w-full h-full bg-emerald-400 rounded-full animate-ping opacity-75" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+            </div>
+            <span className="text-slate-100 text-xs font-bold tracking-wide">
+              {user?.name || "Candidate"}
+            </span>
+          </div>
+
+          {isListening ? (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold uppercase tracking-wider shadow-inner">
+              <Mic className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
+              <span>Mic Live</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] font-medium">
+              <span>Ready</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Vibrant High-Contrast Submit Action Bar */}
+      <div className="w-full">
+        <button
+          onClick={handleManualSubmit}
+          disabled={isSubmitDisabled}
+          className={`w-full py-4.5 rounded-2xl font-black text-sm uppercase tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-3 shadow-xl ${isSubmitDisabled
+              ? 'bg-slate-900 border border-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+              : 'bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:via-indigo-500 hover:to-purple-500 text-white border border-indigo-400/40 shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_45px_rgba(139,92,246,0.7)] active:scale-[0.99] cursor-pointer'
+            }`}
+        >
+          {isTranscribing ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin text-white" />
+              <span>Processing Response...</span>
+            </>
+          ) : (
+            <>
+              <span>Submit Answer & Continue</span>
+              <ArrowRight className="w-5 h-5" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

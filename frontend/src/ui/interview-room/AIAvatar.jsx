@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Loader2, Sparkles } from "lucide-react";
 import { CONVERSATION_STATES } from '../../modules/interview/conversation/index';
 import { cn } from "../../utils/cn";
+import AvatarPlayer from "../../components/AvatarPlayer";
 
 export default function AIAvatar({ conversationState, className }) {
   // Map CONVERSATION_STATES to our internal visual states
@@ -12,34 +13,6 @@ export default function AIAvatar({ conversationState, className }) {
   else if (conversationState === CONVERSATION_STATES.THINKING) state = "thinking";
   else if (conversationState === CONVERSATION_STATES.FINISHED) state = "finished";
 
-  const imageVariants = {
-    idle: {
-      scale: [1, 1.01, 1],
-      y: [0, -2, 0],
-      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
-    },
-    listening: {
-      scale: [1.02, 1.03, 1.02],
-      y: 0,
-      transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-    },
-    speaking: {
-      scale: [1.02, 1.025, 1.02],
-      y: [0, -1, 0],
-      transition: { duration: 0.5, repeat: Infinity, ease: "easeInOut" },
-    },
-    thinking: {
-      scale: 1,
-      x: [0, 4, 0],
-      y: [0, 2, 0],
-      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-    },
-    finished: {
-      scale: 1,
-      y: 0,
-    },
-  };
-
   return (
     <div
       className={cn(
@@ -48,62 +21,13 @@ export default function AIAvatar({ conversationState, className }) {
         className
       )}
     >
-      {/* Abstract AI Orb */}
-      <div className="relative w-full h-full flex items-center justify-center">
-        {/* Core */}
-        <motion.div
-          className="absolute w-32 h-32 rounded-full bg-gradient-to-tr from-[var(--primary)] to-purple-400 blur-sm z-20"
-          animate={{
-            scale: state === "speaking" ? [1, 1.1, 0.95, 1.15, 1] : state === "thinking" ? [1, 0.9, 1] : [1, 1.05, 1],
-            opacity: state === "finished" ? 0.5 : 1,
-          }}
-          transition={{
-            duration: state === "speaking" ? 0.8 : 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+      <AvatarPlayer
+        mode={state}
+        aspectRatio="1 / 1"
+        className="w-full h-full rounded-none"
+      />
 
-        {/* Inner Ring */}
-        <motion.div
-          className="absolute w-40 h-40 rounded-full border border-white/20 z-10"
-          style={{ borderTopColor: "var(--primary)" }}
-          animate={{
-            rotate: state === "thinking" ? 360 : 0,
-            scale: state === "speaking" ? [1, 1.2, 1] : 1,
-            opacity: state === "finished" ? 0 : 0.8,
-          }}
-          transition={{
-            rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-            scale: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
-          }}
-        />
-
-        {/* Outer Audio Waves (Only when speaking) */}
-        <AnimatePresence>
-          {state === "speaking" && (
-            <>
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1.8, opacity: [0, 0.5, 0] }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-                className="absolute w-48 h-48 rounded-full border border-[var(--primary)] z-0"
-              />
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 2.2, opacity: [0, 0.3, 0] }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
-                className="absolute w-48 h-48 rounded-full border border-[var(--primary)] z-0"
-              />
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Ambient Glow */}
-        <div className="absolute inset-0 bg-[var(--primary)]/5 blur-3xl rounded-full" />
-      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 pointer-events-none z-10" />
 
       {/* State Indicators */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center w-full px-8 z-10">
