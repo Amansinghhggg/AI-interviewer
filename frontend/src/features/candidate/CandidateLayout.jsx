@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, Menu, X, User } from 'lucide-react';
+import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, Menu, X, User, Briefcase } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -21,9 +21,9 @@ export default function CandidateLayout() {
     };
 
     const navItems = [
-        { label: "Dashboard", icon: Home, path: "/candidate/dashboard" },
-        { label: "Join via Code", icon: Key, path: "/candidate/join" },
         { label: "Mock Interview Studio", icon: Bot, path: "/candidate/mock-interview" },
+        { label: "Assigned Interviews", icon: Briefcase, path: "/candidate/dashboard" },
+        { label: "Join via Code", icon: Key, path: "/candidate/join" },
         { label: "Manage Subscriptions", icon: CreditCard, path: "/candidate/subscriptions" },
     ];
 

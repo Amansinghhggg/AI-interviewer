@@ -16,6 +16,7 @@ import CandidateLayout from "../features/candidate/CandidateLayout";
 import LiveInterviewPage from "../features/interview/LiveInterviewPage";
 import EmployerInterviewResultPage from "../features/employer/EmployerInterviewResultPage";
 import VoiceTestPage from "../features/interview/VoiceTestPage";
+import AvatarTestPage from "../features/interview/AvatarTestPage";
 import ProfilePage from "../features/shared/ProfilePage";
 import MockInterviewPage from "../features/candidate/MockInterviewPage";
 import MockPreInterviewPage from "../features/candidate/MockPreInterviewPage";
@@ -98,6 +99,7 @@ function App() {
           <Route path="/candidate/mock-interview/:id/prepare" element={<MockPreInterviewPage />} />
           <Route path="/candidate/interviews/:id" element={<InterviewInstructionsPage />} />
           <Route path="/candidate/interviews/:id/start" element={<PreInterviewPage />} />
+          <Route path="/candidate/subscriptions" element={<CandidateSubscriptionsPage />} />
           <Route path="/candidate/profile" element={<ProfilePage />} />
         </Route>
         <Route

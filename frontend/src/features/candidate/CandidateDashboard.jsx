@@ -14,7 +14,8 @@ import {
   Sparkles,
   Award,
   Layers,
-  UserCheck
+  UserCheck,
+  Coins
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { PageHeader } from "../../ui/primitives/PageHeader";
@@ -91,8 +92,8 @@ const CandidateDashboard = () => {
         <PageHeader
           badgeIcon={UserCheck}
           badgeText="Candidate Workspace"
-          title="Candidate Dashboard"
-          description={`Welcome back, ${user?.name || 'Candidate'}. Review your assigned interview campaigns and progress.`}
+          title="Assigned Interviews"
+          description={`Welcome back, ${user?.name || 'Candidate'}. Review your assigned interview campaigns and employer invitations.`}
         />
 
         {/* Metric Cards Overview */}

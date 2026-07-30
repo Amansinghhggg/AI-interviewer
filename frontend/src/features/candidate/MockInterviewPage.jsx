@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 import mockInterviewService from "../../services/mockInterview.service";
 import {
   Bot,
@@ -25,7 +26,8 @@ import {
   PlayCircle,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  Coins
 } from "lucide-react";
 
 // Preset Role Options
@@ -52,6 +54,7 @@ const PRESET_TOPICS = [
 ];
 
 export default function MockInterviewPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(location.state?.tab || "create"); // 'create' or 'history'
@@ -252,6 +255,44 @@ export default function MockInterviewPage() {
                 }`}
             >
               <History className="w-4 h-4" /> Past Mocks
+            </button>
+          </div>
+        </motion.div>
+
+        {/* AI Interview Wallet Credit Banner & Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 md:p-6 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/50 via-purple-950/40 to-slate-950/50 shadow-xl relative overflow-hidden"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-lg shadow-indigo-500/10">
+                <Coins className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs uppercase font-extrabold text-indigo-400 tracking-wider">AI Interview Wallet</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">
+                    Active Balance
+                  </span>
+                </div>
+                <h4 className="text-xl font-black text-[var(--color-on-surface,#dae2fd)] flex items-baseline gap-2 mt-0.5">
+                  <span>{user?.credits?.availableMinutes ?? user?.credits?.availableCredits ?? 15}</span>
+                  <span className="text-xs font-semibold text-indigo-300">Available Credits</span>
+                </h4>
+                <p className="text-xs text-slate-300 mt-1">
+                  Each AI Mock Interview session uses credits for voice stream synthesis, STAR method evaluation & PDF report export.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate('/candidate/subscriptions')}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 shrink-0"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Top-up Credits & Subscriptions</span>
             </button>
           </div>
         </motion.div>
