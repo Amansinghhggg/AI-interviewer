@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
@@ -10,7 +10,10 @@ import {
   Briefcase,
   Activity,
   Plus,
-  Building2
+  Building2,
+  ShieldAlert,
+  ShieldCheck,
+  ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { PageHeader } from "../../ui/primitives/PageHeader";
@@ -23,6 +26,7 @@ import { LoadingState } from "../../ui/primitives/StateViews";
 
 const EmployerDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,6 +52,14 @@ const EmployerDashboard = () => {
   const totalCandidates = interviews.reduce((acc, curr) => acc + (curr.assignedCandidates?.length || 0), 0);
   const activeCandidates = interviews.filter(i => i.status === 'active').reduce((acc, curr) => acc + (curr.assignedCandidates?.length || 0), 0);
 
+  const handleCreateCampaignClick = (e) => {
+    if (!user?.isVerified) {
+      e.preventDefault();
+      toast.error("Verification is required for campaign creation.");
+      navigate("/employer/verification-pending");
+    }
+  };
+
   return (
     <div className="bg-transparent min-h-screen text-[var(--color-on-surface,#dae2fd)] font-['Inter'] pb-16">
       <div className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 space-y-8">
@@ -60,12 +72,47 @@ const EmployerDashboard = () => {
           description={`Welcome back, ${user?.name || 'Recruiter'}. Monitor campaigns, candidate progress, and interview evaluation metrics.`}
           actions={
             <Link to="/employer/create-interview">
-              <button className="px-5 py-2.5 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-[var(--color-primary-md3)]/20 flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Create Campaign
+              <button
+                className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                  user?.isVerified
+                    ? "bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white shadow-md shadow-[var(--color-primary-md3)]/20"
+                    : "bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30"
+                }`}
+              >
+                {user?.isVerified ? <Plus className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4 text-amber-400" />}
+                Create Campaign
               </button>
             </Link>
           }
         />
+
+        {/* Verification Status Warning Banner */}
+        {!user?.isVerified && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 md:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-300">
+                  Account Pending Verification
+                </h4>
+                <p className="text-xs text-amber-200/80 mt-0.5 font-medium">
+                  Your employer account is currently unverified. Admin approval is required before you can create recruitment campaigns.
+                </p>
+              </div>
+            </div>
+            <Link to="/employer/verification-pending">
+              <button className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-black uppercase tracking-wider rounded-xl border border-amber-500/40 transition-all flex items-center gap-1.5 whitespace-nowrap">
+                View Status & Support <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Core Metrics Grid */}
         {!loading && (

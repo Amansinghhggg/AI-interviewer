@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, FileText, CreditCard, HelpCircle, LogOut, Menu, X, User } from 'lucide-react';
+import { Home, FileText, CreditCard, HelpCircle, LogOut, Menu, X, User, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -20,8 +20,13 @@ export default function EmployerLayout() {
         }
     };
 
+    const handleNavItemClick = (path) => {
+        navigate(path);
+    };
+
     const navItems = [
         { label: "Dashboard", icon: Home, path: "/employer/dashboard" },
+        ...(!user?.isVerified ? [{ label: "Verification Status", icon: ShieldAlert, path: "/employer/verification-pending" }] : []),
         { label: "New Campaign", icon: FileText, path: "/employer/create-interview" },
         { label: "Manage Subscriptions", icon: CreditCard, path: "/employer/subscriptions" },
     ];
@@ -57,7 +62,7 @@ export default function EmployerLayout() {
                             <button
                                 key={item.path}
                                 onClick={() => {
-                                    navigate(item.path);
+                                    handleNavItemClick(item.path);
                                     setMobileMenuOpen(false);
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
@@ -114,7 +119,7 @@ export default function EmployerLayout() {
                     {navItems.map((item) => (
                         <button
                             key={item.path}
-                            onClick={() => navigate(item.path)}
+                            onClick={() => handleNavItemClick(item.path)}
                             className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
                                 location.pathname === item.path
                                     ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'

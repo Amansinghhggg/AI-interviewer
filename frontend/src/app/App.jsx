@@ -4,6 +4,7 @@ import ProtectedRoute from "../ui/shared/ProtectedRoute";
 import LoginPage from "../features/auth/LoginPage";
 import SignupPage from "../features/auth/SignupPage";
 import EmployerDashboard from "../features/employer/EmployerDashboard";
+import EmployerVerificationPage from "../features/employer/EmployerVerificationPage";
 import EmployerLayout from "../features/employer/EmployerLayout";
 import CandidateDashboard from "../features/candidate/CandidateDashboard";
 import CreateInterviewPage from "../features/employer/CreateInterviewPage";
@@ -84,6 +85,7 @@ function App() {
         {/* Employer Routes */}
         <Route element={<ProtectedRoute role="employer"><EmployerLayout /></ProtectedRoute>}>
           <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+          <Route path="/employer/verification-pending" element={<EmployerVerificationPage />} />
           <Route path="/employer/create-interview" element={<CreateInterviewPage />} />
           <Route path="/employer/interviews/:id/edit" element={<EditInterviewPage />} />
           <Route path="/employer/interviews/:id" element={<InterviewDetailsPage />} />

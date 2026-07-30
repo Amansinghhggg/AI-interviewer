@@ -170,7 +170,7 @@ export default function MockInterviewPage() {
     }
 
     setIsLaunching(true);
-    const toastId = toast.loading("Deducting credits & initializing AI Mock Interview...");
+    const toastId = toast.loading("Initializing AI Mock Interview...");
 
     try {
       const data = await mockInterviewService.createMockInterview({

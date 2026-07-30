@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     authProvider: {
       type: String,
       enum: ["local", "google"],

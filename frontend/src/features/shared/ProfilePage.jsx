@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { User, Lock, Trash2, Mail, Save, Loader2, Camera, FileText } from "lucide-react";
+import { User, Lock, Trash2, Mail, Save, Loader2, Camera, FileText, ShieldCheck, ShieldAlert } from "lucide-react";
 import ResumeCard from "./components/ResumeCard";
 import UploadProgress from "./components/UploadProgress";
 import profileService from "../../services/profile.service";
@@ -166,7 +166,28 @@ const ProfilePage = () => {
 
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-black text-[var(--color-on-surface)] uppercase tracking-tight">{user?.name}</h1>
-            <p className="text-sm font-bold text-[var(--color-primary-md3)] tracking-widest uppercase mt-1">{user?.role}</p>
+            <div className="flex items-center justify-center md:justify-start gap-3 mt-1.5 flex-wrap">
+              <span className="text-xs font-black text-[var(--color-primary-md3)] tracking-widest uppercase">{user?.role}</span>
+              {user?.role === "employer" && (
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                  user?.isVerified
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "bg-amber-500/10 text-amber-300 border-amber-500/30"
+                }`}>
+                  {user?.isVerified ? (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      Verified Employer
+                    </>
+                  ) : (
+                    <>
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                      Pending Verification
+                    </>
+                  )}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-[var(--color-on-surface-variant)] mt-2">Manage your professional identity and security settings.</p>
           </div>
         </motion.section>

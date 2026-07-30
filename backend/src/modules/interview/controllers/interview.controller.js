@@ -11,6 +11,13 @@ import {
 // @access  Employer only
 const createInterview = async (req, res, next) => {
   try {
+    if (req.user?.role === "employer" && !req.user?.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Your employer account is not verified. Only verified employers can create campaigns.",
+      });
+    }
+
     const validated = createInterviewSchema.parse(req.body);
     const interview = await interviewService.createInterview(req.user._id, validated);
 

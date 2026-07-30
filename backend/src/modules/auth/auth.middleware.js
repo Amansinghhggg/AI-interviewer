@@ -45,3 +45,15 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+// Require employer account to be verified
+export const requireVerifiedEmployer = (req, res, next) => {
+  if (req.user && req.user.role === "employer" && !req.user.isVerified) {
+    return res.status(403).json({
+      success: false,
+      message: "Your employer account is not verified. Only verified employers can create campaigns.",
+    });
+  }
+  next();
+};
+
