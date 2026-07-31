@@ -117,7 +117,7 @@ const getCandidateResume = async (req, res, next) => {
 
     const { interviewId, candidateId } = req.params;
     const candidate = await User.findById(candidateId);
-    
+
     if (!candidate || candidate.role !== "candidate") {
       return res.status(404).json({ success: false, message: "Candidate not found." });
     }
@@ -154,7 +154,7 @@ const downloadCandidateResume = async (req, res, next) => {
 
     const { interviewId, candidateId } = req.params;
     const candidate = await User.findById(candidateId);
-    
+
     if (!candidate || candidate.role !== "candidate") {
       return res.status(404).json({ success: false, message: "Candidate not found." });
     }

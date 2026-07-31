@@ -23,6 +23,7 @@ import ProfilePage from "../features/shared/ProfilePage";
 import MockInterviewPage from "../features/candidate/MockInterviewPage";
 import MockPreInterviewPage from "../features/candidate/MockPreInterviewPage";
 import CandidateSubscriptionsPage from "../features/candidate/CandidateSubscriptionsPage";
+import CandidateHelpSupportPage from "../features/candidate/CandidateHelpSupportPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
         <Route element={<ProtectedRoute role="employer"><EmployerLayout /></ProtectedRoute>}>
           <Route path="/employer/dashboard" element={<EmployerDashboard />} />
           <Route path="/employer/verification-pending" element={<EmployerVerificationPage />} />
+          <Route path="/employer/contact" element={<EmployerVerificationPage />} />
           <Route path="/employer/create-interview" element={<CreateInterviewPage />} />
           <Route path="/employer/interviews/:id/edit" element={<EditInterviewPage />} />
           <Route path="/employer/interviews/:id" element={<InterviewDetailsPage />} />
@@ -111,6 +113,7 @@ function App() {
           <Route path="/candidate/interviews/:id" element={<InterviewInstructionsPage />} />
           <Route path="/candidate/interviews/:id/start" element={<PreInterviewPage />} />
           <Route path="/candidate/subscriptions" element={<CandidateSubscriptionsPage />} />
+          <Route path="/candidate/help" element={<CandidateHelpSupportPage />} />
           <Route path="/candidate/profile" element={<ProfilePage />} />
         </Route>
         <Route

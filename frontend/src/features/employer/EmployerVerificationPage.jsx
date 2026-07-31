@@ -138,25 +138,24 @@ const EmployerVerificationPage = () => {
           </GlassCard>
         </motion.div>
 
-        {/* Contact Details & Express Verification Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Contact Details Section */}
+        <div className="max-w-4xl mx-auto">
 
-          {/* Contact Details Card (Including WhatsApp) */}
+          {/* Contact Details Card (Including WhatsApp, Email, Phone) */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="lg:col-span-1"
           >
-            <GlassCard padding="p-6 md:p-8" className="h-full flex flex-col justify-between">
+            <GlassCard padding="p-6 md:p-8" className="h-full flex flex-col justify-between space-y-6">
               <div>
                 <SectionHeader
                   icon={Mail}
-                  title="Direct Admin Contact"
-                  subtitle="Need priority activation? Reach out to our administrative verification team directly."
+                  title="Direct Admin & Verification Contact Desk"
+                  subtitle="Need priority account activation? Reach out to our administrative verification team directly."
                 />
 
-                <div className="space-y-4 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                   {/* WhatsApp Priority Desk */}
                   <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
@@ -236,105 +235,6 @@ const EmployerVerificationPage = () => {
               <div className="mt-6 pt-4 border-t border-[var(--color-outline-variant)]/30 text-[11px] text-[var(--color-on-surface-variant)]/70 italic flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 shrink-0 text-[var(--color-primary-md3)]" />
                 <span>Verification protects campaign candidates from unverified recruiters.</span>
-              </div>
-            </GlassCard>
-          </motion.div>
-
-          {/* Express Verification Request Form */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="lg:col-span-2"
-          >
-            <GlassCard padding="p-6 md:p-8" className="h-full flex flex-col justify-between">
-              <div>
-                <SectionHeader
-                  icon={FileCheck}
-                  title="Request Express Verification"
-                  subtitle="Submit your company details for expedited review by our platform administration."
-                />
-
-                {requestSent ? (
-                  <div className="py-12 px-6 text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
-                      <CheckCircle2 className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-lg font-black uppercase tracking-tight text-[var(--color-on-surface)]">
-                      Express Verification Requested!
-                    </h3>
-                    <p className="text-xs text-[var(--color-on-surface-variant)] max-w-md mx-auto leading-relaxed font-medium">
-                      Thank you! Your company details have been submitted directly to our compliance team. An admin will review and verify your account shortly.
-                    </p>
-                    <button
-                      onClick={() => setRequestSent(false)}
-                      className="px-5 py-2.5 bg-[var(--color-surface-variant)]/60 text-xs font-bold uppercase tracking-wider text-[var(--color-on-surface)] rounded-xl border border-[var(--color-outline-variant)]/30 hover:bg-[var(--color-surface-variant)] transition-all"
-                    >
-                      Submit Another Detail
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleExpressVerification} className="space-y-4 mt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)] mb-1.5 block">
-                          Company Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={companyName}
-                          onChange={(e) => setCompanyName(e.target.value)}
-                          placeholder="e.g. Acme Tech Solutions Inc."
-                          className="w-full rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 px-4 py-3 text-xs font-bold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-md3)]/50 transition-all"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)] mb-1.5 block">
-                          Official Website or LinkedIn URL *
-                        </label>
-                        <input
-                          type="url"
-                          value={websiteUrl}
-                          onChange={(e) => setWebsiteUrl(e.target.value)}
-                          placeholder="https://acmetech.com or LinkedIn URL"
-                          className="w-full rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 px-4 py-3 text-xs font-bold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-md3)]/50 transition-all"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[11px] font-black uppercase tracking-widest text-[var(--color-on-surface-variant)] mb-1.5 block">
-                        Additional Note for Admin <span className="text-[var(--color-on-surface-variant)]/50">(optional)</span>
-                      </label>
-                      <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        rows={3}
-                        placeholder="Mention hiring urgency, team size, or specific role requirements..."
-                        className="w-full rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 px-4 py-3 text-xs font-bold text-[var(--color-on-surface)] placeholder:text-[var(--color-on-surface-variant)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-md3)]/50 transition-all resize-none"
-                      />
-                    </div>
-
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="px-6 py-3.5 bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-[var(--color-primary-md3)]/25 flex items-center gap-2"
-                      >
-                        {isSubmitting ? (
-                          <>Sending Request...</>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            Submit Express Request
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                )}
               </div>
             </GlassCard>
           </motion.div>

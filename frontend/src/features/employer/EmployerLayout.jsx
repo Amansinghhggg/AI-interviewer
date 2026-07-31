@@ -93,6 +93,20 @@ export default function EmployerLayout() {
                             <span>Profile</span>
                         </button>
                         <button
+                            onClick={() => {
+                                navigate('/employer/contact');
+                                setMobileMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
+                                location.pathname === '/employer/contact' || location.pathname === '/employer/verification-pending'
+                                    ? 'bg-[var(--color-primary-md3)] text-white'
+                                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50'
+                            }`}
+                        >
+                            <HelpCircle className="w-4 h-4" />
+                            <span>Contact Us</span>
+                        </button>
+                        <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
                         >
@@ -150,7 +164,14 @@ export default function EmployerLayout() {
                         )}
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
                     </button>
-                    <button className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)] rounded-xl transition-all">
+                    <button
+                        onClick={() => navigate('/employer/contact')}
+                        className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
+                            location.pathname === '/employer/contact' || location.pathname === '/employer/verification-pending'
+                                ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                                : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
+                        }`}
+                    >
                         <HelpCircle className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Contact Us</span>
                     </button>

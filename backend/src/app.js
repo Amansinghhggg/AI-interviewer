@@ -11,6 +11,7 @@ import mockInterviewRoutes from "./modules/interview/routes/mockInterview.routes
 import voiceRoutes from "./modules/voice/routes/voice.routes.js";
 import profileRoutes from "./modules/users/profile.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
+import complaintRoutes from "./modules/complaints/complaint.routes.js";
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use("/api/voice", voiceRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/candidates", profileRoutes); // For /api/candidates/:candidateId/resume
 app.use("/api/payments", paymentRoutes);
+app.use("/api/complaints", complaintRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

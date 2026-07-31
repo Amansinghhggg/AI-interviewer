@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Key, HelpCircle, LogOut, Bot, CreditCard, Menu, X, User, Briefcase } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Key, Crown, HelpCircle, LogOut, User, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -20,16 +20,20 @@ export default function CandidateLayout() {
         }
     };
 
+    const handleNavItemClick = (path) => {
+        navigate(path);
+    };
+
     const navItems = [
-        { label: "Mock Interview Studio", icon: Bot, path: "/candidate/mock-interview" },
-        { label: "Assigned Interviews", icon: Briefcase, path: "/candidate/dashboard" },
-        { label: "Join via Code", icon: Key, path: "/candidate/join" },
-        { label: "Manage Subscriptions", icon: CreditCard, path: "/candidate/subscriptions" },
+        { label: "AI Mock Interview", icon: Sparkles, path: "/candidate/mock-interview" },
+        { label: "Assigned Interviews", icon: LayoutDashboard, path: "/candidate/dashboard" },
+        { label: "Join Campaign", icon: Key, path: "/candidate/join" },
+        { label: "Subscriptions", icon: Crown, path: "/candidate/subscriptions" },
     ];
 
     return (
         <div className="min-h-screen bg-[var(--color-background-md3,var(--background))] text-[var(--color-on-background,var(--text-primary))] font-['Inter'] flex flex-col md:flex-row">
-            
+
             {/* Mobile Header Bar (visible on < md screens) */}
             <header className="md:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[var(--color-surface-container-lowest,var(--card))]/90 backdrop-blur-md border-b border-[var(--color-surface-variant,var(--border))]">
                 <div className="flex items-center gap-3">
@@ -38,7 +42,7 @@ export default function CandidateLayout() {
                     </div>
                     <div>
                         <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">InterviewOS</h1>
-                        <p className="text-[9px] text-[var(--color-on-surface-variant)] uppercase tracking-widest font-bold">Candidate</p>
+                        <p className="text-[9px] text-[var(--color-on-surface-variant)] uppercase tracking-widest font-bold">Candidate Portal</p>
                     </div>
                 </div>
                 <button
@@ -58,14 +62,13 @@ export default function CandidateLayout() {
                             <button
                                 key={item.path}
                                 onClick={() => {
-                                    navigate(item.path);
+                                    handleNavItemClick(item.path);
                                     setMobileMenuOpen(false);
                                 }}
-                                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
-                                    location.pathname === item.path
+                                className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${location.pathname === item.path
                                         ? 'bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30'
                                         : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50 hover:text-[var(--color-on-surface)]'
-                                }`}
+                                    }`}
                             >
                                 <item.icon className="w-4 h-4" />
                                 <span>{item.label}</span>
@@ -79,14 +82,26 @@ export default function CandidateLayout() {
                                 navigate('/candidate/profile');
                                 setMobileMenuOpen(false);
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
-                                location.pathname === '/candidate/profile'
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${location.pathname === '/candidate/profile'
                                     ? 'bg-[var(--color-primary-md3)] text-white'
                                     : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50'
-                            }`}
+                                }`}
                         >
                             <User className="w-4 h-4" />
                             <span>Profile</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigate('/candidate/help');
+                                setMobileMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${location.pathname === '/candidate/help'
+                                    ? 'bg-[var(--color-primary-md3)] text-white'
+                                    : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-variant)]/50'
+                                }`}
+                        >
+                            <HelpCircle className="w-4 h-4" />
+                            <span>Help & Support</span>
                         </button>
                         <button
                             onClick={handleLogout}
@@ -107,7 +122,7 @@ export default function CandidateLayout() {
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                         <h1 className="text-sm font-black tracking-tight text-[var(--color-on-surface,var(--text-primary))]">InterviewOS</h1>
-                        <p className="text-[10px] text-[var(--color-on-surface-variant,var(--text-secondary))] uppercase tracking-widest font-bold">Candidate Portal</p>
+                        <p className="text-[10px] text-[var(--color-on-surface-variant,var(--text-secondary))] uppercase tracking-widest font-bold">Candidate Suite</p>
                     </div>
                 </div>
 
@@ -115,12 +130,11 @@ export default function CandidateLayout() {
                     {navItems.map((item) => (
                         <button
                             key={item.path}
-                            onClick={() => navigate(item.path)}
-                            className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
-                                location.pathname === item.path
+                            onClick={() => handleNavItemClick(item.path)}
+                            className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === item.path
                                     ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
                                     : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
-                            }`}
+                                }`}
                         >
                             <item.icon className="w-6 h-6 shrink-0" />
                             <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.label}</span>
@@ -131,11 +145,10 @@ export default function CandidateLayout() {
                 <div className="p-4 border-t border-[var(--color-surface-variant,var(--border))] space-y-2 min-w-[288px]">
                     <button
                         onClick={() => navigate('/candidate/profile')}
-                        className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${
-                            location.pathname === '/candidate/profile'
+                        className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/profile'
                                 ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
                                 : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
-                        }`}
+                            }`}
                     >
                         {user?.profilePicture ? (
                             <img src={user.profilePicture} alt="Profile" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover shrink-0" />
@@ -146,11 +159,17 @@ export default function CandidateLayout() {
                         )}
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
                     </button>
-                    <button className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)] rounded-xl transition-all">
+                    <button
+                        onClick={() => navigate('/candidate/help')}
+                        className={`w-full flex items-center gap-4 px-3 py-3 text-sm font-bold rounded-xl transition-all ${location.pathname === '/candidate/help'
+                                ? 'bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]'
+                                : 'text-[var(--color-on-surface-variant,var(--text-secondary))] hover:bg-[var(--color-surface-variant,var(--border))]/50 hover:text-[var(--color-primary-md3)]'
+                            }`}
+                    >
                         <HelpCircle className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Help & Support</span>
                     </button>
-                    <button onClick={handleLogout} className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-xl transition-all">
+                    <button onClick={handleLogout} className="w-full flex items-center gap-4 px-3 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
                         <LogOut className="w-6 h-6 shrink-0" />
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Logout</span>
                     </button>
@@ -158,7 +177,7 @@ export default function CandidateLayout() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 md:ml-20 transition-all duration-300 relative z-10 w-full overflow-x-hidden">
+            <main className="flex-1 md:ml-20 transition-all duration-300 w-full overflow-x-hidden">
                 <Outlet />
             </main>
         </div>
