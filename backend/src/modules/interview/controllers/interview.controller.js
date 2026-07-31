@@ -761,6 +761,34 @@ const reEnrollByResultId = async (req, res, next) => {
   }
 };
 
+// @desc    Record when AI finishes speaking a question
+// @route   POST /api/interviews/:id/question-ended
+// @access  Candidate only
+const recordQuestionEnded = async (req, res, next) => {
+  try {
+    const sessionStore = await import("../services/InterviewSessionService.js");
+    const InterviewSessionService = sessionStore.default;
+
+    const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
+    if (!session || session.status !== "ACTIVE") {
+      return res.status(400).json({ success: false, message: "No active session found" });
+    }
+
+    const currentIndex = session.currentQuestionIndex;
+    if (session.questions[currentIndex]) {
+      session.questions[currentIndex].questionEndedAt = new Date();
+      await session.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      questionEndedAt: session.questions[currentIndex]?.questionEndedAt
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   createInterview,
   getInterviews,
@@ -774,6 +802,7 @@ export {
   getInterviewQuestions,
   getInterviewSession,
   submitAnswer,
+  recordQuestionEnded,
   getInterviewResult,
   uploadRecording,
   reEnrollCandidate,

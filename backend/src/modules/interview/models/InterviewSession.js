@@ -12,6 +12,7 @@ const questionSchema = new mongoose.Schema(
     // Each question owns its corresponding answer
     answer: { type: String, default: null },
     askedAt: { type: Date, default: Date.now },
+    questionEndedAt: { type: Date, default: null },
     answeredAt: { type: Date, default: null }
   },
   { _id: false }

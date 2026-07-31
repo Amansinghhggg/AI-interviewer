@@ -89,6 +89,7 @@ class InterviewResultService {
         confidence: result.scores?.confidence || 0,
         topicCoverage: result.scores?.topicCoverage || 0,
       },
+      startedAt: result.sessionId?.startedAt || null,
       recording: result.sessionId?.recording || null,
       questionBreakdown: result.questionEvaluations.map(qe => {
         // Try to find the original question from the populated session to get its metadata
@@ -101,6 +102,9 @@ class InterviewResultService {
           answer: qe.answer,
           topic: sessionQuestion?.topic || qe.topic || "General",
           difficulty: sessionQuestion?.difficulty || qe.difficulty || "Medium",
+          askedAt: sessionQuestion?.askedAt || null,
+          answeredAt: sessionQuestion?.answeredAt || null,
+          questionEndedAt: sessionQuestion?.questionEndedAt || null,
           scores: qe.scores,
           feedback: qe.feedback,
         };

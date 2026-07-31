@@ -13,6 +13,7 @@ import {
   getInterviewQuestions,
   getInterviewSession,
   submitAnswer,
+  recordQuestionEnded,
   getInterviewResult,
   uploadRecording,
   reEnrollCandidate,
@@ -46,6 +47,7 @@ router.post("/join", authorize("candidate"), joinInterview);
 router.post("/:id/start", authorize("candidate"), startInterview);
 router.get("/:id/session", authorize("candidate"), getInterviewSession);
 router.post("/:id/answer", authorize("candidate"), submitAnswer);
+router.post("/:id/question-ended", authorize("candidate"), recordQuestionEnded);
 router.post("/:id/submit", authorize("candidate"), submitInterview);
 router.get("/:id/questions", authorize("candidate"), getInterviewQuestions);
 

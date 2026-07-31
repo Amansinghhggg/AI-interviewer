@@ -8,7 +8,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip,
 import {
     Mail, Briefcase, Building2, Calendar, Info, ThumbsUp, AlertCircle,
     Play, ChevronDown, ShieldCheck, Sparkles, Home, Users, BookOpen,
-    Settings, HelpCircle, LogOut, RotateCcw, FileText
+    Settings, HelpCircle, LogOut, RotateCcw, FileText, PlayCircle
 } from 'lucide-react';
 
 export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => {
@@ -303,6 +303,20 @@ export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => 
                                 <div className="space-y-4">
                                     {questionBreakdown?.map((q, idx) => {
                                         const qScore = q.scores?.overall || q.scores?.technical || q.score || 0;
+                                        const matchingEvent = questionsTimeline.find(t => t.payload?.index === idx + 1 || t.payload?.question === q.question);
+                                        const qStartSec = matchingEvent?.startTime ?? (idx * 45);
+                                        const min = Math.floor(qStartSec / 60);
+                                        const sec = Math.floor(qStartSec % 60);
+                                        const timeStr = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+
+                                        const handleSeekToQuestion = (e) => {
+                                            e.stopPropagation();
+                                            setActiveTab('session-details');
+                                            setTimeout(() => {
+                                                controls.seek(qStartSec);
+                                            }, 100);
+                                        };
+
                                         return (
                                             <div key={idx} className="bg-[var(--color-surface-container-low)] rounded-2xl overflow-hidden border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 transition-all group">
                                                 <div
@@ -313,11 +327,21 @@ export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => 
                                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all shadow-lg ${expandedQuestion === idx ? 'bg-[var(--color-primary-md3)] text-white' : 'bg-[var(--color-surface-variant)] text-[var(--color-on-surface-variant)]'}`}>
                                                             0{idx + 1}
                                                         </div>
-                                                        <h4 className={`text-base font-bold transition-colors ${expandedQuestion === idx ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-on-surface)]'}`}>
-                                                            {q.question}
-                                                        </h4>
+                                                        <div>
+                                                            <h4 className={`text-base font-bold transition-colors ${expandedQuestion === idx ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-on-surface)]'}`}>
+                                                                {q.question}
+                                                            </h4>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleSeekToQuestion}
+                                                            className="px-3 py-1.5 rounded-xl bg-[var(--color-primary-md3)]/10 hover:bg-[var(--color-primary-md3)]/20 border border-[var(--color-primary-md3)]/30 text-[var(--color-primary-md3)] text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm"
+                                                        >
+                                                            <PlayCircle className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                                                            <span>{timeStr} • Replay</span>
+                                                        </button>
                                                         <div className="hidden md:flex gap-4">
                                                             <div className="text-right">
                                                                 <p className={`text-sm font-black ${qScore >= 7 ? 'text-[var(--color-primary-md3)]' : 'text-[var(--color-error)]'}`}>{qScore}/10</p>

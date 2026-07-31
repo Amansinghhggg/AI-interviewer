@@ -6,31 +6,43 @@ export class ReplayMapper {
     static map(resultData) {
         if (!resultData) return null;
 
-        // Estimate sequential timelines if real timestamps aren't saved
-        // We space questions out across the duration of the recording
         const durationSec = resultData.recording?.duration || (resultData.evaluation?.durationMs / 1000) || 0;
         const numQuestions = resultData.questionBreakdown?.length || 1;
         const timePerQuestion = durationSec / numQuestions;
 
-        const sessionStart = resultData.evaluation?.evaluatedAt 
-            ? new Date(resultData.evaluation.evaluatedAt).getTime() 
-            : Date.now();
+        // Resolve exact session start timestamp
+        const firstQuestionAskedAt = resultData.questionBreakdown?.find(q => q?.askedAt)?.askedAt;
+        let sessionStartMs;
+
+        if (resultData.startedAt) {
+            sessionStartMs = new Date(resultData.startedAt).getTime();
+        } else if (firstQuestionAskedAt) {
+            sessionStartMs = new Date(firstQuestionAskedAt).getTime();
+        } else if (resultData.evaluation?.evaluatedAt) {
+            sessionStartMs = new Date(resultData.evaluation.evaluatedAt).getTime() - (durationSec * 1000);
+        } else {
+            sessionStartMs = Date.now() - (durationSec * 1000);
+        }
 
         const mappedQuestions = (resultData.questionBreakdown || []).map((q, i) => {
-            const simulatedStart = sessionStart + (i * timePerQuestion * 1000);
+            const simulatedStart = sessionStartMs + (i * timePerQuestion * 1000);
             const simulatedEnd = simulatedStart + (timePerQuestion * 1000);
+            
+            const qAskedAt = q.askedAt ? new Date(q.askedAt).getTime() : simulatedStart;
+            const qEndedAt = q.questionEndedAt ? new Date(q.questionEndedAt).getTime() : null;
+            const qAnsweredAt = q.answeredAt ? new Date(q.answeredAt).getTime() : simulatedEnd;
+
             return {
-                id: q.questionId,
+                id: q.questionId || `q-${i}`,
                 text: q.question,
                 answer: q.answer,
-                askedAt: new Date(simulatedStart),
-                answeredAt: new Date(simulatedEnd)
+                askedAt: new Date(qAskedAt),
+                questionEndedAt: qEndedAt ? new Date(qEndedAt) : null,
+                answeredAt: new Date(qAnsweredAt)
             };
         });
 
         // Map violations from the session's violation timeline.
-        // The ViolationEngine stores entries with { type, severity, timestamp, resolvedAt }.
-        // We normalize these into the shape ReplayTimelineBuilder expects.
         const rawViolations = resultData.violations || resultData.recording?.violations || [];
         const mappedViolations = rawViolations.map((v, i) => ({
             id: v.id || `violation-${i}`,
@@ -42,8 +54,8 @@ export class ReplayMapper {
         }));
 
         return {
-            startedAt: new Date(sessionStart),
-            endedAt: new Date(sessionStart + (durationSec * 1000)),
+            startedAt: new Date(sessionStartMs),
+            endedAt: new Date(sessionStartMs + (durationSec * 1000)),
             duration: durationSec,
             recording: resultData.recording || { url: '', duration: durationSec, mimeType: 'video/webm' },
             conversation: {
