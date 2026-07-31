@@ -15,4 +15,15 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor_charts: ['recharts'],
+          vendor_icons: ['lucide-react'],
+          vendor_motion: ['framer-motion'],
+        },
+      },
+    },
+  },
 })

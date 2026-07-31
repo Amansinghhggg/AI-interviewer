@@ -19,6 +19,7 @@ import { GlassCard } from "../../ui/primitives/GlassCard";
 import { StatusBadge } from "../../ui/primitives/StatusBadge";
 import { useAuth } from "../../context/AuthContext";
 import ResumeUploadModal from "./components/ResumeUploadModal";
+import { MicVolumeMeter } from "./components/MicVolumeMeter";
 
 const PreInterviewPage = () => {
   const { id } = useParams();
@@ -214,6 +215,7 @@ const PreInterviewPage = () => {
                   </div>
                   {getStatusDisplay(checks.mic.status, "Verified")}
                 </div>
+                {checks.mic.status === 'success' && <MicVolumeMeter />}
                 {checks.mic.status === 'error' && checks.mic.error && (
                   <p className="mt-1.5 text-[10px] text-rose-400 font-bold uppercase tracking-widest pl-10 truncate">{checks.mic.error}</p>
                 )}

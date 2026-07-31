@@ -5,10 +5,12 @@ import { TIMELINE_EVENT_TYPES } from '../../replay/config/constants.js';
 import { useReplay } from '../../replay/hooks/useReplay.js';
 import { ReplayPlayer } from '../../replay/components/ReplayPlayer.jsx';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, ResponsiveContainer } from 'recharts';
+import toast from 'react-hot-toast';
 import {
     Mail, Briefcase, Building2, Calendar, Info, ThumbsUp, AlertCircle,
     Play, ChevronDown, ShieldCheck, Sparkles, Home, Users, BookOpen,
-    Settings, HelpCircle, LogOut, RotateCcw, FileText, PlayCircle
+    Settings, HelpCircle, LogOut, RotateCcw, FileText, PlayCircle,
+    Share2, Printer
 } from 'lucide-react';
 
 export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => {
@@ -65,6 +67,11 @@ export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => 
     // Find active question based on useReplay activeEntries
     const activeQuestionId = activeEntries?.find(e => e.type === TIMELINE_EVENT_TYPES.QUESTION)?.id;
 
+    const handleShareLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast.success("Evaluation link copied to clipboard!");
+    };
+
     return (
         <div className="flex bg-[var(--color-background-md3)] text-[var(--color-on-background)] font-['Inter']">
             {/* Main Content Area */}
@@ -113,18 +120,27 @@ export const CandidateWorkspace = ({ resultData, onReEnroll, onViewResume }) => 
                         </div>
                     </div>
 
-                    {/* Absolute right-bottom Re-Enroll Button */}
-                    {onReEnroll && (
-                        <div className="absolute bottom-6 right-6 z-20">
+                    {/* Absolute right-bottom Action Buttons */}
+                    <div className="absolute bottom-6 right-6 z-20 flex items-center gap-2">
+                        <button
+                            onClick={handleShareLink}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-surface-container-high)] hover:bg-[var(--color-surface-variant)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider"
+                            title="Copy evaluation link"
+                        >
+                            <Share2 className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
+                            <span className="hidden sm:inline">Share Link</span>
+                        </button>
+
+                        {onReEnroll && (
                             <button
                                 onClick={onReEnroll}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-error)]/10 hover:bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider group"
+                                className="flex items-center gap-2 px-3 py-2 bg-[var(--color-error)]/10 hover:bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 rounded-xl transition-all shadow-sm font-bold text-[11px] uppercase tracking-wider group"
                             >
-                                <RotateCcw className="w-4 h-4 group-hover:-rotate-90 transition-transform duration-300" />
-                                Re-Enroll Candidate
+                                <RotateCcw className="w-3.5 h-3.5 group-hover:-rotate-90 transition-transform duration-300" />
+                                <span>Re-Enroll</span>
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     {/* Score removed from here */}
                     <div className="absolute right-0 top-0 w-[40%] h-full bg-gradient-to-l from-[var(--color-primary-md3)]/10 to-transparent opacity-50 pointer-events-none transition-opacity"></div>

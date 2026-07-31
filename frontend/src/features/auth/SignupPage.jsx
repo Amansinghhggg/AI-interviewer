@@ -86,7 +86,7 @@ const SignupPage = () => {
 
     setIsLoading(true);
     setUploadProgress(0);
-    
+
     // Simulate gradual progress up to 90%
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
@@ -105,7 +105,7 @@ const SignupPage = () => {
       dataToSubmit.append("password", formData.password);
       dataToSubmit.append("confirmPassword", formData.confirmPassword);
       dataToSubmit.append("role", formData.role);
-      
+
       if (selectedRole === "candidate" && resumeFile) {
         dataToSubmit.append("resume", resumeFile);
       }
@@ -113,10 +113,10 @@ const SignupPage = () => {
       const data = await signup(dataToSubmit, {
         headers: { "Content-Type": "multipart/form-data" }
       });
-      
+
       clearInterval(progressInterval);
       setUploadProgress(100);
-      
+
       toast.success("Account created successfully!");
       if (data.user.role === "employer") {
         navigate("/employer/dashboard");
@@ -163,7 +163,7 @@ const SignupPage = () => {
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--color-primary-md3)] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
       <div className="w-full max-w-[1000px] mx-4 z-10 grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
-        
+
         {/* Left side: Branding / Copy */}
         <div className="hidden md:flex flex-col pr-8 lg:pr-12">
           <div className="flex items-center gap-4 mb-12">
@@ -179,28 +179,28 @@ const SignupPage = () => {
               </span>
             </div>
           </div>
-          
+
           <h1 className="text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tight">
-            Unlock your <br/>
+            Unlock your <br />
             <span className="text-[var(--color-primary-md3)]">full potential.</span>
           </h1>
           <p className="text-[var(--color-on-surface-variant)] text-lg leading-relaxed mb-8 max-w-md">
             Join the platform built for modern hiring. Find the best talent or practice your interviewing skills with our advanced AI engine.
           </p>
-          
+
           <div className="flex flex-col gap-5 mt-auto">
-             <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
-                <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
-                <span className="text-sm font-bold tracking-wide">Create highly tailored AI interviews</span>
-             </div>
-             <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
-                <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
-                <span className="text-sm font-bold tracking-wide">Get real-time AI scoring & insights</span>
-             </div>
-             <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
-                <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
-                <span className="text-sm font-bold tracking-wide">Practice and improve continuously</span>
-             </div>
+            <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
+              <span className="text-sm font-bold tracking-wide">Create highly tailored AI interviews</span>
+            </div>
+            <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
+              <span className="text-sm font-bold tracking-wide">Get real-time AI scoring & insights</span>
+            </div>
+            <div className="flex items-center gap-4 text-[var(--color-on-surface-variant)]">
+              <div className="w-10 h-10 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/20 flex items-center justify-center text-[var(--color-primary-md3)] shrink-0 font-bold">✓</div>
+              <span className="text-sm font-bold tracking-wide">Practice and improve continuously</span>
+            </div>
           </div>
         </div>
 
@@ -230,8 +230,8 @@ const SignupPage = () => {
                 <label
                   htmlFor="role-employer"
                   className={`relative flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-xl border cursor-pointer transition-all duration-300 ${selectedRole === "employer"
-                      ? "border-[var(--color-primary-md3)] bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] shadow-[0_0_15px_rgba(139,92,246,0.1)]"
-                      : "border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary-md3)]/50 hover:text-white"
+                    ? "border-[var(--color-primary-md3)] bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] shadow-[0_0_15px_rgba(139,92,246,0.1)]"
+                    : "border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary-md3)]/50 hover:text-white"
                     }`}
                 >
                   <input
@@ -247,8 +247,8 @@ const SignupPage = () => {
                 <label
                   htmlFor="role-candidate"
                   className={`relative flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-xl border cursor-pointer transition-all duration-300 ${selectedRole === "candidate"
-                      ? "border-[var(--color-primary-md3)] bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] shadow-[0_0_15px_rgba(139,92,246,0.1)]"
-                      : "border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary-md3)]/50 hover:text-white"
+                    ? "border-[var(--color-primary-md3)] bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] shadow-[0_0_15px_rgba(139,92,246,0.1)]"
+                    : "border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary-md3)]/50 hover:text-white"
                     }`}
                 >
                   <input

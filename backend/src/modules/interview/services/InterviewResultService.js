@@ -13,16 +13,17 @@ import { getScoreInterpretation } from "../utils/scoreInterpretation.js";
 class InterviewResultService {
   /**
    * Fetches an interview result and returns a structured DTO.
-   * Ensures the employer requesting the result owns the interview.
+   * Allows authorized employers or the evaluated candidate to view the result.
    * 
    * @param {string} interviewId
    * @param {string} resultId
-   * @param {string} employerId
+   * @param {string} userId
+   * @param {string} userRole
    * @returns {Promise<Object>} Clean DTO
    */
-  async getCandidateResult(interviewId, resultId, employerId) {
-    // 1. Verify employer owns the interview
-    const interview = await Interview.findOne({ _id: interviewId, employer: employerId });
+  async getCandidateResult(interviewId, resultId, userId, userRole = "employer") {
+    // 1. Verify interview exists
+    const interview = await Interview.findById(interviewId);
     if (!interview) {
       throw new Error("not_found");
     }
@@ -33,13 +34,21 @@ class InterviewResultService {
       throw new Error("result_not_found");
     }
 
-    // 3. Fetch Candidate details
+    // 3. Authorization check: Any logged-in employer or the candidate themselves can view the report
+    const isEmployer = userRole === "employer" || (userId && interview.employer.toString() === userId.toString());
+    const isOwnerCandidate = userId && result.candidateId.toString() === userId.toString();
+
+    if (!isEmployer && !isOwnerCandidate) {
+      throw new Error("not_found");
+    }
+
+    // 4. Fetch Candidate details
     const candidate = await User.findById(result.candidateId).select("name email");
     if (!candidate) {
       throw new Error("candidate_not_found");
     }
 
-    // 4. Build and return clean DTO
+    // 5. Build and return clean DTO
     return this.buildInterviewResultDTO(result, interview, candidate);
   }
 
