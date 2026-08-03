@@ -49,7 +49,7 @@ const LiveInterviewAIContent = ({
 }) => {
   const { user } = useAuth();
   const { runtime, actions } = useInterviewRuntime();
-  const { save, retry, state: uploadState, retries, error } = usePersistence();
+  const { save, retry, state: uploadState, progress: uploadProgress, retries, error } = usePersistence();
   const navigate = useNavigate();
 
   // Mode flag for automatic vs manual orchestration
@@ -106,6 +106,7 @@ const LiveInterviewAIContent = ({
     return (
       <UploadScreen
         uploadState={uploadState}
+        progress={uploadProgress}
         retries={retries}
         error={error}
         onRetry={retry}
