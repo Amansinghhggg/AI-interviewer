@@ -1,0 +1,90 @@
+import { redisClient, isRedisReady } from '../../config/redis.js';
+
+/**
+ * CacheService
+ * 
+ * Provides high-level Redis query caching for MongoDB documents and API endpoints.
+ */
+class CacheService {
+  /**
+   * Generic Cache Getter / Setter wrapper
+   * 
+   * @param {string} key - Redis key namespace
+   * @param {number} ttlSeconds - Time-To-Live in seconds
+   * @param {Function} fetchFunction - Async function returning fresh database data
+   * @returns {Promise<Object|Array|null>}
+   */
+  async getOrSetCache(key, ttlSeconds, fetchFunction) {
+    // 1. Try reading from Redis RAM if connected
+    if (isRedisReady()) {
+      try {
+        const cachedData = await redisClient.get(key);
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            parsed._fromCache = true;
+          }
+          return parsed;
+        }
+      } catch (err) {
+        console.warn(`⚠️ [CacheService] Redis read error for key '${key}':`, err.message);
+      }
+    }
+
+    // 2. Fetch fresh data from MongoDB
+    const freshData = await fetchFunction();
+
+    // 3. Store fresh data in Redis RAM with TTL
+    if (isRedisReady() && freshData !== undefined && freshData !== null) {
+      try {
+        await redisClient.set(key, JSON.stringify(freshData), 'EX', ttlSeconds);
+      } catch (err) {
+        console.warn(`⚠️ [CacheService] Redis write error for key '${key}':`, err.message);
+      }
+    }
+
+    return freshData;
+  }
+
+  /**
+   * Invalidates a specific Redis cache key
+   * 
+   * @param {string} key 
+   * @returns {Promise<boolean>}
+   */
+  async invalidateCache(key) {
+    if (!isRedisReady()) return false;
+    try {
+      await redisClient.del(key);
+      console.log(`🧹 [CacheService] Invalidated key: ${key}`);
+      return true;
+    } catch (err) {
+      console.warn(`⚠️ [CacheService] Error deleting key '${key}':`, err.message);
+      return false;
+    }
+  }
+
+  /**
+   * Invalidates all Redis cache keys matching a pattern (e.g. 'cache:user:*')
+   * 
+   * @param {string} pattern 
+   * @returns {Promise<number>} Number of keys deleted
+   */
+  async invalidateCachePattern(pattern) {
+    if (!isRedisReady()) return 0;
+    try {
+      const keys = await redisClient.keys(pattern);
+      if (keys.length > 0) {
+        const deleted = await redisClient.del(...keys);
+        console.log(`🧹 [CacheService] Invalidated ${deleted} key(s) matching pattern '${pattern}'`);
+        return deleted;
+      }
+      return 0;
+    } catch (err) {
+      console.warn(`⚠️ [CacheService] Error deleting pattern '${pattern}':`, err.message);
+      return 0;
+    }
+  }
+}
+
+export const cacheService = new CacheService();
