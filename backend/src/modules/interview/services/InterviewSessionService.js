@@ -293,6 +293,34 @@ class InterviewSessionService {
   }
 
   /**
+   * Delegates post-interview evaluation to Redis BullMQ queue (< 5ms API response).
+   * Falls back to direct synchronous execution if Redis is offline.
+   * 
+   * @param {Object} session 
+   * @param {Object} interviewDoc 
+   */
+  async queueOrRunEvaluation(session, interviewDoc) {
+    try {
+      const { enqueueEvaluation } = await import('../queues/evaluationQueue.js');
+      const queueResult = await enqueueEvaluation(session, interviewDoc);
+
+      if (queueResult.enqueued) {
+        return {
+          enqueued: true,
+          jobId: queueResult.jobId,
+          message: 'Evaluation job enqueued successfully to BullMQ queue',
+        };
+      }
+    } catch (err) {
+      console.warn('⚠️ [InterviewSessionService] Queue delegation failed, falling back to direct execution:', err.message);
+    }
+
+    // Fallback: Run directly if Redis is offline or queue unavailable
+    const directResult = await this.evaluateAndSaveResult(session, interviewDoc);
+    return { enqueued: false, result: directResult };
+  }
+
+  /**
    * Evaluates a completed interview and updates the result in MongoDB.
    * @param {Object} session - The completed InterviewSession document.
    * @param {Object} interviewDoc - The Interview document.
