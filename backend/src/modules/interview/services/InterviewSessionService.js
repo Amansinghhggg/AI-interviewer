@@ -7,6 +7,7 @@ import { EvaluationContext } from "../prompts/EvaluationContext.js";
 import { InterviewConfig } from "./InterviewConfig.js";
 import { createInterviewEngine } from "./interviewEngine.js";
 import { AIConfig } from "../providers/AIProvider/config/ai.config.js";
+import { voiceSessionCache } from "./voiceSessionCache.service.js";
 
 /**
  * InterviewSessionService
@@ -58,7 +59,7 @@ class InterviewSessionService {
       answeredAt: null
     };
 
-    return await InterviewSession.findByIdAndUpdate(
+    const updatedSession = await InterviewSession.findByIdAndUpdate(
       sessionId,
       {
         status: "ACTIVE",
@@ -69,16 +70,42 @@ class InterviewSessionService {
       },
       { returnDocument: 'after' }
     );
+
+    if (updatedSession) {
+      await voiceSessionCache.setSession(
+        updatedSession.interviewId,
+        updatedSession.candidateId,
+        updatedSession.toObject ? updatedSession.toObject() : updatedSession
+      );
+    }
+
+    return updatedSession;
   }
 
   /**
-   * Retrieves the current session.
+   * Retrieves the current session with sub-millisecond Redis caching.
    * 
    * @param {string} interviewId 
    * @param {string} candidateId 
    */
   async getActiveSession(interviewId, candidateId) {
-    return await InterviewSession.findOne({ interviewId, candidateId });
+    // 1. Try fetching from Redis RAM (<1ms)
+    const cachedSession = await voiceSessionCache.getSession(interviewId, candidateId);
+    if (cachedSession) {
+      return cachedSession;
+    }
+
+    // 2. Fallback to MongoDB on cache miss
+    const session = await InterviewSession.findOne({ interviewId, candidateId });
+    if (session) {
+      // Seed Redis cache asynchronously for subsequent fast reads
+      voiceSessionCache.setSession(
+        interviewId,
+        candidateId,
+        session.toObject ? session.toObject() : session
+      );
+    }
+    return session;
   }
 
   /**
@@ -191,6 +218,14 @@ class InterviewSessionService {
 
     await session.save();
     console.log("InterviewSession\n→ Question Saved\n");
+
+    // Sync to Redis RAM asynchronously
+    voiceSessionCache.setSession(
+      session.interviewId,
+      session.candidateId,
+      session.toObject ? session.toObject() : session
+    );
+
     return session;
   }
 
@@ -242,15 +277,19 @@ class InterviewSessionService {
   }
 
   /**
-   * Marks the session as completed.
+   * Marks the session as completed and clears RAM cache.
    * @param {string} sessionId 
    */
   async completeSession(sessionId) {
-    return await InterviewSession.findByIdAndUpdate(
+    const updated = await InterviewSession.findByIdAndUpdate(
       sessionId,
       { status: "COMPLETED" },
       { returnDocument: 'after' }
     );
+    if (updated) {
+      await voiceSessionCache.clearSession(updated.interviewId, updated.candidateId);
+    }
+    return updated;
   }
 
   /**
