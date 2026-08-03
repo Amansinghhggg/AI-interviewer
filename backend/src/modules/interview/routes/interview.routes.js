@@ -21,6 +21,7 @@ import {
 } from "../controllers/interview.controller.js";
 import { protect, authorize, requireVerifiedEmployer } from "../../auth/auth.middleware.js";
 import { getCandidateResume, downloadCandidateResume } from "../../users/profile.controller.js";
+import { aiRateLimiter } from "../../../middleware/rateLimiter.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -44,10 +45,10 @@ router.get("/:interviewId/candidates/:candidateId/resume/download", protect, dow
 // Candidate Routes
 router.get("/candidate/assigned", authorize("candidate"), getAssignedInterviews);
 router.post("/join", authorize("candidate"), joinInterview);
-router.post("/:id/start", authorize("candidate"), startInterview);
+router.post("/:id/start", authorize("candidate"), aiRateLimiter, startInterview);
 router.get("/:id/session", authorize("candidate"), getInterviewSession);
-router.post("/:id/answer", authorize("candidate"), submitAnswer);
-router.post("/:id/question-ended", authorize("candidate"), recordQuestionEnded);
+router.post("/:id/answer", authorize("candidate"), aiRateLimiter, submitAnswer);
+router.post("/:id/question-ended", authorize("candidate"), aiRateLimiter, recordQuestionEnded);
 router.post("/:id/submit", authorize("candidate"), submitInterview);
 router.get("/:id/questions", authorize("candidate"), getInterviewQuestions);
 
