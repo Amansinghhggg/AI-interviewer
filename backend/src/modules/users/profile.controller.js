@@ -1,6 +1,7 @@
 import User from "./user.model.js";
 import Interview from "../interview/models/interview.model.js";
 import StorageService from "../../shared/services/StorageService.js";
+import { cacheService } from "../../shared/services/cacheService.js";
 
 // @desc    Upload or replace the authenticated candidate's resume
 // @route   POST /api/profile/resume
@@ -43,6 +44,9 @@ const replaceResume = async (req, res, next) => {
     await user.save();
     console.log(`[Resume] User ${user._id} successfully replaced resume. New ID: ${result.public_id}`);
 
+    // Invalidate Redis RAM cache
+    await cacheService.invalidateCache(`cache:resume:${user._id}`);
+
     // Delete old resume asynchronously (Fire-and-forget)
     if (oldPublicId) {
       StorageService.deleteResume(oldPublicId).catch((err) => {
@@ -68,15 +72,16 @@ const getMyResume = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "Only candidates have resumes." });
     }
 
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found." });
-    }
+    const cacheKey = `cache:resume:${req.user._id}`;
+    const resumeData = await cacheService.getOrSetCache(cacheKey, 600, async () => {
+      const user = await User.findById(req.user._id).select("resume");
+      return user ? (user.resume || null) : null;
+    });
 
     res.status(200).json({
       success: true,
       message: "Resume fetched successfully.",
-      data: user.resume || null,
+      data: resumeData,
     });
   } catch (error) {
     next(error);
