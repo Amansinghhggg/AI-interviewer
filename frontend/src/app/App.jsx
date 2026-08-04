@@ -24,6 +24,8 @@ import MockInterviewPage from "../features/candidate/MockInterviewPage";
 import MockPreInterviewPage from "../features/candidate/MockPreInterviewPage";
 import CandidateSubscriptionsPage from "../features/candidate/CandidateSubscriptionsPage";
 import CandidateHelpSupportPage from "../features/candidate/CandidateHelpSupportPage";
+import AdminLayout from "../features/admin/AdminLayout";
+import AdminDashboardPage from "../features/admin/AdminDashboardPage";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -40,6 +42,13 @@ function App() {
     );
   }
 
+  const getRoleDefaultRoute = () => {
+    if (!user?.role) return "/select-role";
+    if (user.role === "admin") return "/admin";
+    if (user.role === "employer") return "/employer/dashboard";
+    return "/candidate/mock-interview";
+  };
+
   return (
     <>
       <Routes>
@@ -53,16 +62,7 @@ function App() {
           path="/login"
           element={
             user ? (
-              <Navigate
-                to={
-                  !user.role
-                    ? "/select-role"
-                    : user.role === "employer"
-                    ? "/employer/dashboard"
-                    : "/candidate/mock-interview"
-                }
-                replace
-              />
+              <Navigate to={getRoleDefaultRoute()} replace />
             ) : (
               <LoginPage />
             )
@@ -72,16 +72,7 @@ function App() {
           path="/signup"
           element={
             user ? (
-              <Navigate
-                to={
-                  !user.role
-                    ? "/select-role"
-                    : user.role === "employer"
-                    ? "/employer/dashboard"
-                    : "/candidate/mock-interview"
-                }
-                replace
-              />
+              <Navigate to={getRoleDefaultRoute()} replace />
             ) : (
               <SignupPage />
             )
@@ -90,6 +81,11 @@ function App() {
 
         {/* Compulsory Role Selection Route */}
         <Route path="/select-role" element={<SelectRolePage />} />
+
+        {/* Admin Routes */}
+        <Route element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+        </Route>
 
         {/* Employer Routes */}
         <Route element={<ProtectedRoute role="employer"><EmployerLayout /></ProtectedRoute>}>

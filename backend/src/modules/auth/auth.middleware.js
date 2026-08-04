@@ -57,3 +57,34 @@ export const requireVerifiedEmployer = (req, res, next) => {
   next();
 };
 
+// Require admin privileges (checking both role and ADMIN_EMAIL if set)
+export const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized — login required",
+    });
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isRoleAdmin = req.user.role === "admin";
+  const isEmailAdmin = adminEmail && req.user.email?.toLowerCase() === adminEmail.toLowerCase();
+
+  if (!isRoleAdmin && !isEmailAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied — Single Admin privileges required",
+    });
+  }
+
+  // If email matches ADMIN_EMAIL but role is not set to admin, auto-upgrade for convenience
+  if (isEmailAdmin && req.user.role !== "admin") {
+    req.user.role = "admin";
+    req.user.save().catch((err) => console.error("Error setting admin role:", err));
+  }
+
+  next();
+};
+
+
+

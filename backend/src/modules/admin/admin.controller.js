@@ -1,0 +1,482 @@
+import User from "../users/user.model.js";
+import Complaint from "../complaints/complaint.model.js";
+import MockInterview from "../interview/models/MockInterview.js";
+import InterviewResult from "../interview/models/InterviewResult.js";
+import Interview from "../interview/models/interview.model.js";
+import InterviewSession from "../interview/models/InterviewSession.js";
+
+// @desc    Get aggregate high-level metrics & graphical chart data for admin
+// @route   GET /api/admin/stats
+// @access  Private (Admin)
+export const getAdminDashboardStats = async (req, res, next) => {
+  try {
+    const [
+      totalUsers,
+      totalCandidates,
+      totalEmployers,
+      totalAdmins,
+      verifiedEmployers,
+      unverifiedEmployers,
+      totalMockInterviews,
+      totalEmployerCampaigns,
+      totalSessions,
+      totalResults,
+      recommendationStats,
+      totalComplaints,
+      pendingComplaints,
+      inProgressComplaints,
+      resolvedComplaints,
+      categoryComplaints,
+      recentUsers,
+      recentComplaints,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: "candidate" }),
+      User.countDocuments({ role: "employer" }),
+      User.countDocuments({ role: "admin" }),
+      User.countDocuments({ role: "employer", isVerified: true }),
+      User.countDocuments({ role: "employer", isVerified: false }),
+      MockInterview.countDocuments(),
+      Interview.countDocuments({ mode: "REGULAR" }),
+      InterviewSession.countDocuments(),
+      InterviewResult.countDocuments(),
+      InterviewResult.aggregate([
+        {
+          $group: {
+            _id: "$recommendation",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      Complaint.countDocuments(),
+      Complaint.countDocuments({ status: "PENDING" }),
+      Complaint.countDocuments({ status: "IN_PROGRESS" }),
+      Complaint.countDocuments({ status: "RESOLVED" }),
+      Complaint.aggregate([
+        {
+          $group: {
+            _id: "$category",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+      User.find().sort({ createdAt: -1 }).limit(5).select("name email role createdAt profilePicture"),
+      Complaint.find().sort({ createdAt: -1 }).limit(5).select("ticketId name email category urgency status createdAt"),
+    ]);
+
+    // Format recommendation stats map
+    const recommendations = {
+      STRONG_HIRE: 0,
+      HIRE: 0,
+      BORDERLINE: 0,
+      NEEDS_IMPROVEMENT: 0,
+      REJECT: 0,
+      NOT_EVALUATED: 0,
+    };
+    recommendationStats.forEach((item) => {
+      if (item._id && recommendations[item._id] !== undefined) {
+        recommendations[item._id] = item.count;
+      }
+    });
+
+    // Format category complaints map
+    const complaintCategories = {};
+    categoryComplaints.forEach((item) => {
+      if (item._id) {
+        complaintCategories[item._id] = item.count;
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users: {
+          total: totalUsers,
+          candidates: totalCandidates,
+          employers: totalEmployers,
+          admins: totalAdmins,
+          verifiedEmployers,
+          unverifiedEmployers,
+        },
+        interviews: {
+          totalMockInterviews,
+          totalEmployerCampaigns,
+          totalSessions,
+          totalResults,
+          recommendations,
+        },
+        complaints: {
+          total: totalComplaints,
+          pending: pendingComplaints,
+          inProgress: inProgressComplaints,
+          resolved: resolvedComplaints,
+          categories: complaintCategories,
+        },
+        recentUsers,
+        recentComplaints,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get list of employers with verification status and campaign counts
+// @route   GET /api/admin/employers
+// @access  Private (Admin)
+export const getEmployers = async (req, res, next) => {
+  try {
+    const { search, status, page = 1, limit = 20 } = req.query;
+
+    const query = { role: "employer" };
+
+    if (status === "verified") query.isVerified = true;
+    if (status === "pending") query.isVerified = false;
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [employers, total] = await Promise.all([
+      User.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    // Attach campaign count for each employer
+    const employerIds = employers.map((emp) => emp._id);
+    const campaignCounts = await Interview.aggregate([
+      { $match: { employer: { $in: employerIds } } },
+      { $group: { _id: "$employer", count: { $sum: 1 } } },
+    ]);
+
+    const campaignMap = {};
+    campaignCounts.forEach((c) => {
+      campaignMap[c._id.toString()] = c.count;
+    });
+
+    const formattedEmployers = employers.map((emp) => ({
+      ...emp,
+      campaignsCount: campaignMap[emp._id.toString()] || 0,
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: formattedEmployers.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      employers: formattedEmployers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Toggle employer verification status (Approve / Revoke)
+// @route   PATCH /api/admin/employers/:id/verify
+// @access  Private (Admin)
+export const toggleEmployerVerification = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isVerified } = req.body;
+
+    const employer = await User.findById(id);
+
+    if (!employer || employer.role !== "employer") {
+      return res.status(404).json({
+        success: false,
+        message: "Employer not found",
+      });
+    }
+
+    employer.isVerified = typeof isVerified === "boolean" ? isVerified : !employer.isVerified;
+    await employer.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Employer ${employer.name} verification status updated to ${employer.isVerified ? "Verified" : "Pending/Unverified"}.`,
+      employer: {
+        _id: employer._id,
+        name: employer.name,
+        email: employer.email,
+        isVerified: employer.isVerified,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get mock interview attempts and candidate evaluations
+// @route   GET /api/admin/mock-attempts
+// @access  Private (Admin)
+export const getMockAttempts = async (req, res, next) => {
+  try {
+    const { search, recommendation, page = 1, limit = 20 } = req.query;
+
+    const query = { mode: "MOCK" };
+
+    if (recommendation) {
+      query.recommendation = recommendation;
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    let results = await InterviewResult.find(query)
+      .populate("candidateId", "name email profilePicture credits")
+      .populate("sessionId", "status startedAt createdAt recording")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      results = results.filter(
+        (r) =>
+          searchRegex.test(r.candidateId?.name || "") ||
+          searchRegex.test(r.candidateId?.email || "") ||
+          searchRegex.test(r.interviewSnapshot?.jobRole || "")
+      );
+    }
+
+    const total = await InterviewResult.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      count: results.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      attempts: results,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all user complaints/support tickets with filters
+// @route   GET /api/admin/complaints
+// @access  Private (Admin)
+export const getComplaints = async (req, res, next) => {
+  try {
+    const { status, urgency, category, search, page = 1, limit = 20 } = req.query;
+
+    const query = {};
+
+    if (status) query.status = status;
+    if (urgency) query.urgency = urgency;
+    if (category) query.category = category;
+
+    if (search) {
+      query.$or = [
+        { ticketId: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { subject: { $regex: search, $options: "i" } },
+        { message: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [tickets, total] = await Promise.all([
+      Complaint.find(query)
+        .populate("userId", "name email role profilePicture")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      Complaint.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: tickets.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      complaints: tickets,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update complaint status or admin notes
+// @route   PATCH /api/admin/complaints/:id
+// @access  Private (Admin)
+export const updateComplaint = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNotes } = req.body;
+
+    const complaint = await Complaint.findById(id);
+
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint ticket not found",
+      });
+    }
+
+    if (status) complaint.status = status;
+    if (adminNotes !== undefined) complaint.adminNotes = adminNotes;
+
+    await complaint.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Complaint ${complaint.ticketId} updated successfully.`,
+      complaint,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get list of all platform users
+// @route   GET /api/admin/users
+// @access  Private (Admin)
+export const getUsers = async (req, res, next) => {
+  try {
+    const { role, search, page = 1, limit = 20 } = req.query;
+
+    const query = {};
+
+    if (role) query.role = role;
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      users,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Grant bonus credits to a user
+// @route   POST /api/admin/users/:id/credits
+// @access  Private (Admin)
+export const grantBonusCredits = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { creditsAmount } = req.body;
+
+    const amount = Number(creditsAmount);
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid positive credit amount",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.credits) {
+      user.credits = { availableCredits: 0, totalBonusCredits: 0 };
+    }
+
+    user.credits.availableCredits = (user.credits.availableCredits || 0) + amount;
+    user.credits.totalBonusCredits = (user.credits.totalBonusCredits || 0) + amount;
+    user.credits.lastTopUpAt = new Date();
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Granted ${amount} bonus credits to ${user.name}. New balance: ${user.credits.availableCredits}`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        credits: user.credits,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all interview campaigns created by employers
+// @route   GET /api/admin/campaigns
+// @access  Private (Admin)
+export const getCampaigns = async (req, res, next) => {
+  try {
+    const { status, search, page = 1, limit = 20 } = req.query;
+
+    const query = { mode: "REGULAR" };
+
+    if (status) query.status = status;
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { jobRole: { $regex: search, $options: "i" } },
+        { interviewCode: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const [campaigns, total] = await Promise.all([
+      Interview.find(query)
+        .populate("employer", "name email profilePicture isVerified")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      Interview.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      count: campaigns.length,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      campaigns,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
