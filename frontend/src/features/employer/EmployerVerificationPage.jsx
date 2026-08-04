@@ -46,7 +46,7 @@ const EmployerVerificationPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
 
-  const adminEmail = "2468amansingh@gmail.com";
+  const adminEmail = "intervuos@gmail.com";
   const adminPhone = "+91 86550 21064";
   const adminPhoneClean = "+918655021064";
   const whatsappNumber = "+91 86550 21064";
@@ -82,7 +82,7 @@ const EmployerVerificationPage = () => {
           badgeIcon={user?.isVerified ? ShieldCheck : ShieldAlert}
           badgeText={user?.isVerified ? "Account Verified" : "Verification Pending"}
           title="Employer Verification & Platform Portal"
-          description="Track your recruitment account verification status, reach out for priority activation, and explore InterviewOS employer capabilities."
+          description="Track your recruitment account verification status, reach out for priority activation, and explore IntervuOS employer capabilities."
         />
 
         {/* Verification Status Banner */}
@@ -167,7 +167,7 @@ const EmployerVerificationPage = () => {
                         {whatsappNumber}
                       </span>
                       <a
-                        href={`https://wa.me/${whatsappCleanNumber}?text=Hello%20InterviewOS%20Team,%20I%20need%20priority%20employer%20verification%20and%20custom%20campaign%20setup.`}
+                        href={`https://wa.me/${whatsappCleanNumber}?text=Hello%20IntervuOS%20Team,%20I%20need%20priority%20employer%20verification%20and%20custom%20campaign%20setup.`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-md shadow-emerald-500/20 shrink-0"
@@ -269,7 +269,7 @@ const EmployerVerificationPage = () => {
                 </div>
 
                 <a
-                  href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20InterviewOS%20Team,%20I'm%20interested%20in%20setting%20up%20a%20Customized%20Candidate%20Shortlisting%20Campaign.`}
+                  href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20IntervuOS%20Team,%20I'm%20interested%20in%20setting%20up%20a%20Customized%20Candidate%20Shortlisting%20Campaign.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/25 flex items-center gap-2 shrink-0 self-start md:self-auto"
@@ -435,7 +435,7 @@ const EmployerVerificationPage = () => {
               Next-Gen Autonomous Recruitment Suite
             </h2>
             <p className="text-xs md:text-sm text-[var(--color-on-surface-variant)] font-medium">
-              Eliminate preliminary phone screens and manual interview scheduling. InterviewOS conducts AI-driven voice & technical assessments tailored to your exact job specifications.
+              Eliminate preliminary phone screens and manual interview scheduling. IntervuOS conducts AI-driven voice & technical assessments tailored to your exact job specifications.
             </p>
           </div>
 
@@ -518,7 +518,7 @@ const EmployerVerificationPage = () => {
                   Platform Interface Showcase
                 </h3>
                 <p className="text-xs text-[var(--color-on-surface-variant)] font-medium">
-                  Visual preview of the InterviewOS employer dashboard, live interview environment, and scorecard analytics.
+                  Visual preview of the IntervuOS employer dashboard, live interview environment, and scorecard analytics.
                 </p>
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-primary-md3)] px-3 py-1 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/30">

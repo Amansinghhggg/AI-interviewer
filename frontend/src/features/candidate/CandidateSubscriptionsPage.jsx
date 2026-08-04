@@ -108,7 +108,7 @@ export default function CandidateSubscriptionsPage() {
         key: orderData.key || "rzp_test_1DP5mmOlF5G5ag",
         amount: orderData.amount,
         currency: orderData.currency || "INR",
-        name: "InterviewOS AI",
+        name: "IntervuOS AI",
         description: `Purchase ${plan.credits} Credits`,
         order_id: orderData.demoMode ? undefined : orderData.orderId,
         prefill: {

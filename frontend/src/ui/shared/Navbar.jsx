@@ -11,7 +11,7 @@ const Navbar = () => {
             <BrainCircuit className="w-5 h-5 text-[var(--primary)] transition-colors duration-300" />
           </div>
           <span className="text-lg font-bold text-[var(--text-primary)] tracking-wide">
-            InterviewOS
+            IntervuOS
           </span>
         </Link>
       </div>

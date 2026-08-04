@@ -38,10 +38,10 @@ export default function EmployerLayout() {
             <header className="md:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[var(--color-surface-container-lowest,var(--card))]/90 backdrop-blur-md border-b border-[var(--color-surface-variant,var(--border))]">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[var(--color-primary-md3)] flex items-center justify-center text-white font-bold text-xs shadow-md shadow-[var(--color-primary-md3)]/30">
-                        IA
+                        IO
                     </div>
                     <div>
-                        <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">InterviewOS</h1>
+                        <h1 className="text-xs font-black tracking-tight text-[var(--color-on-surface)] uppercase">IntervuOS</h1>
                         <p className="text-[9px] text-[var(--color-on-surface-variant)] uppercase tracking-widest font-bold">Employer Console</p>
                     </div>
                 </div>
@@ -121,10 +121,10 @@ export default function EmployerLayout() {
             <aside className="hidden md:flex group w-20 hover:w-72 border-r border-[var(--color-surface-variant,var(--border))] bg-[var(--color-surface-container-lowest,var(--card))] flex-col fixed bottom-0 top-0 left-0 z-40 transition-all duration-300 overflow-hidden shadow-2xl">
                 <div className="flex items-center gap-3 p-6 mb-4 min-w-[288px]">
                     <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--color-primary-md3)] flex items-center justify-center text-white font-bold shadow-lg shadow-[var(--color-primary-md3)]/30">
-                        IA
+                        IO
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                        <h1 className="text-sm font-black tracking-tight text-[var(--color-on-surface,var(--text-primary))]">InterviewOS</h1>
+                        <h1 className="text-sm font-black tracking-tight text-[var(--color-on-surface,var(--text-primary))]">IntervuOS</h1>
                         <p className="text-[10px] text-[var(--color-on-surface-variant,var(--text-secondary))] uppercase tracking-widest font-bold">Recruitment Suite</p>
                     </div>
                 </div>

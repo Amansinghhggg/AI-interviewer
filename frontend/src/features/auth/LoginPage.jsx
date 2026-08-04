@@ -90,7 +90,7 @@ const LoginPage = () => {
             </div>
             <div>
               <span className="text-3xl font-black text-white tracking-tight block">
-                InterviewOS
+                IntervuOS
               </span>
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-primary-md3)]">
                 Recruitment Suite
@@ -115,7 +115,7 @@ const LoginPage = () => {
             <div className="w-12 h-12 rounded-xl bg-[var(--color-primary-md3)] flex items-center justify-center shadow-lg shadow-[var(--color-primary-md3)]/30 mb-4">
               <BrainCircuit className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl font-black text-white tracking-tight">InterviewOS</span>
+            <span className="text-2xl font-black text-white tracking-tight">IntervuOS</span>
           </div>
 
           <div className="mb-10 relative z-10">

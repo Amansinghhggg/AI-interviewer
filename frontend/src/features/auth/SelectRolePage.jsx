@@ -69,14 +69,14 @@ const SelectRolePage = () => {
         <div className="text-center space-y-4">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[var(--color-primary-md3)]/10 border border-[var(--color-primary-md3)]/30 text-[var(--color-primary-md3)] text-xs font-black uppercase tracking-widest shadow-lg">
             <BrainCircuit className="w-4 h-4" />
-            InterviewOS Account Setup
+            IntervuOS Account Setup
           </div>
 
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">
             Select Your Account Role
           </h1>
           <p className="text-sm md:text-base text-[var(--color-on-surface-variant)] max-w-xl mx-auto font-medium">
-            Welcome, <span className="text-white font-bold">{user.name || user.email}</span>! Please select how you intend to use InterviewOS to continue.
+            Welcome, <span className="text-white font-bold">{user.name || user.email}</span>! Please select how you intend to use IntervuOS to continue.
           </p>
         </div>
 

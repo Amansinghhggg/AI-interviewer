@@ -1,4 +1,4 @@
-# 🚀 InterviewOS — Production-Grade AI Interviewer & Screening Platform
+# 🚀 IntervuOS — Production-Grade AI Interviewer & Screening Platform
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-v19.0-61dafb.svg)](https://react.dev/)
@@ -37,7 +37,7 @@
 
 ## 🔍 Overview
 
-**InterviewOS** solves the bottleneck in technical hiring and candidate preparation. It acts as a dual-sided platform:
+**IntervuOS** solves the bottleneck in technical hiring and candidate preparation. It acts as a dual-sided platform:
 
 1. **For Candidates**: An interactive, low-stress mock interview simulator that provides real-time voice & text questioning, adaptive follow-ups, dynamic difficulty adjustments, and actionable AI evaluation reports across multiple technical and soft-skill metrics.
 2. **For Employers**: An automated screening platform to publish job requisitions, invite candidates, monitor live sessions, review AI-generated leaderboards, export structured PDF candidate dossiers, and flag potential proctoring violations.
@@ -307,7 +307,7 @@ npm run dev
 
 ## 📊 Comprehensive Evaluation Schema
 
-Every interview completed on InterviewOS generates a structured dossier:
+Every interview completed on IntervuOS generates a structured dossier:
 
 ```json
 {
@@ -358,4 +358,4 @@ Every interview completed on InterviewOS generates a structured dossier:
 
 ## 🤝 Contributing & License
 
-Distributed under the **ISC License**. Built with ❤️ by the **InterviewOS Team**.
+Distributed under the **ISC License**. Built with ❤️ by the **IntervuOS Team**.

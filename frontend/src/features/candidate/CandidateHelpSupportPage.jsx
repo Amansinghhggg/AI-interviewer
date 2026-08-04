@@ -303,7 +303,7 @@ export default function CandidateHelpSupportPage() {
                             {whatsappNumber}
                           </span>
                           <a
-                            href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20InterviewOS%20Support,%20I%20am%20a%20candidate%20facing%20an%20issue%20with%20my%20interview.`}
+                            href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20IntervuOS%20Support,%20I%20am%20a%20candidate%20facing%20an%20issue%20with%20my%20interview.`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20 shrink-0"
