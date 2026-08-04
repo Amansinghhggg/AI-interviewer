@@ -56,7 +56,7 @@ export default function CandidateLayout() {
 
             {/* Mobile Dropdown Navigation Drawer */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-black/60 backdrop-blur-sm flex flex-col justify-between p-4 animate-in fade-in duration-200">
+                <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-black/60 backdrop-blur-sm flex flex-col justify-between p-4 overflow-y-auto max-h-[calc(100vh-57px)] animate-in fade-in duration-200">
                     <nav className="space-y-2 bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] p-4 rounded-3xl shadow-2xl">
                         {navItems.map((item) => (
                             <button

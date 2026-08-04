@@ -457,8 +457,8 @@ export default function CandidateSubscriptionsPage() {
             No transaction records found yet.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-xs min-w-[600px]">
               <thead>
                 <tr className="border-b border-[var(--color-surface-variant,var(--border))] text-[var(--color-on-surface-variant)] uppercase tracking-wider font-extrabold">
                   <th className="py-3 px-4">Date</th>

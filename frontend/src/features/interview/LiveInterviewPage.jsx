@@ -116,28 +116,29 @@ const LiveInterviewAIContent = ({
   }
 
   return (
-    <div className="h-screen bg-slate-950 flex flex-col relative overflow-hidden font-sans text-slate-100 antialiased">
+    <div className="h-[100dvh] min-h-screen lg:h-screen bg-slate-950 flex flex-col relative overflow-hidden font-sans text-slate-100 antialiased">
       {/* Background ambient lighting */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Bar */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-6 z-50 border-b border-slate-800/80 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold tracking-wider uppercase">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
-            REC • HD 1080p
+      <header className="fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 z-50 border-b border-slate-800/80 shadow-lg">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] sm:text-xs font-bold tracking-wider uppercase shrink-0">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)] shrink-0" />
+            <span className="hidden sm:inline">REC • HD 1080p</span>
+            <span className="sm:hidden">REC</span>
           </div>
-          <div className="h-4 w-px bg-slate-800" />
-          <span className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-            <span className="text-slate-400 font-normal">{interview?.jobRole || "AI Technical Interview"}</span>
+          <div className="hidden md:block h-4 w-px bg-slate-800 shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold text-slate-300 hidden md:flex items-center gap-2 truncate">
+            <span className="text-slate-400 font-normal truncate">{interview?.jobRole || "AI Technical Interview"}</span>
             <span className="text-slate-600">•</span>
-            <span className="text-slate-200 font-medium">{user?.name || session?.candidateId || "Candidate"}</span>
+            <span className="text-slate-200 font-medium truncate">{user?.name || session?.candidateId || "Candidate"}</span>
           </span>
         </div>
         
-        <div className="flex items-center gap-5">
-          <div className={`px-4 py-1.5 rounded-xl border text-sm font-mono font-bold tracking-tight shadow-inner transition-colors ${
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-xl border text-xs sm:text-sm font-mono font-bold tracking-tight shadow-inner transition-colors shrink-0 ${
             timeLeft <= 0 
               ? 'bg-rose-950/40 border-rose-500/40 text-rose-400 animate-pulse' 
               : timeLeft <= 300 
@@ -149,7 +150,7 @@ const LiveInterviewAIContent = ({
 
           <button
             onClick={handleEndInterview}
-            className="px-4 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-rose-950/30 hover:border-rose-800/50 hover:text-rose-300 text-slate-300 text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm"
+            className="px-2.5 sm:px-4 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-rose-950/30 hover:border-rose-800/50 hover:text-rose-300 text-slate-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-200 shadow-sm shrink-0"
           >
             End Interview
           </button>

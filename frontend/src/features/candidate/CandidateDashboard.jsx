@@ -203,8 +203,8 @@ const CandidateDashboard = () => {
                     description="You are all caught up! Wait for your employer to assign new campaigns."
                   />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                       <thead>
                         <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
@@ -279,8 +279,8 @@ const CandidateDashboard = () => {
                     description="Finished campaign evaluations will appear here."
                   />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                       <thead>
                         <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>
@@ -334,8 +334,8 @@ const CandidateDashboard = () => {
                     />
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                  <div className="overflow-x-auto w-full">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                       <thead>
                         <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
                           <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Organization</th>

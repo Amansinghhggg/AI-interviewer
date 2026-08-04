@@ -74,13 +74,13 @@ const LoginPage = () => {
   const inputClasses = "w-full bg-[var(--color-surface-container-highest)]/30 border border-[var(--color-outline-variant)]/30 rounded-xl px-4 py-3 text-sm text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary-md3)] focus:ring-1 focus:ring-[var(--color-primary-md3)] transition-all placeholder:text-[var(--color-on-surface-variant)]/50";
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#0A0A0A] font-['Inter']">
+    <div className="min-h-[100dvh] py-8 px-4 flex items-center justify-center relative overflow-hidden bg-[#0A0A0A] font-['Inter']">
       {/* Background noise and decorative gradients */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--color-primary-md3)] rounded-full blur-[150px] opacity-20 pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-[var(--color-primary-md3)] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
 
-      <div className="w-full max-w-[1000px] mx-4 z-10 grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <div className="w-full max-w-[1000px] mx-auto z-10 grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
 
         {/* Left side: Branding / Copy */}
         <div className="hidden md:flex flex-col pr-8 lg:pr-12">
@@ -108,7 +108,7 @@ const LoginPage = () => {
         </div>
 
         {/* Right side: Login Card */}
-        <div className="bg-[var(--color-surface-container-low)]/80 backdrop-blur-xl border border-[var(--color-outline-variant)]/30 rounded-3xl shadow-2xl p-8 md:p-10 relative overflow-hidden">
+        <div className="bg-[var(--color-surface-container-low)]/80 backdrop-blur-xl border border-[var(--color-outline-variant)]/30 rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary-md3)]/10 rounded-full blur-[40px] pointer-events-none" />
 
           <div className="text-center mb-10 md:hidden flex flex-col items-center">

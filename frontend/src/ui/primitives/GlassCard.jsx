@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 export const GlassCard = ({
   children,
   className = "",
-  padding = "p-6 md:p-8",
+  padding = "p-4 sm:p-6 md:p-8",
   hoverEffect = false,
   glowEffect = false,
   onClick,

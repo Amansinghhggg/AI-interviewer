@@ -27,7 +27,7 @@ const InterviewAI = ({
   };
 
   return (
-    <div className="flex flex-col relative w-full h-full p-6 lg:p-8 justify-between gap-5">
+    <div className="flex flex-col relative w-full h-full p-4 sm:p-6 lg:p-8 justify-between gap-4 sm:gap-5">
 
       {/* AI Header */}
       <div className="flex items-center justify-between">
@@ -40,7 +40,7 @@ const InterviewAI = ({
       </div>
 
       {/* Large Avatar Container */}
-      <div className="relative flex-1 w-full rounded-[32px] overflow-hidden border border-slate-800/80 bg-slate-900/60 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center justify-center group">
+      <div className="relative flex-1 min-h-[260px] sm:min-h-[320px] lg:min-h-0 w-full rounded-[24px] sm:rounded-[32px] overflow-hidden border border-slate-800/80 bg-slate-900/60 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center justify-center group">
         <AIAvatar state={getAvatarState()} audioElement={audioRef} />
 
         {/* Status Badge Overlay */}

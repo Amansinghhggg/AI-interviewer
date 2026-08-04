@@ -65,7 +65,7 @@ export default function AdminLayout() {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-black/80 backdrop-blur-md flex flex-col justify-between p-4 animate-in fade-in duration-200">
+        <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-black/80 backdrop-blur-md flex flex-col justify-between p-4 overflow-y-auto max-h-[calc(100vh-57px)] animate-in fade-in duration-200">
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/20 flex items-center justify-between">
               <div className="flex items-center gap-3">

@@ -213,24 +213,24 @@ const InterviewDetailsPage = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2.5 sm:gap-3 w-full sm:w-auto">
                   {interview.status !== "completed" ? (
-                    <button onClick={completeInterview} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-success)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Complete Interview
+                    <button onClick={completeInterview} className="px-4 sm:px-5 py-2.5 bg-transparent hover:bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-success)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto">
+                      <CheckCircle2 className="w-4 h-4 mr-2 shrink-0" />
+                      Complete
                     </button>
                   ) : (
-                    <button onClick={activateInterview} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-success)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
-                      <Play className="w-4 h-4 mr-2" />
-                      Activate Interview
+                    <button onClick={activateInterview} className="px-4 sm:px-5 py-2.5 bg-transparent hover:bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-success)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto">
+                      <Play className="w-4 h-4 mr-2 shrink-0" />
+                      Activate
                     </button>
                   )}
-                  <button onClick={() => navigate(`/employer/interviews/${interview._id}/edit`)} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit Details
+                  <button onClick={() => navigate(`/employer/interviews/${interview._id}/edit`)} className="px-4 sm:px-5 py-2.5 bg-transparent hover:bg-[var(--color-primary-md3)]/10 text-[var(--color-primary-md3)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto">
+                    <Edit className="w-4 h-4 mr-2 shrink-0" />
+                    Edit
                   </button>
-                  <button onClick={deleteInterview} className="px-5 py-2.5 bg-transparent hover:bg-[var(--color-error)]/10 text-[var(--color-error)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-error)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center shadow-sm">
-                    <Trash2 className="w-4 h-4 mr-2" />
+                  <button onClick={deleteInterview} className="px-4 sm:px-5 py-2.5 bg-transparent hover:bg-[var(--color-error)]/10 text-[var(--color-error)] border border-[var(--color-outline-variant)]/30 hover:border-[var(--color-error)]/30 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto">
+                    <Trash2 className="w-4 h-4 mr-2 shrink-0" />
                     Delete
                   </button>
                 </div>
