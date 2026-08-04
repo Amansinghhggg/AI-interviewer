@@ -219,7 +219,7 @@ export default function CandidateHelpSupportPage() {
     }
   };
 
-  const adminEmail = "2468amansingh@gmail.com";
+  const adminEmail = "intervuos@gmail.com";
   const whatsappNumber = "+91 86550 21064";
   const whatsappCleanNumber = "8655021064";
 
@@ -240,11 +240,10 @@ export default function CandidateHelpSupportPage() {
           <div className="flex items-center gap-2 p-1.5 bg-[var(--color-surface-container-low)] border border-[var(--color-surface-variant)] rounded-2xl shadow-lg">
             <button
               onClick={() => setActiveMainTab("support")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                activeMainTab === "support"
-                  ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30"
-                  : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-              }`}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeMainTab === "support"
+                ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30"
+                : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
+                }`}
             >
               <HelpCircle className="w-4 h-4" />
               <span>Contact Us & Submit Ticket</span>
@@ -252,11 +251,10 @@ export default function CandidateHelpSupportPage() {
 
             <button
               onClick={() => setActiveMainTab("history")}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                activeMainTab === "history"
-                  ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30"
-                  : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-              }`}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeMainTab === "history"
+                ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/30"
+                : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
+                }`}
             >
               <History className="w-4 h-4" />
               <span>My Ticket History</span>
@@ -303,7 +301,7 @@ export default function CandidateHelpSupportPage() {
                             {whatsappNumber}
                           </span>
                           <a
-                            href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20IntervuOS%20Support,%20I%20am%20a%20candidate%20facing%20an%20issue%20with%20my%20interview.`}
+                            href={`https://wa.me/${whatsappCleanNumber}?text=Hi%20InterviewOS%20Support,%20I%20am%20a%20candidate%20facing%20an%20issue%20with%20my%20interview.`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20 shrink-0"
@@ -441,13 +439,12 @@ export default function CandidateHelpSupportPage() {
                             key={p.id}
                             type="button"
                             onClick={() => setPriority(p.id)}
-                            className={`py-2.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${
-                              priority === p.id
-                                ? p.id === "urgent"
-                                  ? "bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/30"
-                                  : "bg-[var(--color-primary-md3)] text-white border-[var(--color-primary-md3)] shadow-md shadow-[var(--color-primary-md3)]/30"
-                                : "bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)]/30 hover:text-[var(--color-on-surface)]"
-                            }`}
+                            className={`py-2.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${priority === p.id
+                              ? p.id === "urgent"
+                                ? "bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/30"
+                                : "bg-[var(--color-primary-md3)] text-white border-[var(--color-primary-md3)] shadow-md shadow-[var(--color-primary-md3)]/30"
+                              : "bg-[var(--color-surface-container-highest)]/30 text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)]/30 hover:text-[var(--color-on-surface)]"
+                              }`}
                           >
                             {p.label}
                           </button>
@@ -515,11 +512,10 @@ export default function CandidateHelpSupportPage() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
-                      activeCategory === cat.id
-                        ? "bg-[var(--color-primary-md3)] text-white border-[var(--color-primary-md3)] shadow-md shadow-[var(--color-primary-md3)]/30"
-                        : "bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)] border-[var(--color-surface-variant)] hover:bg-[var(--color-surface-variant)]/50 hover:text-[var(--color-on-surface)]"
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${activeCategory === cat.id
+                      ? "bg-[var(--color-primary-md3)] text-white border-[var(--color-primary-md3)] shadow-md shadow-[var(--color-primary-md3)]/30"
+                      : "bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)] border-[var(--color-surface-variant)] hover:bg-[var(--color-surface-variant)]/50 hover:text-[var(--color-on-surface)]"
+                      }`}
                   >
                     {cat.label}
                   </button>
@@ -566,9 +562,8 @@ export default function CandidateHelpSupportPage() {
                             </span>
                           </div>
                           <ChevronDown
-                            className={`w-5 h-5 text-[var(--color-on-surface-variant)] shrink-0 transition-transform duration-300 ${
-                              isOpen ? "rotate-180 text-[var(--color-primary-md3)]" : ""
-                            }`}
+                            className={`w-5 h-5 text-[var(--color-on-surface-variant)] shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-[var(--color-primary-md3)]" : ""
+                              }`}
                           />
                         </button>
 

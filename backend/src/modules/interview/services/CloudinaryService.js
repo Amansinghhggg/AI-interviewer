@@ -27,7 +27,7 @@ class CloudinaryService {
    * @returns {Promise<Object>} Cloudinary upload result
    */
   async uploadRecording(fileBuffer, originalFilename, options = {}) {
-    const folder = options.folder || "ai-interviews";
+    const folder = options.folder || "IntervuOS";
     const timeout = parseInt(process.env.CLOUDINARY_UPLOAD_TIMEOUT, 10) || options.timeout || 600000;
     const maxRetries = options.maxRetries || 3;
 
@@ -87,7 +87,7 @@ class CloudinaryService {
   /**
    * Deprecated: Use uploadRecording instead.
    */
-  uploadStream(fileBuffer, originalFilename, folder = "ai-interviews") {
+  uploadStream(fileBuffer, originalFilename, folder = "IntervuOS") {
     return this.uploadRecording(fileBuffer, originalFilename, { folder });
   }
 
