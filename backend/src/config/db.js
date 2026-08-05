@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: 'ai-interview'
+      dbName: process.env.DB_NAME || 'IntervuOS'
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

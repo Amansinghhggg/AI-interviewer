@@ -18,6 +18,8 @@ export class InterviewConfig {
     language = "English",
     interviewType = "gemini",
     mode = "EMPLOYER",
+    questionMode = "AI_GENERATED",
+    customQuestions = [],
   }) {
     this.companyName = companyName;
     this.jobRole = jobRole;
@@ -30,6 +32,8 @@ export class InterviewConfig {
     this.language = language;
     this.interviewType = interviewType;
     this.mode = mode;
+    this.questionMode = questionMode;
+    this.customQuestions = customQuestions;
   }
 
   /**
@@ -51,6 +55,8 @@ export class InterviewConfig {
     const duration = config.duration || interviewDoc.duration || 30;
     const instructions = config.instructions || interviewDoc.instructions || "";
     const mode = interviewDoc.mode || (interviewDoc.candidate ? "MOCK" : "EMPLOYER");
+    const questionMode = interviewDoc.questionMode || config.questionMode || "AI_GENERATED";
+    const customQuestions = interviewDoc.customQuestions || config.customQuestions || [];
 
     let defaultDifficulty = "Medium";
     if (expLevel === "Fresher") defaultDifficulty = "Easy";
@@ -70,6 +76,8 @@ export class InterviewConfig {
       language: interviewDoc.language || "English",
       interviewType: interviewDoc.interviewType || "gemini",
       mode,
+      questionMode,
+      customQuestions,
     });
   }
 

@@ -114,8 +114,8 @@ export class InterviewEngine {
  * @param {string} [interviewType='static'] - The type of interview / provider to use.
  * @returns {InterviewEngine}
  */
-export const createInterviewEngine = (interviewType = process.env.QUESTION_PROVIDER || "gemini") => {
-  const questionProvider = createQuestionProvider(interviewType);
+export const createInterviewEngine = (interviewType = process.env.QUESTION_PROVIDER || "gemini", config = {}) => {
+  const questionProvider = createQuestionProvider(interviewType, config);
   
   // Temporary fallback: Route all unsupported evaluation types to groq
   const evalType = (interviewType === "gemini" || interviewType === "static") ? "groq" : interviewType;

@@ -27,6 +27,15 @@ import {
   Trash2,
   X,
   Users,
+  Bot,
+  Target,
+  Shuffle,
+  HelpCircle,
+  FileCode,
+  Copy,
+  Download,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { PageHeader } from "../../ui/primitives/PageHeader";
@@ -89,6 +98,102 @@ const CreateInterviewPage = () => {
   const [singleEmailInput, setSingleEmailInput] = useState("");
   const [bulkEmailInput, setBulkEmailInput] = useState("");
   const [csvFileName, setCsvFileName] = useState("");
+
+  // Question Mode State ('AI_GENERATED' | 'EMPLOYER_PRESET' | 'HYBRID')
+  const [questionMode, setQuestionMode] = useState("AI_GENERATED");
+  const [customQuestions, setCustomQuestions] = useState([]);
+  const [newQText, setNewQText] = useState("");
+  const [newQTopic, setNewQTopic] = useState("");
+  const [newQDiff, setNewQDiff] = useState("Medium");
+  const [isQuestionImportModalOpen, setIsQuestionImportModalOpen] = useState(false);
+
+  const addCustomQuestion = () => {
+    if (!newQText.trim()) {
+      toast.error("Please enter question text.");
+      return;
+    }
+    setCustomQuestions([
+      ...customQuestions,
+      {
+        question: newQText.trim(),
+        topic: newQTopic.trim() || "General",
+        difficulty: newQDiff,
+      },
+    ]);
+    setNewQText("");
+    setNewQTopic("");
+    setNewQDiff("Medium");
+    toast.success("Question added to campaign!");
+  };
+
+  const removeCustomQuestion = (index) => {
+    setCustomQuestions(customQuestions.filter((_, i) => i !== index));
+  };
+
+  const handleQuestionCsvUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      if (!content) return;
+
+      const parsedQuestions = [];
+
+      if (file.name.endsWith(".json")) {
+        try {
+          const json = JSON.parse(content);
+          const list = Array.isArray(json) ? json : json.questions || [];
+          list.forEach((item) => {
+            if (item.question || typeof item === "string") {
+              parsedQuestions.push({
+                question: (item.question || item).trim(),
+                topic: (item.topic || "General").trim(),
+                difficulty: ["Easy", "Medium", "Hard"].includes(item.difficulty) ? item.difficulty : "Medium",
+              });
+            }
+          });
+        } catch {
+          toast.error("Failed to parse JSON file.");
+          return;
+        }
+      } else {
+        const lines = content.split(/\r?\n/);
+        lines.forEach((line, index) => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+
+          // Skip header row if contains "question" or "topic"
+          if (index === 0 && (trimmed.toLowerCase().includes("question") || trimmed.toLowerCase().includes("topic"))) {
+            return;
+          }
+
+          const parts = trimmed.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/).map((p) => p.replace(/^"|"$/g, "").trim());
+
+          if (parts[0]) {
+            parsedQuestions.push({
+              question: parts[0],
+              topic: parts[1] || "General",
+              difficulty: ["Easy", "Medium", "Hard"].includes(parts[2]) ? parts[2] : "Medium",
+            });
+          }
+        });
+      }
+
+      if (parsedQuestions.length === 0) {
+        toast.error("No valid questions found in file.");
+        return;
+      }
+
+      setCustomQuestions((prev) => [...prev, ...parsedQuestions]);
+      setIsQuestionImportModalOpen(false);
+      toast.success(`Successfully imported ${parsedQuestions.length} custom question(s) from ${file.name}`);
+    };
+
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   const {
     register,
@@ -219,6 +324,8 @@ const CreateInterviewPage = () => {
       const { data } = await api.post("/interviews", {
         ...formData,
         topics,
+        questionMode,
+        customQuestions,
         candidateEmails,
       });
       if (data.success) {
@@ -376,7 +483,7 @@ const CreateInterviewPage = () => {
                     <Tag className="w-3.5 h-3.5 text-[var(--color-primary-md3)]" />
                     Technical Topics
                   </label>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-3">
                     {PRESET_TOPICS.map((preset) => (
                       <Chip
@@ -462,6 +569,191 @@ const CreateInterviewPage = () => {
             </GlassCard>
           </motion.div>
 
+          {/* Question Strategy & Campaign Mode Section */}
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }}>
+            <GlassCard padding="p-6 md:p-8">
+              <SectionHeader
+                icon={Target}
+                title="Question Strategy & Custom Question Bank"
+                subtitle="Select how questions will be delivered: 100% AI generated, Employer preset list, or a Hybrid campaign."
+              />
+
+              <div className="space-y-6">
+                {/* 3-Way Mode Card Selector */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Mode 1: AI Generated */}
+                  <div
+                    onClick={() => setQuestionMode("AI_GENERATED")}
+                    className={`cursor-pointer p-5 rounded-2xl border transition-all duration-300 relative ${questionMode === "AI_GENERATED"
+                        ? "bg-[var(--color-primary-md3)]/15 border-[var(--color-primary-md3)] shadow-lg shadow-[var(--color-primary-md3)]/20 ring-2 ring-[var(--color-primary-md3)]"
+                        : "bg-[var(--color-surface-container-highest)]/30 border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50"
+                      }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-3">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-[var(--color-on-surface)]">AI-Adaptive</h4>
+                    <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-medium">
+                      Gemini AI dynamically generates all questions and adaptive follow-ups based on candidate responses.
+                    </p>
+                    {questionMode === "AI_GENERATED" && (
+                      <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[var(--color-primary-md3)] text-white text-[10px] font-black uppercase">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mode 2: Employer Preset */}
+                  <div
+                    onClick={() => setQuestionMode("EMPLOYER_PRESET")}
+                    className={`cursor-pointer p-5 rounded-2xl border transition-all duration-300 relative ${questionMode === "EMPLOYER_PRESET"
+                        ? "bg-[var(--color-primary-md3)]/15 border-[var(--color-primary-md3)] shadow-lg shadow-[var(--color-primary-md3)]/20 ring-2 ring-[var(--color-primary-md3)]"
+                        : "bg-[var(--color-surface-container-highest)]/30 border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50"
+                      }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
+                      <Target className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-[var(--color-on-surface)]">Employer Preset</h4>
+                    <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-medium">
+                      AI asks ONLY your exact pre-defined question bank in fixed order. Zero AI question generation.
+                    </p>
+                    {questionMode === "EMPLOYER_PRESET" && (
+                      <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[var(--color-primary-md3)] text-white text-[10px] font-black uppercase">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mode 3: Hybrid Campaign */}
+                  <div
+                    onClick={() => setQuestionMode("HYBRID")}
+                    className={`cursor-pointer p-5 rounded-2xl border transition-all duration-300 relative ${questionMode === "HYBRID"
+                        ? "bg-[var(--color-primary-md3)]/15 border-[var(--color-primary-md3)] shadow-lg shadow-[var(--color-primary-md3)]/20 ring-2 ring-[var(--color-primary-md3)]"
+                        : "bg-[var(--color-surface-container-highest)]/30 border-[var(--color-outline-variant)]/30 hover:border-[var(--color-primary-md3)]/50"
+                      }`}
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-3">
+                      <Shuffle className="w-5 h-5" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-[var(--color-on-surface)]">Hybrid Campaign</h4>
+                    <p className="text-xs text-[var(--color-on-surface-variant)] mt-1 font-medium">
+                      AI asks your custom questions first, then smoothly transitions to adaptive AI follow-ups.
+                    </p>
+                    {questionMode === "HYBRID" && (
+                      <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[var(--color-primary-md3)] text-white text-[10px] font-black uppercase">
+                        Selected
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom Question Builder Form (Shown for EMPLOYER_PRESET & HYBRID modes) */}
+                {(questionMode === "EMPLOYER_PRESET" || questionMode === "HYBRID") && (
+                  <div className="p-5 rounded-2xl bg-[var(--color-surface-container-highest)]/30 border border-[var(--color-outline-variant)]/30 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-[var(--color-on-surface)] flex items-center gap-2">
+                        <FileCode className="w-4 h-4 text-[var(--color-primary-md3)]" />
+                        Add Custom Questions ({customQuestions.length} added)
+                      </h4>
+
+                      {/* CSV / JSON File Import Trigger Button */}
+                      <button
+                        type="button"
+                        onClick={() => setIsQuestionImportModalOpen(true)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--color-primary-md3)]/15 hover:bg-[var(--color-primary-md3)]/25 text-[var(--color-primary-md3)] border border-[var(--color-primary-md3)]/30 text-[11px] font-black uppercase tracking-wider transition-all"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>Import CSV / JSON</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <textarea
+                        value={newQText}
+                        onChange={(e) => setNewQText(e.target.value)}
+                        placeholder="Enter question text (e.g. Explain how Virtual DOM diffing works in React)..."
+                        rows={2}
+                        className={`${inputClasses} resize-none`}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <input
+                            type="text"
+                            value={newQTopic}
+                            onChange={(e) => setNewQTopic(e.target.value)}
+                            placeholder="Topic (e.g. React)"
+                            className={inputClasses}
+                          />
+                        </div>
+                        <div>
+                          <select
+                            value={newQDiff}
+                            onChange={(e) => setNewQDiff(e.target.value)}
+                            className={`${inputClasses} cursor-pointer appearance-none`}
+                          >
+                            <option value="Easy" className="bg-[var(--color-surface-container-low)]">Easy</option>
+                            <option value="Medium" className="bg-[var(--color-surface-container-low)]">Medium</option>
+                            <option value="Hard" className="bg-[var(--color-surface-container-low)]">Hard</option>
+                          </select>
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={addCustomQuestion}
+                            className="w-full h-full py-2.5 px-4 bg-[var(--color-primary-md3)] text-white hover:bg-[var(--color-primary-md3)]/90 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md shadow-[var(--color-primary-md3)]/20"
+                          >
+                            <Plus className="w-4 h-4" /> Add Question
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Added Custom Questions List */}
+                    {customQuestions.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-[var(--color-outline-variant)]/20">
+                        <span className="text-[11px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-wider block">
+                          Configured Question Sequence:
+                        </span>
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                          {customQuestions.map((q, idx) => (
+                            <div
+                              key={idx}
+                              className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start justify-between gap-3 text-xs"
+                            >
+                              <div className="space-y-1 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-bold text-[10px]">
+                                    Q{idx + 1}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-semibold text-[10px]">
+                                    {q.topic}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold text-[10px]">
+                                    {q.difficulty}
+                                  </span>
+                                </div>
+                                <p className="font-semibold text-slate-100">{q.question}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeCustomQuestion(idx)}
+                                className="p-1.5 text-slate-400 hover:text-rose-400 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </motion.div>
+
           {/* Candidate Invitations Section (Single, Bulk, CSV) */}
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
             <GlassCard padding="p-6 md:p-8">
@@ -477,33 +769,30 @@ const CreateInterviewPage = () => {
                   <button
                     type="button"
                     onClick={() => setCandidateMode("single")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                      candidateMode === "single"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${candidateMode === "single"
                         ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/20"
                         : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-                    }`}
+                      }`}
                   >
                     <User className="w-3.5 h-3.5" /> Single Candidate
                   </button>
                   <button
                     type="button"
                     onClick={() => setCandidateMode("bulk")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                      candidateMode === "bulk"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${candidateMode === "bulk"
                         ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/20"
                         : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-                    }`}
+                      }`}
                   >
                     <ListFilter className="w-3.5 h-3.5" /> Multiple / Bulk
                   </button>
                   <button
                     type="button"
                     onClick={() => setCandidateMode("csv")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                      candidateMode === "csv"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${candidateMode === "csv"
                         ? "bg-[var(--color-primary-md3)] text-white shadow-md shadow-[var(--color-primary-md3)]/20"
                         : "text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]"
-                    }`}
+                      }`}
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5" /> CSV / TXT Upload
                   </button>
@@ -662,11 +951,10 @@ const CreateInterviewPage = () => {
               <button
                 type="submit"
                 disabled={isLoading || !user?.isVerified}
-                className={`px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center min-w-[200px] ${
-                  !user?.isVerified
+                className={`px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center min-w-[200px] ${!user?.isVerified
                     ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 cursor-not-allowed"
                     : "bg-[var(--color-primary-md3)] hover:bg-[var(--color-primary-md3)]/90 text-white shadow-lg shadow-[var(--color-primary-md3)]/25"
-                }`}
+                  }`}
               >
                 {isLoading ? (
                   <>
@@ -689,6 +977,94 @@ const CreateInterviewPage = () => {
           </motion.div>
         </form>
       </div>
+
+      {/* QUESTION IMPORT FORMAT GUIDE MODAL */}
+      {isQuestionImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl relative overflow-hidden"
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsQuestionImportModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+                <FileSpreadsheet className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-extrabold text-white">Import Custom Question Bank</h3>
+                <p className="text-xs text-slate-400">Ensure your CSV or JSON file follows the required format below before uploading.</p>
+              </div>
+            </div>
+
+            {/* Format Instructions */}
+            <div className="space-y-4 text-xs">
+              <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 space-y-2">
+                <div className="flex items-center gap-2 text-indigo-300 font-bold uppercase tracking-wider text-[11px]">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>File Format Guidelines</span>
+                </div>
+                <p className="text-slate-300 leading-relaxed">
+                  Your CSV or TXT file should contain columns in this exact order: <b>Question Text</b>, <b>Topic</b>, <b>Difficulty</b> (Easy, Medium, Hard). Headers are optional and automatically detected.
+                </p>
+              </div>
+
+              {/* Code Samples Tabs / Blocks */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Sample CSV File Structure:</span>
+                </div>
+                <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 font-mono text-[11px] overflow-x-auto whitespace-pre">
+{`Question,Topic,Difficulty
+"Explain how Virtual DOM works in React.",React,Easy
+"What is the difference between useEffect and useMemo?",React,Medium
+"How do you handle distributed locks in Redis?",Backend,Hard`}
+                </pre>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Sample JSON File Structure:</span>
+                </div>
+                <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 font-mono text-[11px] overflow-x-auto whitespace-pre">
+{`[
+  { "question": "What is debouncing in JS?", "topic": "JavaScript", "difficulty": "Easy" },
+  { "question": "Explain REST vs GraphQL.", "topic": "APIs", "difficulty": "Medium" }
+]`}
+                </pre>
+              </div>
+
+              {/* Upload Drop Zone */}
+              <div className="p-6 border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 rounded-2xl bg-indigo-500/5 text-center space-y-3 relative transition-all">
+                <input
+                  type="file"
+                  accept=".csv, .txt, .json"
+                  onChange={handleQuestionCsvUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                <div className="w-12 h-12 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto border border-indigo-500/30">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                    Click to select CSV / JSON file or drag here
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                    Supports .csv, .txt, and .json question files
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

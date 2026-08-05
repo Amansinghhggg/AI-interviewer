@@ -1,5 +1,6 @@
 import { StaticQuestionProvider } from "./StaticQuestionProvider.js";
 import { GeminiQuestionProvider } from "./GeminiQuestionProvider.js";
+import { PresetQuestionProvider } from "./PresetQuestionProvider.js";
 
 /**
  * Provider Registry
@@ -9,27 +10,25 @@ import { GeminiQuestionProvider } from "./GeminiQuestionProvider.js";
 const providerRegistry = {
   static: StaticQuestionProvider,
   gemini: GeminiQuestionProvider,
-  groq: GeminiQuestionProvider // Groq uses the same QuestionProvider logic since it dynamically loads the AIProvider
+  groq: GeminiQuestionProvider
 };
 
 /**
  * QuestionProvider Factory
  *
- * Creates the appropriate question provider based on the given type.
- * This is the single entry point for obtaining a question provider instance.
+ * Creates the appropriate question provider based on the given type and config.
  *
- * @param {string} [type='static'] - The question provider type.
+ * @param {string} [type='gemini'] - The question provider type.
+ * @param {Object} [config={}] - InterviewConfig options
  * @returns {import('./BaseQuestionProvider.js').BaseQuestionProvider}
- * @throws {Error} If the requested provider type is not supported.
  */
-export const createQuestionProvider = (type = process.env.QUESTION_PROVIDER || "gemini") => {
-  // We lowercase the type just to be safe with future dynamic strings
-  const ProviderClass = providerRegistry[type.toLowerCase()];
-  
-  if (!ProviderClass) {
-    throw new Error(`Not Implemented: Question provider "${type}" is not available.`);
+export const createQuestionProvider = (type = process.env.QUESTION_PROVIDER || "gemini", config = {}) => {
+  // Check if employer has chosen EMPLOYER_PRESET or HYBRID mode
+  if (config.questionMode === "EMPLOYER_PRESET" || config.questionMode === "HYBRID") {
+    return new PresetQuestionProvider();
   }
 
+  const ProviderClass = providerRegistry[type.toLowerCase()] || GeminiQuestionProvider;
   return new ProviderClass();
 };
 

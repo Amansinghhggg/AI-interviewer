@@ -79,7 +79,7 @@ class MockInterviewService {
    */
   async getCandidateHistory(candidateId, { page = 1, limit = 10 } = {}) {
     const history = await InterviewRepository.findCandidateMockHistory(candidateId, { page, limit });
-    
+
     // Transform results into clean DTOs
     const evaluationsDTO = history.evaluations.map(res => ({
       id: res._id.toString(),

@@ -243,7 +243,7 @@ const startInterview = async (req, res, next) => {
 
       const config = InterviewConfig.fromInterview(interviewData.interview || interviewData);
 
-      const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini");
+      const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini", config);
       const questions = await engine.generateFirstQuestion(config);
       const firstQuestion = questions[0];
 
@@ -303,13 +303,9 @@ const submitAnswer = async (req, res, next) => {
 
     const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
 
-    // 2. Setup AI Engine
-    const { createInterviewEngine } = await import("../services/interviewEngine.js");
-    const { InterviewConfig } = await import("../services/InterviewConfig.js");
-    const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini");
-
-    // Map actual config from the database instead of dummy values
+    // Map actual config from the database
     const config = InterviewConfig.fromInterview(interviewData);
+    const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini", config);
 
     const result = await InterviewSessionService.submitAnswer({
       session,

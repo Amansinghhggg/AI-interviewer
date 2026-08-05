@@ -94,6 +94,20 @@ const interviewSchema = new mongoose.Schema(
       enum: ["REGULAR", "MOCK"],
       default: "REGULAR",
     },
+    questionMode: {
+      type: String,
+      enum: ["AI_GENERATED", "EMPLOYER_PRESET", "HYBRID"],
+      default: "AI_GENERATED",
+    },
+    customQuestions: [
+      {
+        question: { type: String, required: true, trim: true },
+        topic: { type: String, default: "General", trim: true },
+        concept: { type: String, default: "Custom", trim: true },
+        difficulty: { type: String, enum: ["Easy", "Medium", "Hard"], default: "Medium" },
+        expectedDuration: { type: Number, default: 120 }
+      }
+    ],
   },
   {
     timestamps: true,

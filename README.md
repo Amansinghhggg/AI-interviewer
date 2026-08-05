@@ -16,7 +16,7 @@
 
 <p align="center">
   <b>An enterprise-grade, full-stack AI recruitment and mock interview platform.</b><br/>
-  Powered by an adaptive multi-model AI engine (<b>Google Gemini 1.5 Flash</b> & <b>Groq Llama 3</b>), sub-millisecond <b>Redis Session Caching</b>, <b>BullMQ Async Workers</b>, real-time speech processing (<b>Groq Whisper STT</b> & <b>Edge TTS</b>), interactive <b>3-State AI Avatar</b>, visual anti-cheating proctoring (<b>MediaPipe</b>), <b>Resumable Chunked Video Uploads</b>, and a unified <b>Razorpay Credit Wallet</b>.
+  Powered by an adaptive multi-model AI engine (<b>Google Gemini 1.5 Flash</b> & <b>Groq Llama 3</b>), sub-millisecond <b>Redis Session Caching</b>, <b>BullMQ Async Workers</b>, real-time speech processing (<b>Groq Whisper STT</b> & <b>Edge TTS</b>), interactive <b>3-State AI Avatar</b>, visual anti-cheating proctoring (<b>MediaPipe</b>), <b>Resumable Chunked Video Uploads</b>, customizable <b>Campaign Question Modes</b>, and a unified <b>Razorpay Credit Wallet</b>.
 </p>
 
 </div>
@@ -45,17 +45,21 @@
 **IntervuOS** eliminates screening bottlenecks in technical hiring while empowering candidates to master technical interviews. It serves two distinct personas seamlessly:
 
 1. **For Candidates**: An interactive, realistic AI mock interview simulator featuring voice & text questioning, adaptive follow-ups, dynamic difficulty calibration, 3D/2D visual avatar responses, and multidimensional feedback reports.
-2. **For Employers**: An automated screening platform to create requisitions, invite candidates, monitor live sessions, review AI-generated candidate rankings, inspect audio/video recordings, and detect proctoring violations automatically.
+2. **For Employers**: An automated screening platform to create requisitions, configure custom campaign question banks, invite candidates, monitor live sessions, review AI-generated candidate rankings, inspect audio/video recordings, and detect proctoring violations automatically.
 
 ---
 
 ## ✨ Key Features & Innovations
 
-### 🎙️ Adaptive Multi-Model AI Engine
+### 🎙️ Adaptive Multi-Model & Campaign Question Engine
 - **Provider Orchestration**: Seamlessly delegates adaptive question generation to **Google Gemini 1.5 Flash** and post-interview candidate scoring to **Groq Llama 3** with dynamic failover handling.
+- **3 Flexible Campaign Modes**:
+  - 🤖 **AI-Adaptive**: Gemini AI dynamically generates questions live based on role & topics.
+  - 🎯 **Employer Preset**: AI asks ONLY the employer's exact pre-defined question list in sequence.
+  - 🔀 **Hybrid Campaign**: AI asks employer preset questions first, then seamlessly transitions to adaptive AI follow-ups.
+- **Bulk Question Importer Modal**: Interactive CSV, TXT, and JSON question bank file parser with syntax guide popup and validation.
 - **Smart Prompt Engineering**: Prioritizes standard, high-frequency technical interview questions (Virtual DOM, Closures, Event Loop, REST vs GraphQL, etc.) designed for clear verbal articulation.
-- **Strict Deduplication System**: Maintains historical context and enforces an explicit `STRICT DO NOT REPEAT LIST` to prevent identical or duplicate questions within an interview session.
-- **Schema Validation**: Built-in response parsers and **Zod** schema validators guarantee strict JSON responses without prompt injection hazards or runtime errors.
+- **Strict Deduplication System**: Enforces an explicit `STRICT DO NOT REPEAT LIST` to prevent identical or duplicate questions within a session.
 
 ### ⚡ Sub-Millisecond Redis RAM Architecture
 - **Real-Time Voice Session Memory**: Stores active question state, countdown timers, and avatar states in **Redis RAM (sub-1ms latency)**, eliminating database I/O bottlenecks during live voice turns.
@@ -77,6 +81,7 @@
 ### 💳 Unified Credit Wallet & Razorpay Monetization
 - **1 Credit = 1 Interview Minute**: Transparent utility metric for candidates.
 - **Starter Grant**: 15 free credits automatically awarded upon registration.
+- **Custom Top-Up Rules**: Minimum custom purchase set to **20 Credits (₹50)**.
 - **Razorpay Payment Integration**: Server-side price calculation, HMAC-SHA256 signature verification, idempotency protection against replay attacks, and webhook listeners.
 
 ---
@@ -108,7 +113,7 @@ sequenceDiagram
     participant S as Express API Server
     participant R as Redis RAM Cache / BullMQ
     participant W as BullMQ Worker Thread
-    participant Q as AI Engine (Gemini / Groq)
+    participant Q as AI Engine (Gemini / Groq / Preset)
     participant DB as MongoDB Database
 
     %% Session Start
@@ -190,7 +195,7 @@ IntervuOS/
 │   │   ├── shared/                 # Cache & storage utilities
 │   │   └── modules/
 │   │       ├── auth/               # Signup, Login, Google OAuth
-│   │       ├── interview/          # Session cache, engine, Gemini/Groq providers
+│   │       ├── interview/          # Session cache, engine, Gemini/Groq/Preset providers
 │   │       ├── upload/             # Resumable chunked upload controllers
 │   │       ├── voice/              # STT Whisper & TTS Edge controllers
 │   │       ├── users/              # User profiles, credits, resume parser
@@ -327,10 +332,11 @@ Every finished session generates a multidimensional evaluation report:
 
 | Tier | Credit Volume | Price Per Credit | Discount Rate |
 |---|---|---|---|
-| **Standard** | 1 – 49 Credits | ₹2.50 | Base Rate |
+| **Standard** | 20 – 49 Credits | ₹2.50 | Base Rate (Min ₹50) |
 | **Bulk Pack** | 50+ Credits | ₹1.80 | **28% OFF** |
 
 * **Signup Bonus**: 15 free interview credits automatically granted upon account creation.
+* **Minimum Top-Up**: 20 Credits (₹50 minimum payment).
 
 ---
 

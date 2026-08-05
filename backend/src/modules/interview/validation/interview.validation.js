@@ -27,6 +27,19 @@ export const createInterviewSchema = z.object({
     .max(1000, "Instructions cannot exceed 1000 characters")
     .trim()
     .optional(),
+  questionMode: z.enum(["AI_GENERATED", "EMPLOYER_PRESET", "HYBRID"]).default("AI_GENERATED"),
+  customQuestions: z
+    .array(
+      z.object({
+        question: z.string().min(1, "Question text is required").trim(),
+        topic: z.string().optional().default("General"),
+        concept: z.string().optional().default("Custom"),
+        difficulty: z.enum(["Easy", "Medium", "Hard"]).optional().default("Medium"),
+        expectedDuration: z.number().optional().default(120),
+      })
+    )
+    .optional()
+    .default([]),
   candidateEmails: z
     .array(z.string().email("Invalid email format"))
     .optional()
