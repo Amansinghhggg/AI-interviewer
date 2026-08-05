@@ -5,7 +5,7 @@ import Complaint from "./complaint.model.js";
 // @access  Private (Candidate / Employer)
 export const createComplaint = async (req, res, next) => {
   try {
-    const { category, interviewCode, urgency, subject, message, name, email } = req.body;
+    const { category, interviewCode, urgency, subject, message } = req.body;
 
     if (!message || !message.trim()) {
       return res.status(400).json({
@@ -22,8 +22,8 @@ export const createComplaint = async (req, res, next) => {
       ticketId,
       userId: req.user._id,
       userRole: req.user.role || "candidate",
-      name: name || req.user.name || "User",
-      email: email || req.user.email,
+      name: req.user.name || "User",
+      email: req.user.email,
       category: category || "other",
       interviewCode: interviewCode || null,
       urgency: urgency || "normal",

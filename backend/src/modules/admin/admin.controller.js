@@ -318,7 +318,7 @@ export const getComplaints = async (req, res, next) => {
 export const updateComplaint = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, adminNote, adminnote } = req.body;
 
     const complaint = await Complaint.findById(id);
 
@@ -330,7 +330,12 @@ export const updateComplaint = async (req, res, next) => {
     }
 
     if (status) complaint.status = status;
-    if (adminNotes !== undefined) complaint.adminNotes = adminNotes;
+
+    const noteContent = adminNotes !== undefined ? adminNotes : (adminNote !== undefined ? adminNote : adminnote);
+    if (noteContent !== undefined) {
+      complaint.adminNotes = noteContent;
+      complaint.adminNote = noteContent;
+    }
 
     await complaint.save();
 

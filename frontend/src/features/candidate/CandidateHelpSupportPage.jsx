@@ -25,7 +25,8 @@ import {
   History,
   Clock,
   MessageCircleQuestion,
-  ShieldCheck
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "../../ui/primitives/PageHeader";
@@ -118,8 +119,6 @@ export default function CandidateHelpSupportPage() {
   const [openFaqId, setOpenFaqId] = useState("mic-permissions");
 
   // Support Form State
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
   const [category, setCategory] = useState("audio");
   const [interviewCode, setInterviewCode] = useState("");
   const [priority, setPriority] = useState("normal");
@@ -166,8 +165,6 @@ export default function CandidateHelpSupportPage() {
     setIsSubmitting(true);
     try {
       const { data } = await api.post("/complaints", {
-        name,
-        email,
         category,
         interviewCode,
         urgency: priority,
@@ -359,33 +356,31 @@ export default function CandidateHelpSupportPage() {
 
                   <form onSubmit={handleSubmitTicket} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Name */}
+                      {/* Name (Read-Only Account Detail) */}
                       <div>
-                        <label className="block text-[11px] font-black uppercase tracking-widest mb-2 text-[var(--color-on-surface-variant)]">
-                          Your Name *
+                        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-[var(--color-on-surface-variant)] flex items-center gap-1.5">
+                          <Lock className="w-3 h-3 text-emerald-400" /> Account Name
                         </label>
                         <input
                           type="text"
-                          required
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="John Doe"
-                          className="w-full bg-[var(--color-surface-container-highest)]/30 border border-[var(--color-outline-variant)]/30 rounded-xl px-4 py-3 text-xs text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary-md3)]"
+                          disabled
+                          readOnly
+                          value={user?.name || "Account User"}
+                          className="w-full bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/20 rounded-xl px-4 py-3 text-xs text-[var(--color-on-surface)] cursor-not-allowed opacity-80 font-medium"
                         />
                       </div>
 
-                      {/* Email */}
+                      {/* Email (Read-Only Account Detail) */}
                       <div>
-                        <label className="block text-[11px] font-black uppercase tracking-widest mb-2 text-[var(--color-on-surface-variant)]">
-                          Your Email *
+                        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-[var(--color-on-surface-variant)] flex items-center gap-1.5">
+                          <Lock className="w-3 h-3 text-emerald-400" /> Account Email
                         </label>
                         <input
                           type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="candidate@example.com"
-                          className="w-full bg-[var(--color-surface-container-highest)]/30 border border-[var(--color-outline-variant)]/30 rounded-xl px-4 py-3 text-xs text-[var(--color-on-surface)] focus:outline-none focus:border-[var(--color-primary-md3)]"
+                          disabled
+                          readOnly
+                          value={user?.email || "Account Email"}
+                          className="w-full bg-[var(--color-surface-container-highest)]/20 border border-[var(--color-outline-variant)]/20 rounded-xl px-4 py-3 text-xs text-[var(--color-on-surface)] cursor-not-allowed opacity-80 font-medium"
                         />
                       </div>
                     </div>
@@ -657,7 +652,7 @@ export default function CandidateHelpSupportPage() {
                     </div>
 
                     {/* Admin Response Section */}
-                    {ticket.adminNotes ? (
+                    {(ticket.adminNotes || ticket.adminNote) ? (
                       <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2">
                         <div className="flex items-center gap-2 text-emerald-400">
                           <ShieldCheck className="w-4 h-4" />
@@ -666,7 +661,7 @@ export default function CandidateHelpSupportPage() {
                           </span>
                         </div>
                         <p className="text-xs md:text-sm text-emerald-200 leading-relaxed font-medium pl-6">
-                          {ticket.adminNotes}
+                          {ticket.adminNotes || ticket.adminNote}
                         </p>
                       </div>
                     ) : (

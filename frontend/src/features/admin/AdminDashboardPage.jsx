@@ -21,6 +21,7 @@ import {
   Briefcase,
   BarChart3,
   PieChart as PieChartIcon,
+  Save,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -70,7 +71,7 @@ export default function AdminDashboardPage() {
   const [complaintSearch, setComplaintSearch] = useState("");
   const [loadingComplaints, setLoadingComplaints] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [adminNoteInput, setAdminNoteInput] = useState("");
+  const [adminNotesState, setAdminNotesState] = useState({});
 
   // Tab 6: Users Directory Data
   const [usersList, setUsersList] = useState([]);
@@ -158,7 +159,13 @@ export default function AdminDashboardPage() {
         search: complaintSearch.trim() || undefined,
       });
       if (res.success) {
-        setComplaints(res.complaints || []);
+        const list = res.complaints || [];
+        setComplaints(list);
+        const notesObj = {};
+        list.forEach((item) => {
+          notesObj[item._id] = item.adminNote || item.adminNotes || "";
+        });
+        setAdminNotesState(notesObj);
       }
     } catch (error) {
       toast.error("Failed to load support complaints");
@@ -224,12 +231,36 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Handle Complaint Note Change
+  const handleNoteChange = (id, text) => {
+    setAdminNotesState((prev) => ({ ...prev, [id]: text }));
+  };
+
+  // Handle Save Admin Note Specifically
+  const handleSaveAdminNote = async (id) => {
+    const noteText = adminNotesState[id] !== undefined ? adminNotesState[id] : "";
+    try {
+      const res = await adminService.updateComplaint(id, {
+        adminNote: noteText,
+        adminNotes: noteText,
+      });
+      if (res.success) {
+        toast.success("Admin note updated successfully");
+        fetchComplaints();
+      }
+    } catch (error) {
+      toast.error("Failed to save admin note");
+    }
+  };
+
   // Handle Complaint Update Status & Notes
   const handleUpdateComplaintStatus = async (id, newStatus) => {
+    const noteText = adminNotesState[id] !== undefined ? adminNotesState[id] : "";
     try {
       const res = await adminService.updateComplaint(id, {
         status: newStatus,
-        adminNotes: adminNoteInput,
+        adminNote: noteText,
+        adminNotes: noteText,
       });
       if (res.success) {
         toast.success(`Complaint status updated to ${newStatus}`);
@@ -1017,7 +1048,38 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-300 leading-relaxed">{c.message}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed bg-[#080b12] p-3 rounded-2xl border border-purple-500/5">{c.message}</p>
+
+                  {/* Admin Note Section */}
+                  <div className="p-3.5 rounded-2xl bg-purple-950/20 border border-purple-500/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold text-purple-300 flex items-center gap-1.5 uppercase tracking-wider">
+                        <FileText className="w-3.5 h-3.5 text-purple-400" />
+                        Admin Note / Resolution Response
+                      </label>
+                      {(c.adminNote || c.adminNotes) && (
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Saved Note
+                        </span>
+                      )}
+                    </div>
+                    <textarea
+                      rows={2}
+                      placeholder="Add official resolution notes or internal response for this support ticket..."
+                      value={adminNotesState[c._id] ?? (c.adminNote || c.adminNotes || "")}
+                      onChange={(e) => handleNoteChange(c._id, e.target.value)}
+                      className="w-full bg-[#070913] text-xs text-slate-200 placeholder-slate-500 rounded-xl p-2.5 border border-purple-500/20 focus:border-purple-400 focus:outline-none resize-none transition-all"
+                    />
+                    <div className="flex items-center justify-end">
+                      <button
+                        onClick={() => handleSaveAdminNote(c._id)}
+                        className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-sm flex items-center gap-1.5 transition-all"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        Save Note
+                      </button>
+                    </div>
+                  </div>
 
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 text-[11px] text-slate-400">
                     <div>
@@ -1025,18 +1087,47 @@ export default function AdminDashboardPage() {
                       {c.interviewCode && <span className="ml-2 text-purple-400 font-mono">• Code: {c.interviewCode}</span>}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 mr-1">Status:</span>
+                      <button
+                        onClick={() => handleUpdateComplaintStatus(c._id, "PENDING")}
+                        className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${
+                          c.status === "PENDING"
+                            ? "bg-rose-500 text-white shadow-sm"
+                            : "bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 border border-rose-500/20"
+                        }`}
+                      >
+                        Pending
+                      </button>
                       <button
                         onClick={() => handleUpdateComplaintStatus(c._id, "IN_PROGRESS")}
-                        className="px-3 py-1 text-[10px] font-bold uppercase rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
+                        className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${
+                          c.status === "IN_PROGRESS"
+                            ? "bg-amber-500 text-white shadow-sm"
+                            : "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20"
+                        }`}
                       >
                         In Progress
                       </button>
                       <button
                         onClick={() => handleUpdateComplaintStatus(c._id, "RESOLVED")}
-                        className="px-3 py-1 text-[10px] font-bold uppercase rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm"
+                        className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${
+                          c.status === "RESOLVED"
+                            ? "bg-emerald-600 text-white shadow-sm"
+                            : "bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-500/20"
+                        }`}
                       >
                         Resolve
+                      </button>
+                      <button
+                        onClick={() => handleUpdateComplaintStatus(c._id, "CLOSED")}
+                        className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-lg transition-all ${
+                          c.status === "CLOSED"
+                            ? "bg-slate-700 text-white shadow-sm"
+                            : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700"
+                        }`}
+                      >
+                        Close
                       </button>
                     </div>
                   </div>
