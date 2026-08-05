@@ -12,9 +12,9 @@ dotenv.config();
 export const AIConfig = {
   provider: process.env.AI_PROVIDER || "gemini",
   apiKey: process.env.GEMINI_API_KEY,
-  model: process.env.GEMINI_MODEL,
+  model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
   groqApiKey: process.env.GROQ_API_KEY,
-  groqModel: process.env.GROQ_MODEL,
+  groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
   temperature: parseFloat(process.env.TEMPERATURE) || 0.7,
   maxOutputTokens: parseInt(process.env.MAX_OUTPUT_TOKENS, 10) || 2048,
   timeout: parseInt(process.env.REQUEST_TIMEOUT, 10) || 30000,

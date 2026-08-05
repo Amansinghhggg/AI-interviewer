@@ -9,6 +9,8 @@ import { createInterviewEngine } from "./interviewEngine.js";
 import { AIConfig } from "../providers/AIProvider/config/ai.config.js";
 import { voiceSessionCache } from "./voiceSessionCache.service.js";
 
+const sessionLocks = new Map();
+
 /**
  * InterviewSessionService
  * 
@@ -258,27 +260,83 @@ class InterviewSessionService {
    * @param {Object} params.interviewEngine
    */
   async submitAnswer({ session, answer, interviewConfig, interviewEngine }) {
-    const history = this.buildConversationHistory(session);
-    const state = this.buildInterviewState(session, interviewConfig);
+    const sessionIdStr = session._id.toString();
 
-    // We add the incoming answer manually for this turn because it hasn't been saved yet
-    history.addCandidateAnswer(answer);
-
-    let nextQuestion = null;
-
-    if (this.shouldGenerateNextQuestion(session, interviewConfig)) {
-      const generated = await interviewEngine.generateNextQuestion(interviewConfig, state, history);
-      nextQuestion = generated[0];
+    // 1. If an answer submission for this session is already in-flight, wait for it
+    if (sessionLocks.has(sessionIdStr)) {
+      console.log(`[InterviewSessionService] Submission already in flight for session ${sessionIdStr}, waiting...`);
+      try {
+        await sessionLocks.get(sessionIdStr);
+      } catch (err) {
+        // Ignore error from locked promise
+      }
+      const freshSession = await this.getActiveSession(session.interviewId, session.candidateId);
+      if (freshSession) {
+        const currentQIndex = freshSession.currentQuestionIndex;
+        const nextQ = freshSession.questions[currentQIndex];
+        const isFinished = freshSession.status === "COMPLETED" || (!nextQ && currentQIndex >= freshSession.questions.length - 1);
+        return {
+          success: true,
+          isFinished,
+          nextQuestion: nextQ || null,
+          session: freshSession
+        };
+      }
     }
 
-    const updatedSession = await this.saveAnswerAndNextQuestion(session._id, answer, nextQuestion);
+    // 2. Acquire in-flight lock
+    let resolveLock;
+    const lockPromise = new Promise((resolve) => { resolveLock = resolve; });
+    sessionLocks.set(sessionIdStr, lockPromise);
 
-    return {
-      success: true,
-      isFinished: !nextQuestion,
-      nextQuestion,
-      session: updatedSession
-    };
+    try {
+      // Re-fetch fresh session from DB to ensure accurate state
+      const freshSession = await InterviewSession.findById(session._id);
+      if (!freshSession || freshSession.status !== "ACTIVE") {
+        throw new Error("No active session found.");
+      }
+
+      const currentIndex = freshSession.currentQuestionIndex;
+      const currentQ = freshSession.questions[currentIndex];
+
+      // Idempotency check: If current question already has an answer saved,
+      // a previous attempt succeeded! Do NOT re-generate or overwrite.
+      if (currentQ && currentQ.answer !== null && currentQ.answer !== undefined) {
+        const nextQ = freshSession.questions[currentIndex + 1];
+        console.log(`[InterviewSessionService] Question ${currentIndex + 1} already answered. Returning existing next question.`);
+        return {
+          success: true,
+          isFinished: !nextQ,
+          nextQuestion: nextQ || null,
+          session: freshSession
+        };
+      }
+
+      const history = this.buildConversationHistory(freshSession);
+      const state = this.buildInterviewState(freshSession, interviewConfig);
+
+      // We add the incoming answer manually for this turn because it hasn't been saved yet
+      history.addCandidateAnswer(answer);
+
+      let nextQuestion = null;
+
+      if (this.shouldGenerateNextQuestion(freshSession, interviewConfig)) {
+        const generated = await interviewEngine.generateNextQuestion(interviewConfig, state, history);
+        nextQuestion = generated[0] || null;
+      }
+
+      const updatedSession = await this.saveAnswerAndNextQuestion(freshSession._id, answer, nextQuestion);
+
+      return {
+        success: true,
+        isFinished: !nextQuestion,
+        nextQuestion,
+        session: updatedSession
+      };
+    } finally {
+      sessionLocks.delete(sessionIdStr);
+      if (resolveLock) resolveLock();
+    }
   }
 
   /**

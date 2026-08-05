@@ -220,9 +220,12 @@ const startInterview = async (req, res, next) => {
     const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
     if (!interviewData) throw new Error("not_found");
 
-    // Check if it's an AI interview
+    // Check if it's an AI or Session interview
     const provider = process.env.QUESTION_PROVIDER || "gemini";
-    const isAiInterview = provider === "gemini" || provider === "groq" || interviewData.interviewType === "gemini" || interviewData.interviewType === "groq";
+    const qMode = interviewData.questionMode || interviewData.interview?.questionMode;
+    const isAiInterview = provider === "gemini" || provider === "groq" ||
+      interviewData.interviewType === "gemini" || interviewData.interviewType === "groq" ||
+      qMode === "EMPLOYER_PRESET" || qMode === "HYBRID";
 
     if (isAiInterview) {
       let session = await InterviewSessionService.getOrCreateSession(req.params.id, req.user._id);
