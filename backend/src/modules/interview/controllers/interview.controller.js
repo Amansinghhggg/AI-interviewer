@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import interviewService from "../services/interview.service.js";
+import InterviewSessionService from "../services/InterviewSessionService.js";
+import { InterviewConfig } from "../services/InterviewConfig.js";
+import { createInterviewEngine } from "../services/interviewEngine.js";
 import {
   createInterviewSchema,
   updateInterviewSchema,
@@ -222,9 +225,6 @@ const startInterview = async (req, res, next) => {
     const isAiInterview = provider === "gemini" || provider === "groq" || interviewData.interviewType === "gemini" || interviewData.interviewType === "groq";
 
     if (isAiInterview) {
-      const sessionStore = await import("../services/InterviewSessionService.js");
-      const InterviewSessionService = sessionStore.default;
-
       let session = await InterviewSessionService.getOrCreateSession(req.params.id, req.user._id);
 
       if (session.status === "ACTIVE") {
@@ -238,9 +238,6 @@ const startInterview = async (req, res, next) => {
       }
 
       // Initialize AI Engine
-      const { createInterviewEngine } = await import("../services/interviewEngine.js");
-      const { InterviewConfig } = await import("../services/InterviewConfig.js");
-
       const config = InterviewConfig.fromInterview(interviewData.interview || interviewData);
 
       const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini", config);
@@ -293,9 +290,6 @@ const submitAnswer = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Answer text is required." });
     }
 
-    const sessionStore = await import("../services/InterviewSessionService.js");
-    const InterviewSessionService = sessionStore.default;
-
     const session = await InterviewSessionService.getActiveSession(req.params.id, req.user._id);
     if (!session || session.status !== "ACTIVE") {
       return res.status(403).json({ success: false, message: "No active session found." });
@@ -304,7 +298,7 @@ const submitAnswer = async (req, res, next) => {
     const interviewData = await interviewService.getInterviewById(req.params.id, "candidate", req.user.email, req.user._id);
 
     // Map actual config from the database
-    const config = InterviewConfig.fromInterview(interviewData);
+    const config = InterviewConfig.fromInterview(interviewData?.interview || interviewData);
     const engine = createInterviewEngine(process.env.QUESTION_PROVIDER || "gemini", config);
 
     const result = await InterviewSessionService.submitAnswer({
