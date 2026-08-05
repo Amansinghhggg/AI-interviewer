@@ -23,12 +23,18 @@ export class ConversationHistory {
   }
 
   /**
-   * Adds a new question asked by the AI to the history.
+   * Adds a new question asked by the AI to the history with full metadata.
    * @param {string} questionText
+   * @param {string} [topic="Unknown"]
+   * @param {string} [concept="Unknown"]
+   * @param {string} [difficulty="Unknown"]
    */
-  addAIQuestion(questionText) {
+  addAIQuestion(questionText, topic = "Unknown", concept = "Unknown", difficulty = "Unknown") {
     this.exchanges.push({
       question: questionText,
+      topic,
+      concept,
+      difficulty,
       answer: null
     });
   }

@@ -31,10 +31,11 @@ export default function CandidateSubscriptionsPage() {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
-  const [customCredits, setCustomCredits] = useState(30);
+  const [customCredits, setCustomCredits] = useState(20);
 
-  // Dynamic pricing rate: <50 credits = ₹2.5/credit, >=50 credits = ₹1.8/credit
-  const parsedCustomCredits = Math.max(1, parseInt(customCredits, 10) || 0);
+  // Dynamic pricing rate: <50 credits = ₹2.5/credit, >=50 credits = ₹1.8/credit (Min 20 credits = ₹50)
+  const rawParsedCredits = parseInt(customCredits, 10) || 0;
+  const parsedCustomCredits = rawParsedCredits < 20 ? 20 : rawParsedCredits;
   const customRate = parsedCustomCredits < 50 ? 2.5 : 1.8;
   const customTotalPrice = Math.round(parsedCustomCredits * customRate);
 
@@ -376,7 +377,7 @@ export default function CandidateSubscriptionsPage() {
               {/* Counter Input */}
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setCustomCredits(Math.max(1, parsedCustomCredits - 5))}
+                  onClick={() => setCustomCredits(Math.max(20, parsedCustomCredits - 5))}
                   className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-indigo-600/30 text-white transition-all"
                   aria-label="Decrease credits"
                 >
@@ -385,7 +386,7 @@ export default function CandidateSubscriptionsPage() {
 
                 <input
                   type="number"
-                  min="1"
+                  min="20"
                   max="5000"
                   value={customCredits}
                   onChange={(e) => setCustomCredits(e.target.value)}
@@ -407,7 +408,10 @@ export default function CandidateSubscriptionsPage() {
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Amount</span>
                   <span className="text-2xl font-black text-white">₹{customTotalPrice}</span>
                 </div>
-
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-indigo-400 block">Min Purchase</span>
+                  <span className="text-xs font-semibold text-slate-300">20 Credits (₹50)</span>
+                </div>
               </div>
 
               <button
@@ -417,15 +421,15 @@ export default function CandidateSubscriptionsPage() {
                   price: customTotalPrice,
                   credits: parsedCustomCredits
                 })}
-                disabled={loadingPlan === `custom_${parsedCustomCredits}` || parsedCustomCredits <= 0}
-                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/25"
+                disabled={loadingPlan === `custom_${parsedCustomCredits}` || parsedCustomCredits < 20}
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingPlan === `custom_${parsedCustomCredits}` ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
                     <ShoppingBag className="w-4 h-4" />
-                    <span>Buy {parsedCustomCredits} Credits</span>
+                    <span>Buy {parsedCustomCredits} Credits (₹{customTotalPrice})</span>
                   </>
                 )}
               </button>

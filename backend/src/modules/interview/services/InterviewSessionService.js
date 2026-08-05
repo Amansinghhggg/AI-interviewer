@@ -128,7 +128,7 @@ class InterviewSessionService {
   buildConversationHistory(session) {
     const history = new ConversationHistory();
     for (const q of session.questions) {
-      history.addAIQuestion(q.question);
+      history.addAIQuestion(q.question, q.topic, q.concept, q.difficulty);
       if (q.answer) {
         history.addCandidateAnswer(q.answer);
       }
@@ -144,18 +144,23 @@ class InterviewSessionService {
    * @returns {InterviewState}
    */
   buildInterviewState(session, config) {
-    const coveredTopics = [...new Set(session.questions.map(q => q.topic))];
-    const remainingTopics = config.topics.filter(t => !coveredTopics.includes(t));
+    const rawCovered = session.questions.map(q => q.topic?.trim()).filter(Boolean);
+    const coveredTopics = [...new Set(rawCovered)];
+
+    // Robust case-insensitive topic remaining filter
+    const coveredLower = new Set(rawCovered.map(t => t.toLowerCase()));
+    const remainingTopics = config.topics.filter(t => !coveredLower.has(t.trim().toLowerCase()));
     const currentQuestion = session.questions.length + 1;
 
     // Advanced Context for AI Intelligence
     const topicDistribution = {};
     config.topics.forEach(t => topicDistribution[t] = 0);
     session.questions.forEach(q => {
-      if (topicDistribution[q.topic] !== undefined) {
-        topicDistribution[q.topic]++;
-      } else {
-        topicDistribution[q.topic] = 1;
+      const match = config.topics.find(t => t.trim().toLowerCase() === q.topic?.trim()?.toLowerCase());
+      if (match) {
+        topicDistribution[match]++;
+      } else if (q.topic) {
+        topicDistribution[q.topic] = (topicDistribution[q.topic] || 0) + 1;
       }
     });
 

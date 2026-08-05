@@ -104,6 +104,17 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
   const idleVideoRef = useRef<HTMLVideoElement>(null);
   const talkingVideoRef = useRef<HTMLVideoElement>(null);
 
+  // Cache buster helper to prevent browser stale HTTP video byte caching
+  const getCacheBustedUrl = (url?: string) => {
+    if (!url || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    if (url.includes('v=')) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=v2_updated`;
+  };
+
+  const effectiveIdleSrc = getCacheBustedUrl(idleVideoSrc);
+  const effectiveTalkingSrc = getCacheBustedUrl(talkingVideoSrc);
+
   // Readiness state management
   const [isIdleLoaded, setIsIdleLoaded] = useState<boolean>(false);
   const [isTalkingLoaded, setIsTalkingLoaded] = useState<boolean>(false);
@@ -132,7 +143,7 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
   useEffect(() => {
     playVideoSafely(idleVideoRef.current);
     playVideoSafely(talkingVideoRef.current);
-  }, [idleVideoSrc, talkingVideoSrc]);
+  }, [effectiveIdleSrc, effectiveTalkingSrc]);
 
   const handleIdleCanPlay = () => setIsIdleLoaded(true);
   const handleTalkingCanPlay = () => setIsTalkingLoaded(true);
@@ -167,6 +178,22 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
   // Bonus safeguard: If speaking requested but video not ready, fallback to idle
   const activeState = (targetState === 'speaking' && !isTalkingLoaded) ? 'idle' : targetState;
 
+  // Reset talking video to beginning (currentTime = 0) whenever transition to speaking occurs
+  const prevActiveStateRef = useRef<string>('');
+  useEffect(() => {
+    if (activeState === 'speaking' && prevActiveStateRef.current !== 'speaking') {
+      if (talkingVideoRef.current) {
+        try {
+          talkingVideoRef.current.currentTime = 0;
+        } catch (e) {
+          // Ignore if video metadata is not yet fully loaded
+        }
+        playVideoSafely(talkingVideoRef.current);
+      }
+    }
+    prevActiveStateRef.current = activeState;
+  }, [activeState]);
+
   return (
     <div
       className={`avatar-player-container ${className}`.trim()}
@@ -176,7 +203,7 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
       {/* 1. Idle Video Layer (Listening / Default) */}
       <video
         ref={idleVideoRef}
-        src={idleVideoSrc}
+        src={effectiveIdleSrc}
         autoPlay
         loop
         muted
@@ -196,7 +223,7 @@ export const AvatarPlayer: React.FC<AvatarPlayerProps> = memo(({
       {/* 2. Talking Video Layer (Audio ON / Speaking) */}
       <video
         ref={talkingVideoRef}
-        src={talkingVideoSrc}
+        src={effectiveTalkingSrc}
         autoPlay
         loop
         muted

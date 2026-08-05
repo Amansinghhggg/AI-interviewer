@@ -26,12 +26,12 @@ const getRazorpayInstance = () => {
 export const createOrder = async (req, res, next) => {
   try {
     const { credits } = req.body;
-    const parsedCredits = Math.max(1, parseInt(credits, 10) || 0);
+    const parsedCredits = parseInt(credits, 10) || 0;
 
-    if (!parsedCredits || parsedCredits <= 0) {
+    if (!parsedCredits || parsedCredits < 20) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid credit quantity",
+        message: "Minimum custom credit purchase is 20 credits (₹50).",
       });
     }
 

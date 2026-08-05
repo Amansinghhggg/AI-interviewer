@@ -17,11 +17,13 @@ export class StaticQuestionProvider extends BaseQuestionProvider {
   }
 
   /**
-   * For static interviews, the "next" question is already loaded on the client side.
-   * This is provided for compatibility if the backend is queried for the next static question.
+   * For static interviews, return the next question based on currentQuestion step.
    */
   async generateNextQuestion(promptContext) {
-    return this._getStaticQuestions();
+    const questions = this._getStaticQuestions();
+    const currentNum = promptContext?.state?.currentQuestion || 1;
+    const index = Math.min(Math.max(0, currentNum - 1), questions.length - 1);
+    return [questions[index]];
   }
 
   _getStaticQuestions() {

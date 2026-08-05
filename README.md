@@ -1,86 +1,89 @@
-# 🚀 IntervuOS — Production-Grade AI Interviewer & Screening Platform
+# 🚀 IntervuOS — Enterprise AI Interviewer & Candidate Evaluation Platform
 
-[![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-v19.0-61dafb.svg)](https://react.dev/)
-[![Express](https://img.shields.io/badge/Express-v5.0-000000.svg)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose--v9-47A248.svg)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Redis-v7.0+-red.svg)](https://redis.io/)
-[![BullMQ](https://img.shields.io/badge/BullMQ-Job--Queues-orange.svg)](https://bullmq.io/)
-[![Docker](https://img.shields.io/badge/Docker-Redis--Compose-blue.svg)](https://www.docker.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC.svg)](https://tailwindcss.com/)
-[![AI Providers](https://img.shields.io/badge/AI_Providers-Gemini%20%7C%20Groq%20%7C%20Whisper-orange.svg)](https://groq.com/)
-[![License](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
+<div align="center">
 
-> An enterprise-grade, full-stack AI recruitment and mock interview platform. Powered by an adaptive multi-model AI engine (**Google Gemini 1.5 Flash** & **Groq Llama 3**), sub-millisecond **Redis Session Caching**, **BullMQ Async Workers**, real-time speech processing (**Groq Whisper** STT & **Edge TTS**), interactive **3D AI avatar**, visual proctoring (**MediaPipe**), **Resumable Chunked Video Uploads**, and a unified **Razorpay credit monetization wallet**.
+![IntervuOS Banner](https://img.shields.io/badge/IntervuOS-v2.0-6366F1?style=for-the-badge&logo=openai&logoColor=white)
+
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-v19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-v5.0-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose--v9-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-RAM%20Cache-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![BullMQ](https://img.shields.io/badge/BullMQ-Async%20Queues-FF6B00?style=for-the-badge&logo=bullmq&logoColor=white)](https://bullmq.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![AI Engine](https://img.shields.io/badge/AI_Engine-Gemini%20%7C%20Groq%20%7C%20Whisper-8E44AD?style=for-the-badge&logo=google-gemini&logoColor=white)](https://groq.com/)
+[![License](https://img.shields.io/badge/License-ISC-blue?style=for-the-badge)](LICENSE)
+
+<p align="center">
+  <b>An enterprise-grade, full-stack AI recruitment and mock interview platform.</b><br/>
+  Powered by an adaptive multi-model AI engine (<b>Google Gemini 1.5 Flash</b> & <b>Groq Llama 3</b>), sub-millisecond <b>Redis Session Caching</b>, <b>BullMQ Async Workers</b>, real-time speech processing (<b>Groq Whisper STT</b> & <b>Edge TTS</b>), interactive <b>3-State AI Avatar</b>, visual anti-cheating proctoring (<b>MediaPipe</b>), <b>Resumable Chunked Video Uploads</b>, and a unified <b>Razorpay Credit Wallet</b>.
+</p>
+
+</div>
 
 ---
 
 ## 📌 Table of Contents
 
-- [Overview](#-overview)
-- [✨ Key Features](#-key-features)
-- [⚡ Redis High-Performance Architecture](#-redis-high-performance-architecture)
-- [🏗️ System Architecture](#️-system-architecture)
-  - [End-to-End Interview Engine Flow](#end-to-end-interview-engine-flow)
-  - [Credit Wallet & Razorpay Payment Architecture](#credit-wallet--razorpay-payment-architecture)
-- [💻 Tech Stack](#-tech-stack)
-- [📂 Project Structure](#-project-structure)
-- [⚙️ Environment Variables](#️-environment-variables)
-- [🚀 Quick Start & Installation](#-quick-start--installation)
-  - [Running Redis via Docker](#running-redis-via-docker)
-- [📊 Comprehensive Evaluation Schema](#-comprehensive-evaluation-schema)
+- [ Overview](#-overview)
+- [✨ Key Features & Innovations](#-key-features--innovations)
+- [⚡ High-Performance Architecture](#-high-performance-architecture)
+- [🏗️ End-to-End System Workflow](#️-end-to-end-system-workflow)
+- [💻 Technology Stack](#-technology-stack)
+- [📂 Repository Architecture](#-repository-architecture)
+- [⚙️ Environment Configuration](#️-environment-configuration)
+- [🚀 Quick Start & Local Setup](#-quick-start--local-setup)
+- [📊 Evaluation Schema & Candidate Dossier](#-evaluation-schema--candidate-dossier)
 - [💳 Monetization & Credit Wallet Model](#-monetization--credit-wallet-model)
-- [🔌 API Endpoints Reference](#-api-endpoints-reference)
+- [🔌 API Reference](#-api-reference)
 - [🤝 Contributing & License](#-contributing--license)
 
 ---
 
 ## 🔍 Overview
 
-**IntervuOS** solves the bottleneck in technical hiring and candidate preparation. It acts as a dual-sided platform:
+**IntervuOS** eliminates screening bottlenecks in technical hiring while empowering candidates to master technical interviews. It serves two distinct personas seamlessly:
 
-1. **For Candidates**: An interactive, low-stress mock interview simulator that provides real-time voice & text questioning, adaptive follow-ups, dynamic difficulty adjustments, and actionable AI evaluation reports across multiple technical and soft-skill metrics.
-2. **For Employers**: An automated screening platform to publish job requisitions, invite candidates, monitor live sessions, review AI-generated leaderboards, export structured PDF candidate dossiers, and flag potential proctoring violations.
+1. **For Candidates**: An interactive, realistic AI mock interview simulator featuring voice & text questioning, adaptive follow-ups, dynamic difficulty calibration, 3D/2D visual avatar responses, and multidimensional feedback reports.
+2. **For Employers**: An automated screening platform to create requisitions, invite candidates, monitor live sessions, review AI-generated candidate rankings, inspect audio/video recordings, and detect proctoring violations automatically.
 
 ---
 
-## ✨ Key Features
+## ✨ Key Features & Innovations
 
 ### 🎙️ Adaptive Multi-Model AI Engine
-- **Provider Architecture**: Seamlessly delegates question generation to **Google Gemini (`gemini-1.5-flash`)** and candidate evaluation to **Groq (`llama-3.1-8b-instant`)** with multi-model failover support.
-- **Adaptive Context Engine**: Tracks `InterviewConfig` (role, topic, experience), `InterviewState` (question index, difficulty), and `ConversationHistory` to generate contextual follow-up questions dynamically.
-- **Strict Schema Enforcement**: Custom response parsers and **Zod** schema validators ensure standard JSON output from LLMs without runtime crashes or prompt injection hazards.
+- **Provider Orchestration**: Seamlessly delegates adaptive question generation to **Google Gemini 1.5 Flash** and post-interview candidate scoring to **Groq Llama 3** with dynamic failover handling.
+- **Smart Prompt Engineering**: Prioritizes standard, high-frequency technical interview questions (Virtual DOM, Closures, Event Loop, REST vs GraphQL, etc.) designed for clear verbal articulation.
+- **Strict Deduplication System**: Maintains historical context and enforces an explicit `STRICT DO NOT REPEAT LIST` to prevent identical or duplicate questions within an interview session.
+- **Schema Validation**: Built-in response parsers and **Zod** schema validators guarantee strict JSON responses without prompt injection hazards or runtime errors.
 
 ### ⚡ Sub-Millisecond Redis RAM Architecture
-- **Real-Time Voice Session Caching**: Stores live question state, timer countdowns, and 3D avatar expression states in **Redis RAM (sub-1ms latency)**, bypassing MongoDB disk I/O during voice interaction turns.
-- **BullMQ Background Workers**: Offloads heavy Gemini & Groq evaluations into asynchronous Redis background job queues, eliminating HTTP timeouts (`504 Gateway Timeout`) and returning instant `< 50ms` API responses.
-- **Database Query Caching**: Caches MongoDB query results for User Profiles, Resumes, and Job Requisitions with automatic TTL memory invalidation (**14.9x faster**).
-- **API Rate Limiting**: Protects expensive Gemini & Groq AI endpoints from spam with Redis-backed sliding window rate limiters (`10 requests / minute`).
+- **Real-Time Voice Session Memory**: Stores active question state, countdown timers, and avatar states in **Redis RAM (sub-1ms latency)**, eliminating database I/O bottlenecks during live voice turns.
+- **Non-Blocking BullMQ Queues**: Heavy AI evaluation jobs and video merges are delegated to asynchronous Redis background workers, ensuring instantaneous `< 50ms` API responses.
+- **Database Cache Acceleration**: Caches MongoDB queries for User Profiles, Resumes, and Job Requisitions with automatic TTL memory invalidation (**14.9x query speedup**).
+- **API Rate Limiting**: Protects AI generation endpoints with Redis-backed sliding window rate limiters.
 
-### 📹 Resumable Chunked Uploads & Time Left Loader UI
-- **Disconnection & Tab Recovery**: Video recordings are uploaded in small 2MB/5MB chunks tracked in Redis Sets (`upload:chunks:<uploadId>`). If a candidate loses Wi-Fi or closes their browser tab, they resume right where they left off without losing uploaded data.
-- **Background Cloudinary Sync**: When all chunks are received, BullMQ workers merge chunk files and upload to Cloudinary in the background **even if the candidate closes their laptop/browser**.
-- **Live ETA Countdown Loader**: Frontend loader UI (`UploadScreen.jsx`, `UploadProgress.jsx`) displays percentage progress, chunk counters, and live **"⏱️ ~14s remaining"** countdown timers.
+### 📹 Resumable Chunked Uploads & Time-Left Progress UI
+- **Tab & Network Fault Tolerance**: Candidate interview video recordings are chunked into small 2MB/5MB payloads tracked in Redis Sets (`upload:chunks:<uploadId>`). If Wi-Fi drops or a browser tab closes, upload resumes seamlessly without losing progress.
+- **Background Cloudinary Merge**: BullMQ workers assemble video chunks and upload final recordings to Cloudinary asynchronously.
+- **Live Progress Loader**: Custom frontend progress indicators (`UploadScreen.jsx`, `UploadProgress.jsx`) provide real-time percentage indicators and live **"⏱️ ~14s remaining"** countdown timers.
 
-### 🔊 Multimodal Voice & Visual Experience
-- **Speech-to-Text (STT)**: Direct voice responses transcribed using **Groq Whisper (`whisper-large-v3`)**.
-- **Text-to-Speech (TTS)**: Conversational AI voice synthesis powered by **Node Edge TTS** (`en-US-AriaNeural`).
-- **Interactive 3D Avatar**: Real-time rendering via **Three.js** / **React Three Fiber** (`@react-three/fiber` & `@react-three/drei`).
-- **Visual Anti-Cheating Telemetry**: Computer vision tracking powered by **MediaPipe Tasks Vision** to detect face presence, multiple persons, camera status, tab switching, and focus loss.
+### 🔊 Multimodal Voice & Visual Avatar
+- **Speech-to-Text (STT)**: Direct voice response transcription powered by **Groq Whisper (`whisper-large-v3`)**.
+- **Text-to-Speech (TTS)**: Conversational audio synthesis powered by **Node Edge TTS** (`en-US-AriaNeural`).
+- **3-State AI Avatar**: High-performance avatar player with continuous 200ms opacity transitions (`Talking` / `Listening` / `Thinking`).
+- **Visual Anti-Cheating Telemetry**: Computer vision tracking powered by **MediaPipe Tasks Vision** to monitor face presence, camera connection, and focus loss.
 
-### 💳 Unified Credit Wallet & Monetization
-- **1 Credit = 1 Interview Minute**: Transparent usage metric for candidates.
-- **Starter Bonus**: 15 free credits automatically awarded upon candidate signup.
-- **Tiered Razorpay Integration**:
-  - `< 50 Credits`: ₹2.50 / credit
-  - `≥ 50 Credits`: ₹1.80 / credit (Bulk Discount Rate)
-- **Security & Integrity**: Server-side price calculation, HMAC-SHA256 signature verification, idempotency protection against replay attacks, and fallback webhook support.
+### 💳 Unified Credit Wallet & Razorpay Monetization
+- **1 Credit = 1 Interview Minute**: Transparent utility metric for candidates.
+- **Starter Grant**: 15 free credits automatically awarded upon registration.
+- **Razorpay Payment Integration**: Server-side price calculation, HMAC-SHA256 signature verification, idempotency protection against replay attacks, and webhook listeners.
 
 ---
 
-## ⚡ Redis High-Performance Architecture
+## ⚡ High-Performance Architecture
 
-Single Redis Instance topology using explicit key namespaces:
+Single Redis Instance topology using isolated key namespaces:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -97,9 +100,7 @@ Single Redis Instance topology using explicit key namespaces:
 
 ---
 
-## 🏗️ System Architecture
-
-### End-to-End Interview Engine Flow
+## 🏗️ End-to-End System Workflow
 
 ```mermaid
 sequenceDiagram
@@ -107,22 +108,22 @@ sequenceDiagram
     participant S as Express API Server
     participant R as Redis RAM Cache / BullMQ
     participant W as BullMQ Worker Thread
-    participant Q as Question Engine (Gemini)
+    participant Q as AI Engine (Gemini / Groq)
     participant DB as MongoDB Database
 
     %% Session Start
     C->>S: POST /api/interviews/:id/start
     S->>Q: generateFirstQuestion()
-    Q-->>S: Question 1 Object
+    Q-->>S: First Question Object
     S->>DB: Save Session in MongoDB
-    S->>R: Seed Voice Cache in Redis RAM (<1ms)
-    S-->>C: Deliver Question 1 (Text + Audio TTS)
+    S->>R: Seed Voice Session in Redis RAM (<1ms)
+    S-->>C: Deliver Question (Text + TTS Audio)
 
-    %% Fast Adaptive Loop
-    loop Active Interview Turns
-        C->>S: Submit Voice Answer
+    %% Live Adaptive Loop
+    loop Adaptive Interview Turns
+        C->>S: Submit Voice Answer (POST /api/interviews/:id/answer)
         S->>R: Read Active Session from Redis RAM (<1ms)
-        S->>Q: generateNextQuestion()
+        S->>Q: generateNextQuestion(History + Do-Not-Repeat List)
         Q-->>S: Next Question Object
         S->>R: Update Redis RAM Session (<1ms)
         S->>DB: Async Sync to MongoDB
@@ -132,25 +133,23 @@ sequenceDiagram
     %% Completion & Background Queue
     C->>S: POST /api/interviews/:id/submit
     S->>R: Enqueue Job into BullMQ Queue (<10ms)
-    S-->>C: Return 202 Accepted ("Generating Report...")
-    R->>W: Worker picks up Job in Background
-    W->>Q: Evaluate Transcript with Gemini & Groq
-    Q-->>W: Multidimensional Hiring Report
+    S-->>C: Return 200 OK ("Processing Report...")
+    R->>W: Background Worker Pick Up Job
+    W->>Q: Evaluate Full Session Transcript
+    Q-->>W: Multidimensional Evaluation Dossier
     W->>DB: Save InterviewResult
-    W-->>C: Socket Notification ("Report Ready!")
 ```
 
 ---
 
-## 💻 Tech Stack
+## 💻 Technology Stack
 
 ### Frontend
 - **Framework**: React 19 + Vite 7
-- **Styling**: Tailwind CSS v4, Glassmorphism design system
+- **Styling**: Tailwind CSS v4, Custom Dark Glassmorphism Design System
 - **State & Routing**: React Router v7, React Hook Form + Zod
-- **Animations & 3D**: Framer Motion, Three.js, `@react-three/fiber`, `@react-three/drei`
+- **Animations & Graphics**: Framer Motion, Three.js, `@react-three/fiber`, `@react-three/drei`
 - **Computer Vision**: `@mediapipe/tasks-vision`
-- **UI Loaders**: Dynamic ETA Countdown Timers, Chunk Progress Bars
 - **HTTP & Auth**: Axios, `@react-oauth/google`
 
 ### Backend
@@ -161,93 +160,85 @@ sequenceDiagram
 - **Rate Limiting**: `express-rate-limit`, `rate-limit-redis`
 - **Validation**: Zod v4
 - **Authentication**: JWT (JSON Web Tokens), `cookie-parser`, `bcryptjs`, Google Auth Library
-- **Cloud Storage**: Cloudinary (Resume & candidate recording uploads)
-- **Payment Gateway**: Razorpay Node SDK (`razorpay`)
+- **Cloud Storage**: Cloudinary (Resumes & Recording Videos)
+- **Payments**: Razorpay Node SDK (`razorpay`)
 
 ### AI & Speech Infrastructure
 - **LLM Providers**: `@google/genai` (Google Gemini 1.5 Flash), `groq-sdk` (Groq Llama 3.1 8B Instant)
 - **Speech-to-Text (STT)**: Groq Whisper (`whisper-large-v3`)
-- **Text-to-Speech (TTS)**: `node-edge-tts` (Microsoft Edge Neural Voices) / `google-tts-api`
+- **Text-to-Speech (TTS)**: `node-edge-tts` (Microsoft Edge Neural Voices)
 
 ---
 
-## 📂 Project Structure
+## 📂 Repository Architecture
 
 ```
-AI-interviewer/
-├── package.json                    # Root orchestration scripts
-├── docker-compose.yml              # Redis container orchestration
-├── AI_INTERVIEW_FLOW.md            # Detailed AI sequence documentation
-├── RAZORPAY_CREDIT_SYSTEM_FLOW.md  # Comprehensive credit & payment guide
+IntervuOS/
+├── package.json                    # Root scripts & workspace orchestration
+├── docker-compose.yml              # Redis container setup
+├── AI_INTERVIEW_FLOW.md            # Detailed AI sequence specifications
+├── RAZORPAY_CREDIT_SYSTEM_FLOW.md  # Monetization & credit system documentation
 │
 ├── backend/                        # Express v5 REST API & AI Engine
 │   ├── src/
 │   │   ├── server.js               # Entry point
-│   │   ├── app.js                  # Express middleware & route declarations
-│   │   ├── config/                 # DB, Redis (ioredis), Cloudinary, Razorpay
-│   │   ├── middleware/             # Auth, RateLimiter, error handler, multer
-│   │   ├── queues/                 # BullMQ Queue definitions (evaluation, upload)
-│   │   ├── workers/                # BullMQ Worker threads (Gemini eval, video merge)
-│   │   ├── shared/                 # CacheService, storage utilities
+│   │   ├── app.js                  # Express app setup & middleware
+│   │   ├── config/                 # DB, Redis, Cloudinary, Razorpay configs
+│   │   ├── middleware/             # Auth, RateLimiter, error handling, upload
+│   │   ├── queues/                 # BullMQ Queue declarations
+│   │   ├── workers/                # BullMQ background workers (AI evaluation, video)
+│   │   ├── shared/                 # Cache & storage utilities
 │   │   └── modules/
-│   │       ├── auth/               # User signup, login, Google OAuth
-│   │       ├── interview/          # Voice cache, engine, providers (Gemini/Groq)
-│   │       ├── upload/             # Resumable chunked upload service & controller
-│   │       ├── voice/              # Whisper STT & Edge TTS audio controllers
+│   │       ├── auth/               # Signup, Login, Google OAuth
+│   │       ├── interview/          # Session cache, engine, Gemini/Groq providers
+│   │       ├── upload/             # Resumable chunked upload controllers
+│   │       ├── voice/              # STT Whisper & TTS Edge controllers
 │   │       ├── users/              # User profiles, credits, resume parser
-│   │       └── payments/           # Razorpay order, verification & webhooks
+│   │       └── payments/           # Razorpay checkout & webhook handlers
 │   └── package.json
 │
 └── frontend/                       # React 19 Single Page Application
     ├── src/
-    │   ├── app/                    # Main router & global application wrapper
-    │   ├── components/             # Reusable UI primitives & 3D Avatar
-    │   ├── features/               # Feature-based domain modules
-    │   │   ├── auth/               # Login, Signup, Select Role
-    │   │   ├── candidate/          # Candidate Dashboard, Credit Wallet, History
-    │   │   ├── employer/           # Recruiter Requisitions, Leaderboards
-    │   │   └── interview/          # Live Interview Room, ETA Loader UI
-    │   ├── services/               # Axios API client modules
-    │   └── ui/                     # UploadScreen, UploadProgress, PageLoader
+    │   ├── app/                    # Application setup & main router
+    │   ├── components/             # AvatarPlayer & shared UI primitives
+    │   ├── features/               # Feature domain modules (Auth, Interview, Admin)
+    │   ├── services/               # API service layer (Axios)
+    │   └── ui/                     # Shared UI layout components
     └── package.json
 ```
 
 ---
 
-## ⚙️ Environment Variables
+## ⚙️ Environment Configuration
 
-### Backend (`backend/.env`)
+Create a `.env` file in the `backend/` directory:
 
 ```env
-# Core Server Configuration
+# Server Configuration
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 
-# MongoDB Configuration
-MONGODB_URI=mongodb://127.0.0.1:27017/intervuos
-
-# Redis Configuration (Local Docker or Upstash Cloud)
+# Database & Cache
+MONGODB_URI=mongodb://127.0.0.1:27017/IntervuOS
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
 
-# JWT Authentication Secret
+# Security
 JWT_SECRET=your_jwt_secret_key_here
 JWT_EXPIRES_IN=7d
 
-# Google Gemini AI Provider
+# AI Providers
 GEMINI_API_KEY=your_google_gemini_api_key
-
-# Groq AI & Whisper Provider
 GROQ_API_KEY=your_groq_api_key
 
-# Cloudinary Storage Configuration
+# Cloud Storage
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-# Razorpay Payment Gateway Configuration
+# Payments
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
@@ -255,12 +246,12 @@ RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 
 ---
 
-## 🚀 Quick Start & Installation
+## 🚀 Quick Start & Local Setup
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
-- **MongoDB**: Local instance or MongoDB Atlas cluster
-- **Docker** (Recommended for local Redis)
+- **MongoDB**: Local MongoDB server or MongoDB Atlas
+- **Docker**: Recommended for local Redis container
 
 ### 1. Clone & Install Dependencies
 
@@ -269,7 +260,7 @@ RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 git clone https://github.com/Amansinghhggg/AI-interviewer.git
 cd AI-interviewer
 
-# Install root orchestration dependencies
+# Install root dependencies
 npm install
 
 # Install backend dependencies
@@ -279,54 +270,52 @@ cd backend && npm install && cd ..
 cd frontend && npm install && cd ..
 ```
 
-### 2. Running Redis via Docker
-
-Spin up a local Redis container in one command:
+### 2. Start Redis via Docker
 
 ```bash
 docker compose up -d
 ```
 
-Verify Redis container status:
-```bash
-docker ps
-```
+### 3. Launch Development Environment
 
-### 3. Start Development Servers
-
-Run both Backend (Express + Redis Workers) and Frontend (Vite) concurrently:
+Run both Express Backend and React Frontend concurrently:
 
 ```bash
 npm run dev
 ```
 
-* **Frontend App**: `http://localhost:5173`
-* **Backend API**: `http://localhost:5000`
+- **Frontend Interface**: `http://localhost:5173`
+- **Backend REST API**: `http://localhost:5000`
 
 ---
 
-## 📊 Comprehensive Evaluation Schema
+## 📊 Evaluation Schema & Candidate Dossier
 
-Every interview completed on IntervuOS generates a structured dossier:
+Every finished session generates a multidimensional evaluation report:
 
 ```json
 {
   "scores": {
-    "overall": 8.5,
+    "overall": 8.8,
     "technicalAccuracy": 9.0,
-    "communication": 8.0,
-    "problemSolving": 8.5,
-    "confidence": 8.5
+    "communication": 8.5,
+    "problemSolving": 8.8,
+    "confidence": 8.7
   },
   "recommendation": "STRONG_HIRE",
-  "summary": "Candidate demonstrated exceptional knowledge of Node.js event loop and Redis caching strategies.",
-  "strengths": ["Clear explanation of asynchronous I/O", "Strong understanding of memory caching"],
-  "areasForImprovement": ["Could elaborate more on distributed lock edge cases"],
+  "summary": "Candidate demonstrated strong understanding of React Virtual DOM performance and Redis in-memory session caching.",
+  "strengths": [
+    "Crisp, structured verbal explanations of asynchronous I/O",
+    "Solid grasp of database query optimization"
+  ],
+  "weaknesses": [
+    "Could elaborate deeper on distributed lock failure modes"
+  ],
   "questionBreakdown": [
     {
       "questionId": 1,
       "score": 9,
-      "feedback": "Accurate explanation of Redis HASH vs Key-Value storage."
+      "feedback": "Accurate explanation of virtual DOM diffing and batch updates."
     }
   ]
 }
@@ -336,26 +325,27 @@ Every interview completed on IntervuOS generates a structured dossier:
 
 ## 💳 Monetization & Credit Wallet Model
 
-| Tier | Credit Volume | Price Per Credit | Discount |
+| Tier | Credit Volume | Price Per Credit | Discount Rate |
 |---|---|---|---|
 | **Standard** | 1 – 49 Credits | ₹2.50 | Base Rate |
 | **Bulk Pack** | 50+ Credits | ₹1.80 | **28% OFF** |
 
-* Signup Bonus: **15 Free Credits** awarded to all new candidate accounts automatically.
+* **Signup Bonus**: 15 free interview credits automatically granted upon account creation.
 
 ---
 
-## 🔌 API Endpoints Reference
+## 🔌 API Reference
 
-### Interview & Redis API
-* `POST /api/interviews/:id/start` — Start session & seed Redis RAM cache (`aiRateLimiter`: 10/min)
-* `POST /api/interviews/:id/answer` — Submit answer & receive next adaptive question
-* `POST /api/interviews/:id/submit` — Submit interview & enqueue BullMQ evaluation job
-* `POST /api/upload/chunk` — Upload 2MB recording chunk
-* `GET /api/upload/status/:uploadId` — Query Redis upload status for resumption
+- `POST /api/interviews/:id/start` — Initialize interview session & seed Redis RAM cache.
+- `POST /api/interviews/:id/answer` — Submit candidate response & fetch next adaptive question.
+- `POST /api/interviews/:id/submit` — Submit interview & trigger background BullMQ evaluation.
+- `POST /api/voice/transcribe` — Convert candidate audio response to text via Groq Whisper.
+- `POST /api/voice/speak` — Synthesize TTS audio response.
+- `POST /api/upload/chunk` — Upload 2MB recording chunk.
+- `GET /api/upload/status/:uploadId` — Check upload resumption state.
 
 ---
 
 ## 🤝 Contributing & License
 
-Distributed under the **ISC License**. Built with ❤️ by the **IntervuOS Team**.
+Distributed under the **ISC License**. Designed and developed with ❤️ for the future of technical hiring.

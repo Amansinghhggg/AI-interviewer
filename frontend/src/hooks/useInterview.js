@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import api from "../services/api";
 import toast from "react-hot-toast";
 import { saveInterview, restoreInterview, clearInterview } from "../utils/localStorage.js";
@@ -164,14 +164,16 @@ export const useInterview = (id, navigate, user) => {
     });
   }, [id, currentIndex, answers, timeLeft, loading, isInterviewFinished, session]);
 
+  const isSubmittingRef = useRef(false);
+
   const handleNext = async (overrideAnswer) => {
     const currentQ = questions[currentIndex];
 
     if (isAi && currentIndex === questions.length - 1) {
       // It's an AI interview and we are on the latest question.
 
-      // Prevent duplicate submissions
-      if (isGenerating) {
+      // Prevent duplicate submissions via synchronous ref lock
+      if (isSubmittingRef.current || isGenerating) {
         runtimeDiagnostics("RecoveryStarted", { context: "DUPLICATE_SUBMISSION_PREVENTED" });
         return;
       }
@@ -183,6 +185,7 @@ export const useInterview = (id, navigate, user) => {
         return;
       }
 
+      isSubmittingRef.current = true;
       setIsGenerating(true);
       let submissionToastId = null;
 
@@ -231,6 +234,7 @@ export const useInterview = (id, navigate, user) => {
         if (submissionToastId) toast.dismiss(submissionToastId);
         toast.error(error.response?.data?.message || "Failed to generate next question after multiple attempts.");
       } finally {
+        isSubmittingRef.current = false;
         setIsGenerating(false);
       }
     } else {

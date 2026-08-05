@@ -130,10 +130,16 @@ export class QuestionPromptBuilder {
       .join(", ");
 
     let exchangeContext = "No previous exchanges.";
+    let askedQuestionsBlock = "None yet.";
+
     if (history.exchanges && history.exchanges.length > 0) {
       exchangeContext = history.exchanges.map((ex, i) =>
         `Q${i + 1} (${ex.difficulty || "Unknown"} | ${ex.topic || "Unknown"} | Concept: ${ex.concept || "Unknown"}): ${ex.question}\nAnswer: ${ex.answer || "(No answer provided)"}`
       ).join("\n\n");
+
+      askedQuestionsBlock = history.exchanges.map((ex, i) =>
+        `${i + 1}. "${ex.question}" (Topic: ${ex.topic || 'Unknown'}, Concept: ${ex.concept || 'Unknown'})`
+      ).join("\n");
     }
 
     return [
@@ -156,6 +162,11 @@ export class QuestionPromptBuilder {
       `Current Question Number: ${state.currentQuestion} out of ${state.maxQuestions}`,
       config.instructions ? `\n=== EMPLOYER CUSTOM INSTRUCTIONS (HIGHEST PRIORITY) ===\n${config.instructions}\n(These override every other rule below whenever there is a conflict.)` : "",
       ``,
+      `=== STRICT DO NOT REPEAT LIST (CRITICAL) ===`,
+      `The following questions have ALREADY been asked in this interview session.`,
+      `You MUST NOT ask any of these exact questions again, nor ask about the exact same concept unless explicitly following up on an incomplete answer:`,
+      askedQuestionsBlock,
+      ``,
       `=== PROGRESS & COVERAGE ===`,
       `Required Topics: ${topicsList}`,
       `Topic Distribution (Asked count): ${topicDistStr}`,
@@ -175,7 +186,7 @@ export class QuestionPromptBuilder {
       `=== HARD SCOPE & ADAPTATION RULES ===`,
       `1. Never infer technologies or focus areas from the employer's business name.`,
       `2. NEVER ask HR, company-culture, salary, or generic questions unless a Topic explicitly calls for it.`,
-      `3. NEVER repeat the exact same question.`,
+      `3. NEVER repeat any of the questions from the STRICT DO NOT REPEAT LIST above or rephrase them.`,
       `4. NEVER ask about the exact same concept twice, UNLESS you are deliberately going deeper with a follow-up based on their previous answer.`,
       `5. If a concept was already answered well, move to a different concept or topic rather than re-testing it.`,
       `6. Balance topic coverage: prioritize topics with the lowest coverage before revisiting heavily-covered ones.`,
@@ -243,18 +254,22 @@ export class QuestionPromptBuilder {
    */
   static #buildRealisticPhrasingGuidance() {
     return [
-      `=== SHORT, PUNCHY & DIRECT QUESTIONING (CRITICAL RULE) ===`,
-      `1. KEEP QUESTIONS CONCISE (MAX 15-20 WORDS):`,
-      `   - DO NOT write long-winded, wordy scenario paragraphs (e.g. AVOID: "How would you handle a situation where a user's session is expired, and they try to access a protected route in a web application using JavaScript?").`,
-      `   - INSTEAD, ask crisp, direct questions: "How do you handle protected routes when a user's session expires?" or "What is debouncing in JavaScript and when would you use it?".`,
+      `=== HIGH-FREQUENCY & VERBALLY ARTICULATED INTERVIEW QUESTIONS (CRITICAL) ===`,
+      `1. FOCUS ON HIGH-FREQUENCY & COMMON INTERVIEW QUESTIONS:`,
+      `   - Generate standard, high-value questions commonly asked in real 45-minute technical hiring interviews (e.g. Virtual DOM, useEffect vs useMemo, Closures, Event Loop, Debouncing vs Throttling, State Management trade-offs, Indexing in Databases, REST vs GraphQL, etc.).`,
+      `   - DO NOT generate obscure niche trivia, bizarre trick questions, or unsearchable edge cases that real interviewers rarely ask.`,
       ``,
-      `2. NATURAL MIX OF QUESTION TYPES:`,
-      `   - Fundamental Concepts: "What is [Concept/Tool]?", "How does [Mechanism] work under the hood?", "What is the difference between [X] and [Y]?"`,
-      `   - Practical Experience: "How do you handle [Task/State] in your applications?", "Walk me through how you implement [Feature]."`,
-      `   - Trade-offs: "What are the pros and cons of [Approach A] vs [Approach B]?"`,
+      `2. EASY TO EXPLAIN VERBALLY & OUT LOUD:`,
+      `   - Questions MUST be structured so a candidate can easily structure and articulate their spoken response in 60-120 seconds without needing a pen, paper, or code editor.`,
+      `   - Best Spoken Formats:`,
+      `     * Compare & Contrast: "What is the difference between [Concept X] and [Concept Y]?"`,
+      `     * Under-the-hood Mechanism: "How does [Feature] work under the hood in [Technology]?"`,
+      `     * When to Use / Trade-offs: "When would you use [Approach A] over [Approach B]?"`,
+      `     * Practical Strategy: "How do you handle [Common Scenario] in your applications?"`,
       ``,
-      `3. GROUND IN CANDIDATE SKILLS & ROLE:`,
-      `   - Match the question length and style to what real hiring managers ask out loud in spoken interviews.`,
+      `3. KEEP QUESTIONS SHORT, PUNCHY & DIRECT (MAX 12-20 WORDS):`,
+      `   - DO NOT write wordy, 4-sentence paragraph scenarios.`,
+      `   - Ask crisp, direct questions that sound natural when spoken out loud by an AI interviewer: e.g. "What is debouncing in JavaScript and when would you use it?" instead of long scenario setups.`,
       ``,
     ];
   }
