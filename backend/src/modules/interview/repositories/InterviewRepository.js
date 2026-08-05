@@ -64,6 +64,7 @@ class InterviewRepository {
     return interviews.map((interview) => {
       const candidateInfo = interview.assignedCandidates?.find(c => c.email === emailLower);
       delete interview.assignedCandidates;
+      delete interview.customQuestions; // Protect question bank from candidate Network tab inspection
       return {
         ...interview,
         candidateStatus: candidateInfo?.status || "Pending",

@@ -144,6 +144,7 @@ class InterviewService {
     return interviews.map(interview => {
       const candidateInfo = interview.assignedCandidates?.find(c => c.email === candidateEmail);
       delete interview.assignedCandidates; // Protect other candidates' data
+      delete interview.customQuestions; // Protect question bank from candidate Network tab inspection
       return {
         ...interview,
         candidateStatus: candidateInfo?.status || "Pending"
@@ -176,6 +177,7 @@ class InterviewService {
 
     const interviewData = interview.toObject();
     delete interviewData.assignedCandidates;
+    delete interviewData.customQuestions; // Protect question bank from candidate Network tab inspection
 
     if (!interviewData.interviewType) {
       interviewData.interviewType = process.env.QUESTION_PROVIDER || "gemini";

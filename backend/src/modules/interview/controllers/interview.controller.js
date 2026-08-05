@@ -75,9 +75,14 @@ const getInterviewById = async (req, res, next) => {
       });
     }
 
+    const interviewData = interview.toObject ? interview.toObject() : { ...interview };
+    if (req.user?.role === "candidate") {
+      delete interviewData.customQuestions;
+    }
+
     res.status(200).json({
       success: true,
-      interview,
+      interview: interviewData,
     });
   } catch (error) {
     next(error);
