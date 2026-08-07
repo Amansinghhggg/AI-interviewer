@@ -188,9 +188,9 @@ const EmployerDashboard = () => {
                       <tr className="border-b border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-highest)]/10">
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Campaign Title</th>
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Role</th>
-                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Experience</th>
+                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Verification</th>
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)]">Status</th>
-                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-center">Candidates</th>
+                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-center">Candidates / Cap</th>
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-on-surface-variant)] text-right">Actions</th>
                       </tr>
                     </thead>
@@ -208,7 +208,17 @@ const EmployerDashboard = () => {
                             </span>
                           </td>
                           <td className="py-4 px-6">
-                            <StatusBadge status="pending" customLabel={interview.experienceLevel} size="sm" />
+                            {interview.isVerified ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Verified — Accessible to candidates">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                Verified & Visible
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Pending Admin Review — Hidden from candidates">
+                                <ShieldAlert className="w-3.5 h-3.5" />
+                                Pending Verification
+                              </span>
+                            )}
                           </td>
                           <td className="py-4 px-6">
                             <StatusBadge status={interview.status} size="sm" />
@@ -216,7 +226,7 @@ const EmployerDashboard = () => {
                           <td className="py-4 px-6 text-center">
                             <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-[var(--color-surface-variant)]/50 rounded-full text-xs font-bold text-[var(--color-on-surface)]">
                               <Users className="w-3 h-3 text-[var(--color-on-surface-variant)]" />
-                              {interview.assignedCandidates?.length || 0}
+                              {interview.assignedCandidates?.length || 0} / {interview.maxCandidates || 10}
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">

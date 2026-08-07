@@ -21,6 +21,12 @@ const createInterview = async (req, res, next) => {
       });
     }
 
+    // Strip admin-only fields if sender is not an admin
+    if (req.user?.role !== "admin") {
+      delete req.body.isVerified;
+      delete req.body.maxCandidates;
+    }
+
     const validated = createInterviewSchema.parse(req.body);
     const interview = await interviewService.createInterview(req.user._id, validated);
 
@@ -76,6 +82,15 @@ const getInterviewById = async (req, res, next) => {
     }
 
     const interviewData = interview.toObject ? interview.toObject() : { ...interview };
+
+    // Strict Candidate Check: Candidate can ONLY see verified interviews
+    if (req.user?.role === "candidate" && interviewData.mode !== "MOCK" && !interviewData.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Interview is not verified by admin yet and is unavailable.",
+      });
+    }
+
     if (req.user?.role === "candidate") {
       delete interviewData.customQuestions;
     }
@@ -94,6 +109,12 @@ const getInterviewById = async (req, res, next) => {
 // @access  Employer only
 const updateInterview = async (req, res, next) => {
   try {
+    // Strip admin-only fields if sender is not an admin
+    if (req.user?.role !== "admin") {
+      delete req.body.isVerified;
+      delete req.body.maxCandidates;
+    }
+
     const validated = updateInterviewSchema.parse(req.body);
     const interview = await interviewService.updateInterview(req.params.id, req.user._id, validated);
 
@@ -186,6 +207,20 @@ const joinInterview = async (req, res, next) => {
       });
     }
 
+    if (error.message && error.message.includes("not verified")) {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message && error.message.includes("limit reached")) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     return res.status(404).json({
       success: false,
       message: "Interview not found or inactive",
@@ -272,6 +307,18 @@ const startInterview = async (req, res, next) => {
       message: "Interview started successfully.",
     });
   } catch (error) {
+    if (error.message === "interview_unverified") {
+      return res.status(403).json({
+        success: false,
+        message: "Interview campaign is not verified by Admin and cannot be started.",
+      });
+    }
+    if (error.message === "max_candidates_reached") {
+      return res.status(400).json({
+        success: false,
+        message: "Maximum candidate limit reached for this interview.",
+      });
+    }
     if (error.message === "not_found") {
       return res.status(404).json({
         success: false,

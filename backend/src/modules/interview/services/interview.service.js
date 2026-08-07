@@ -136,6 +136,7 @@ class InterviewService {
     const interviews = await Interview.find({
       "assignedCandidates.email": candidateEmail,
       status: { $in: ["active", "completed"] },
+      isVerified: true,
     })
       .populate("employer", "name")
       .sort({ createdAt: -1 })
@@ -162,11 +163,20 @@ class InterviewService {
       throw new Error("Interview not found or inactive");
     }
 
+    if (!interview.isVerified) {
+      throw new Error("Interview is not verified by admin yet and cannot be joined");
+    }
+
     const isAssigned = interview.assignedCandidates.some(
       (c) => c.email.toLowerCase() === candidateEmail.toLowerCase()
     );
 
     if (!isAssigned) {
+      if (interview.maxCandidates !== null && interview.maxCandidates !== undefined && interview.maxCandidates > 0) {
+        if (interview.assignedCandidates.length >= interview.maxCandidates) {
+          throw new Error(`Maximum candidate limit reached for this interview (Maximum: ${interview.maxCandidates})`);
+        }
+      }
       // Auto-enroll candidate if they have the code
       interview.assignedCandidates.push({
         email: candidateEmail,
@@ -194,6 +204,10 @@ class InterviewService {
       throw new Error("not_found");
     }
 
+    if (interview.mode !== "MOCK" && !interview.isVerified) {
+      throw new Error("interview_unverified");
+    }
+
     const emailLower = (candidateEmail || "").toLowerCase();
     interview.assignedCandidates = interview.assignedCandidates || [];
     const candidateIndex = interview.assignedCandidates.findIndex(
@@ -201,6 +215,11 @@ class InterviewService {
     );
 
     if (candidateIndex === -1) {
+      if (interview.maxCandidates !== null && interview.maxCandidates !== undefined && interview.maxCandidates > 0) {
+        if (interview.assignedCandidates.length >= interview.maxCandidates) {
+          throw new Error("max_candidates_reached");
+        }
+      }
       if (emailLower) {
         interview.assignedCandidates.push({ email: emailLower, status: "In Progress", joinedAt: new Date() });
         await interview.save();

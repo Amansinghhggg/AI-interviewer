@@ -19,7 +19,9 @@ import {
   Search,
   Sparkles,
   AlignLeft,
-  Play
+  Play,
+  ShieldCheck,
+  ShieldAlert
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -233,6 +235,36 @@ const InterviewDetailsPage = () => {
                     <Trash2 className="w-4 h-4 mr-2 shrink-0" />
                     Delete
                   </button>
+                </div>
+              </div>
+
+              {/* Admin Verification Alert Banner */}
+              <div className={`p-4 rounded-2xl border mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg transition-all ${
+                interview.isVerified
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    interview.isVerified ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+                  }`}>
+                    {interview.isVerified ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider">
+                      {interview.isVerified ? "Campaign Verified & Visible to Candidates" : "Pending Admin Verification (Hidden from Candidates)"}
+                    </h4>
+                    <p className="text-[11px] opacity-80 mt-0.5">
+                      {interview.isVerified
+                        ? "This campaign has been approved by Admin. Assigned candidates can view, join, and take this interview."
+                        : "This campaign is awaiting Admin verification. Assigned candidates cannot view or join this interview until approved."}
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 text-right self-end sm:self-center">
+                  <span className="text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-xl bg-black/30 border border-current">
+                    Capacity: {interview.assignedCandidates?.length || 0} / {interview.maxCandidates || 10} Candidates
+                  </span>
                 </div>
               </div>
 

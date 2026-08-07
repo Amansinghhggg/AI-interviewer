@@ -56,6 +56,7 @@ class InterviewRepository {
     const interviews = await Interview.find({
       "assignedCandidates.email": emailLower,
       status: { $in: ["active", "completed", "CREATED", "IN_PROGRESS", "COMPLETED"] },
+      isVerified: true,
     })
       .populate("employer", "name")
       .sort({ createdAt: -1 })

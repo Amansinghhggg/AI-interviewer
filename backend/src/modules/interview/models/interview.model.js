@@ -108,6 +108,14 @@ const interviewSchema = new mongoose.Schema(
         expectedDuration: { type: Number, default: 120 }
       }
     ],
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    maxCandidates: {
+      type: Number,
+      default: 10,
+    },
   },
   {
     timestamps: true,
@@ -117,6 +125,7 @@ const interviewSchema = new mongoose.Schema(
 // Index for faster queries
 interviewSchema.index({ employer: 1, status: 1 });
 interviewSchema.index({ "assignedCandidates.email": 1 });
+interviewSchema.index({ "assignedCandidates.email": 1, isVerified: 1 });
 
 const Interview = mongoose.model("Interview", interviewSchema);
 export default Interview;

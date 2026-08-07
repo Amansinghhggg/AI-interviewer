@@ -485,3 +485,48 @@ export const getCampaigns = async (req, res, next) => {
   }
 };
 
+// @desc    Admin update interview verification (isVerified) and max candidates limit (maxCandidates)
+// @route   PATCH /api/admin/campaigns/:id
+// @access  Private (Admin)
+export const updateCampaignControls = async (req, res, next) => {
+  try {
+    const { isVerified, maxCandidates } = req.body;
+    const updates = {};
+
+    if (typeof isVerified === "boolean") {
+      updates.isVerified = isVerified;
+    }
+
+    if (maxCandidates !== undefined) {
+      if (maxCandidates === null || maxCandidates === "" || maxCandidates === "unlimited") {
+        updates.maxCandidates = null;
+      } else {
+        const parsed = parseInt(maxCandidates, 10);
+        updates.maxCandidates = isNaN(parsed) || parsed <= 0 ? null : parsed;
+      }
+    }
+
+    const campaign = await Interview.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate("employer", "name email profilePicture isVerified");
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Interview campaign not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Campaign admin controls updated successfully",
+      campaign,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+

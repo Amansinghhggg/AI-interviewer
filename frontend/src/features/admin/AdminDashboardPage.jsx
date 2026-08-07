@@ -132,6 +132,24 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Update campaign controls (isVerified / maxCandidates)
+  const handleUpdateCampaignControls = async (campaignId, payload) => {
+    try {
+      const res = await adminService.updateCampaign(campaignId, payload);
+      if (res.success) {
+        toast.success(res.message || "Campaign updated successfully");
+        setCampaigns((prev) =>
+          prev.map((c) => (c._id === campaignId ? { ...c, ...res.campaign } : c))
+        );
+        if (selectedCampaign && selectedCampaign._id === campaignId) {
+          setSelectedCampaign((prev) => ({ ...prev, ...res.campaign }));
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update campaign controls");
+    }
+  };
+
   // Fetch Mock Attempts
   const fetchMockAttempts = async () => {
     try {
@@ -733,15 +751,29 @@ export default function AdminDashboardPage() {
                       <span className="text-[10px] font-mono font-bold text-purple-300 bg-purple-500/20 px-2.5 py-0.5 rounded border border-purple-500/30">
                         {camp.interviewCode}
                       </span>
-                      <span className={`px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full border ${
-                        camp.status === "active"
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                          : camp.status === "completed"
-                          ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
-                          : "bg-slate-500/20 text-slate-400 border-slate-500/30"
-                      }`}>
-                        {camp.status}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleUpdateCampaignControls(camp._id, { isVerified: !camp.isVerified })}
+                          className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-full border transition-all flex items-center gap-1 ${
+                            camp.isVerified
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-rose-500/20 hover:text-rose-300"
+                              : "bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-emerald-500/20 hover:text-emerald-300"
+                          }`}
+                          title={camp.isVerified ? "Verified — Click to revoke candidate access" : "Unverified — Click to verify & make visible to candidates"}
+                        >
+                          {camp.isVerified ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                          {camp.isVerified ? "Verified" : "Unverified"}
+                        </button>
+                        <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-full border ${
+                          camp.status === "active"
+                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                            : camp.status === "completed"
+                            ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+                            : "bg-slate-500/20 text-slate-400 border-slate-500/30"
+                        }`}>
+                          {camp.status}
+                        </span>
+                      </div>
                     </div>
 
                     <div>
@@ -763,8 +795,10 @@ export default function AdminDashboardPage() {
                         <span className="font-bold text-slate-200 text-xs">{camp.experienceLevel || "N/A"}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Candidates</span>
-                        <span className="font-bold text-purple-300 text-xs">{camp.assignedCandidates?.length || 0}</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Capacity</span>
+                        <span className="font-bold text-purple-300 text-xs">
+                          {camp.assignedCandidates?.length || 0} / {camp.maxCandidates ? camp.maxCandidates : "∞"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -795,6 +829,64 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-4 text-xs text-slate-300">
+                  {/* Admin Control Settings Panel */}
+                  <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 space-y-4 shadow-inner">
+                    <h4 className="font-bold text-purple-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-purple-400" /> Admin Campaign Controls
+                    </h4>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold text-white">Verification Status</p>
+                        <p className="text-[10px] text-slate-400">
+                          {selectedCampaign.isVerified
+                            ? "Verified — Visible and accessible to assigned candidates."
+                            : "Unverified — Hidden from candidates until verified by Admin."}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleUpdateCampaignControls(selectedCampaign._id, { isVerified: !selectedCampaign.isVerified })}
+                        className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 ${
+                          selectedCampaign.isVerified
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-rose-500/20 hover:text-rose-300"
+                            : "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-emerald-500/20 hover:text-emerald-300"
+                        }`}
+                      >
+                        {selectedCampaign.isVerified ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                        {selectedCampaign.isVerified ? "Verified (Click to Unverify)" : "Unverified (Click to Verify)"}
+                      </button>
+                    </div>
+
+                    <div className="pt-3 border-t border-purple-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold text-white">Maximum Candidates Limit</p>
+                        <p className="text-[10px] text-slate-400">
+                          Enrolled: <strong className="text-purple-300">{selectedCampaign.assignedCandidates?.length || 0}</strong> • Limit: <strong className="text-purple-300">{selectedCampaign.maxCandidates || "Unlimited"}</strong>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          placeholder="Unlimited"
+                          min="1"
+                          defaultValue={selectedCampaign.maxCandidates || ""}
+                          id={`max-candidates-input-${selectedCampaign._id}`}
+                          className="w-28 px-3 py-1.5 rounded-xl bg-purple-950/60 border border-purple-500/30 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-400"
+                        />
+                        <button
+                          onClick={() => {
+                            const inputEl = document.getElementById(`max-candidates-input-${selectedCampaign._id}`);
+                            const val = inputEl ? inputEl.value : "";
+                            handleUpdateCampaignControls(selectedCampaign._id, { maxCandidates: val });
+                          }}
+                          className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-purple-600 hover:bg-purple-500 text-white rounded-xl transition-all flex items-center gap-1 shadow-md"
+                        >
+                          <Save className="w-3.5 h-3.5" /> Save Limit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/20 space-y-2">
                     <h4 className="font-bold text-purple-300 uppercase tracking-wider text-[10px]">Description & Details</h4>
                     <p className="text-slate-200">{selectedCampaign.description || "No description provided."}</p>
